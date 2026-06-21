@@ -15,19 +15,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $userId = $_SESSION['user_id'];
     
     try {
-        // Create FOLLOWERS table if it doesn't exist
-        $createTable = "
-            CREATE TABLE IF NOT EXISTS FOLLOWERS (
-               ID INTEGER NOT NULL AUTO_INCREMENT,
-               USER_ID INTEGER NOT NULL,
-               FOLLOWER_ID INTEGER NOT NULL,
-               FOLLOWED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-               PRIMARY KEY (ID),
-               UNIQUE KEY unique_follow (USER_ID, FOLLOWER_ID)
-            )
-        ";
-        $pdo->exec($createTable);
-
         // Check if already following
         $checkStmt = $pdo->prepare("SELECT * FROM FOLLOWERS WHERE USER_ID = ? AND FOLLOWER_ID = ?");
         $checkStmt->execute([$chefId, $userId]);

@@ -103,6 +103,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_recipe'])) {
             }
         }
         
+        // Notify followers of new recipe
+        notifyFollowersNewRecipe($pdo, $recipeId, $userId);
+        
         // Commit transaction
         $pdo->commit();
         

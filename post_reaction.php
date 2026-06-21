@@ -1,6 +1,7 @@
 <?php
 // Include the database connection script
 require_once 'config/config.php';
+require_once 'notification_utils.php';
 
 // Start the session to manage user data
 session_start();
@@ -88,6 +89,8 @@ function addReaction($pdo, $userId, &$response) {
         $existingReaction->execute([$postId, $userId]);
         $existing = $existingReaction->fetch(PDO::FETCH_ASSOC);
         
+        $shouldNotify = false;
+        
         if ($existing) {
             if ($existing['REACTION_TYPE'] === $reactionType) {
                 // Same reaction - remove it (toggle behavior)
@@ -102,6 +105,7 @@ function addReaction($pdo, $userId, &$response) {
                 $response['message'] = 'Reaction updated successfully';
                 $response['action_type'] = 'updated';
                 $response['old_reaction'] = $existing['REACTION_TYPE'];
+                $shouldNotify = true;
             }
         } else {
             // Insert new reaction
@@ -109,6 +113,12 @@ function addReaction($pdo, $userId, &$response) {
             $insertStmt->execute([$postId, $userId, $reactionType, $reactionEmoji]);
             $response['message'] = 'Reaction added successfully';
             $response['action_type'] = 'added';
+            $shouldNotify = true;
+        }
+        
+        // Trigger notification if reaction added or updated
+        if ($shouldNotify) {
+            notifyPostReaction($pdo, $postId, $userId, $reactionType);
         }
         
         // Get updated reaction counts

@@ -1,6 +1,7 @@
 <?php
 // comments.php - Enhanced Comment System Handler with Comment Reactions and Pagination
 require_once 'config/config.php';
+require_once 'notification_utils.php';
 session_start();
 
 // Check if user is logged in
@@ -34,6 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $stmt = $pdo->prepare("INSERT INTO COMMENTS (POST_ID, USER_ID, COMMENT_TEXT) VALUES (?, ?, ?)");
                 $stmt->execute([$postId, $userId, $commentText]);
+                
+                // Trigger notification for the post owner
+                notifyPostComment($pdo, $postId, $userId, $commentText);
                 
                 $response['success'] = true;
                 $response['message'] = 'Comment added successfully';
