@@ -6,7 +6,7 @@
 
             <div class="comment-form">
                 <div class="comment-input-container">
-                    <img src="${document.querySelector('.profile-avatar img')?.src || 'images/default-profile.png'}" alt="Your avatar" class="comment-avatar">
+                    <img src="${document.querySelector('.profile-avatar img')?.src || 'https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg'}" alt="Your avatar" class="comment-avatar">
                     <textarea
                         id="commentInput"
                         class="comment-input"
@@ -541,7 +541,7 @@ if (!users || users.length === 0) {
 
 let html = '';
 users.forEach((user) => {
-    const userImage = user.PROFILE_IMAGE || 'images/default-profile.png';
+    const userImage = user.PROFILE_IMAGE || 'https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg';
     const reactionTime = formatReactionTime(user.CREATED_AT);
     const reactionType = user.REACTION_TYPE?.charAt(0).toUpperCase() + user.REACTION_TYPE?.slice(1) || 'Like';
     const reactionEmoji = user.REACTION_EMOJI || '👍';
@@ -552,7 +552,7 @@ users.forEach((user) => {
                  alt="${user.NAME || 'User'}" 
                  class="reaction-user-avatar" 
                  style="width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; object-fit: cover; border: 2px solid #f0f0f0; transition: all 0.2s ease;"
-                 onerror="this.src='images/default-profile.png'">
+                 onerror="this.src='https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg'">
             <div class="reaction-user-info" style="flex: 1;">
                 <div class="reaction-user-name" style="font-weight: 600; margin-bottom: 5px; color: #333; font-size: 16px;">
                     ${user.NAME || 'Unknown User'}

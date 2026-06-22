@@ -3,6 +3,7 @@
 require_once 'config/config.php';
 // Start the session to manage user data
 session_start();
+csrf_verify(); // CSRF: reject forged state-changing POSTs
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -85,6 +86,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_image'])) {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+    <meta name="csrf-token" content="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES); ?>">
+    <script src="<?php echo asset('assets/js/csrf.js'); ?>"></script>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Feedora - Set up your profile">
   <meta name="theme-color" content="#ED5A2C">
@@ -92,168 +96,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_image'])) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="fonts.css">
-  <link rel="stylesheet" href="Home.css">
+  <link rel="stylesheet" href="<?php echo asset('fonts.css'); ?>">
+  <link rel="stylesheet" href="<?php echo asset('Home.css'); ?>">
   <!-- Favicon -->
-  <link rel="icon" href="images/Frame 1171277973.svg" type="image/svg+xml">
-  <style>
-    /* Additional styles specific to the profile page */
-    .profile-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background-color: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
-      padding: 40px;
-      margin: 40px auto;
-      max-width: 600px;
-    }
-    
-    .profile-title {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-      color: #333;
-      font-family: 'DM Serif Display', serif;
-      text-align: center;
-    }
-    
-    .profile-subtitle {
-      color: #666;
-      margin-bottom: 30px;
-      text-align: center;
-    }
-    
-    .profile-image-container {
-      width: 150px;
-      height: 150px;
-      border-radius: 50%;
-      overflow: hidden;
-      margin-bottom: 20px;
-      border: 3px solid var(--primary-color);
-      position: relative;
-    }
-    
-    .profile-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    
-    .profile-placeholder {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #f5f5f5;
-      color: #999;
-      font-size: 3rem;
-    }
-    
-    .profile-form {
-      width: 100%;
-      max-width: 400px;
-    }
-    
-    .file-input-container {
-      position: relative;
-      margin-bottom: 20px;
-      width: 100%;
-    }
-    
-    .file-input {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      cursor: pointer;
-      z-index: 2;
-    }
-    
-    .file-input-label {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px 24px;
-      background-color: #f5f5f5;
-      border: 2px dashed #ddd;
-      border-radius: 8px;
-      color: #666;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .file-input-label:hover {
-      border-color: var(--primary-color);
-      color: var(--primary-color);
-    }
-    
-    .file-name {
-      margin-top: 8px;
-      font-size: 14px;
-      color: #666;
-      text-align: center;
-    }
-    
-    .submit-button {
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 24px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background-color 0.3s;
-      width: 100%;
-      margin-top: 20px;
-    }
-    
-    .submit-button:hover {
-      background-color: #d94e20;
-    }
-    
-    .skip-link {
-      margin-top: 20px;
-      color: #666;
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.3s;
-    }
-    
-    .skip-link:hover {
-      color: var(--primary-color);
-      text-decoration: underline;
-    }
-    
-    .message {
-      margin-top: 20px;
-      padding: 10px;
-      border-radius: 5px;
-      width: 100%;
-      text-align: center;
-    }
-    
-    .success-message {
-      background-color: #e8f8f5;
-      color: #2ecc71;
-    }
-    
-    .error-message {
-      background-color: #fdecea;
-      color: #e74c3c;
-    }
-  </style>
+  <link rel="icon" href="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090013/feedora/assets/Frame-1171277973-svg.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="<?php echo asset('assets/css/profile.css'); ?>">
 </head>
 <body>
   <!-- Loading Screen -->
   <div id="loading-screen" aria-hidden="true">
     <div class="loader-container">
-      <img src="images/Pizza (8).png" alt="Loading" class="loader-image">
+      <img src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090050/feedora/assets/Pizza-8-webp.webp" alt="Loading" class="loader-image">
     </div>
     <p class="visually-hidden">Loading Feedora</p>
   </div>
@@ -261,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_image'])) {
   <header>
     <div class="logo-container">
       <div class="logo-icon">
-        <img src="images/Feedora-logo.svg" alt="Feedora Icon">
+        <a href="Home.php" aria-label="Go to Feedora home" class="logo-link"><img src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089973/feedora/assets/Feedora-logo-svg.svg" alt="Feedora Icon"></a>
       </div>
     </div>
 
@@ -314,6 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_image'])) {
       <?php endif; ?>
       
       <form action="profile.php" method="POST" enctype="multipart/form-data" class="profile-form">
+          <?php echo csrf_field(); ?>
         <div class="file-input-container">
           <input type="file" name="profile_image" id="profile_image" class="file-input" accept="image/*" onchange="updateFileName(this)">
           <label for="profile_image" class="file-input-label">
@@ -339,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_image'])) {
     <div class="footer-container">
       <div class="footer-logo-section">
         <div class="footer-logo">
-          <img src="images/Feedora-logo.svg" alt="Feedora Logo" class="footer-logo-img">
+          <img src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089973/feedora/assets/Feedora-logo-svg.svg" alt="Feedora Logo" class="footer-logo-img">
         </div>
         <p class="footer-description">Feedora is a platform for cooking lovers to share, learn, and connect.</p>
         <div class="footer-social">
@@ -385,29 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_image'])) {
     </div>
   </footer>
   
-  <script src="Home.js"></script>
-  <script>
-    function updateFileName(input) {
-      const fileName = input.files[0] ? input.files[0].name : 'No file chosen';
-      document.getElementById('file-name').textContent = fileName;
-      
-      // Preview image if selected
-      if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const profileContainer = document.querySelector('.profile-image-container');
-          
-          // Check if there's already an image or placeholder
-          if (profileContainer.querySelector('.profile-image')) {
-            profileContainer.querySelector('.profile-image').src = e.target.result;
-          } else if (profileContainer.querySelector('.profile-placeholder')) {
-            // Remove placeholder and add image
-            profileContainer.innerHTML = '<img src="' + e.target.result + '" alt="Profile Image" class="profile-image">';
-          }
-        };
-        reader.readAsDataURL(input.files[0]);
-      }
-    }
-  </script>
+  <script src="<?php echo asset('Home.js'); ?>" defer></script>
+    <script src="<?php echo asset('assets/js/profile.js'); ?>" defer></script>
 </body>
 </html>

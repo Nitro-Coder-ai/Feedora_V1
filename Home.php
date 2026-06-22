@@ -6,24 +6,45 @@ require_once 'config/config.php'; // Include the database connection script
 
 <head>
   <meta charset="UTF-8">
+    <meta name="csrf-token" content="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES); ?>">
+    <script src="<?php echo asset('assets/js/csrf.js'); ?>"></script>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Mark JS-enabled before first paint so scroll-reveal hides sections without FOUC -->
+  <script>document.documentElement.classList.add('fd-js');</script>
   <meta name="description" content="Feedora - Discover, Cook & Share delicious recipes from around the world">
   <meta name="theme-color" content="#ED5A2C">
   <title>Feedora - Discover, Cook & Share</title>
+
+  <!-- Open Graph / social share cards -->
+  <?php $homeBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost'); ?>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Feedora - Discover, Cook & Share">
+  <meta property="og:description" content="Discover, cook & share delicious recipes from around the world on Feedora.">
+  <meta property="og:image" content="<?php echo htmlspecialchars('https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090050/feedora/assets/Pizza-8-webp.webp', ENT_QUOTES); ?>">
+  <meta property="og:url" content="<?php echo htmlspecialchars($homeBaseUrl . '/Home.php', ENT_QUOTES); ?>">
+  <meta property="og:site_name" content="Feedora">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Feedora - Discover, Cook & Share">
+  <meta name="twitter:description" content="Discover, cook & share delicious recipes from around the world on Feedora.">
+  <meta name="twitter:image" content="<?php echo htmlspecialchars('https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090050/feedora/assets/Pizza-8-webp.webp', ENT_QUOTES); ?>">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="fonts.css">
-  <link rel="stylesheet" href="Home.css">
+  <link rel="stylesheet" href="<?php echo asset('fonts.css'); ?>">
+  <link rel="stylesheet" href="<?php echo asset('Home.css'); ?>">
+  <link rel="stylesheet" href="<?php echo asset('assets/css/search.css'); ?>">
+  <link rel="stylesheet" href="<?php echo asset('assets/css/scroll-fx.css'); ?>">
   <!-- Favicon -->
-  <link rel="icon" href="images/Frame 1171277973.svg" type="image/svg+xml">
+  <link rel="icon" href="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090013/feedora/assets/Frame-1171277973-svg.svg" type="image/svg+xml">
 </head>
 
 <body>
   <!-- Loading Screen -->
   <div id="loading-screen" aria-hidden="true">
     <div class="loader-container">
-      <img src="images/Pizza (8).png" alt="Loading" class="loader-image">
+      <img src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090050/feedora/assets/Pizza-8-webp.webp" alt="Loading" class="loader-image">
     </div>
     <p class="visually-hidden">Loading Feedora</p>
   </div>
@@ -56,7 +77,7 @@ require_once 'config/config.php'; // Include the database connection script
   <header>
     <div class="logo-container">
       <div class="logo-icon">
-        <img src="images/Feedora-logo.svg" alt="Feedora Icon">
+        <a href="Home.php" aria-label="Go to Feedora home" class="logo-link"><img src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089973/feedora/assets/Feedora-logo-svg.svg" alt="Feedora Icon"></a>
       </div>
     </div>
 
@@ -97,7 +118,7 @@ require_once 'config/config.php'; // Include the database connection script
     <div class="mobile-nav mobile-menu" id="mobileNav" aria-hidden="true">
       <div class="mobile-nav-header">
         <div class="logo-container">
-          <img src="images/Feedora-logo.svg" alt="Feedora Icon" class="mobile-logo">
+          <img src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089973/feedora/assets/Feedora-logo-svg.svg" alt="Feedora Icon" class="mobile-logo">
         </div>
         <button class="close-menu-button" aria-label="Close menu">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -138,11 +159,11 @@ require_once 'config/config.php'; // Include the database connection script
             Discover, Cook
             <span class="hero-ampersand">&</span> Share
             <span class="hero-subtitle">Best Recipes</span>
-            <img src="images/Frame 1171277973.svg" alt="Decorative Icon" class="title-icon">
+            <img src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090013/feedora/assets/Frame-1171277973-svg.svg" alt="Decorative Icon" class="title-icon">
           </h1>
           <div class="hero-bottom-content">
             <div class="pizza-container">
-              <img src="images/Pizza (8).png" alt="Pizza" class="pizza-image">
+              <img src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090050/feedora/assets/Pizza-8-webp.webp" alt="Pizza" class="pizza-image">
             </div>
             <div class="content-box">
               <p class="hero-description">Join our cooking community and master new recipes every day.</p>
@@ -154,7 +175,7 @@ require_once 'config/config.php'; // Include the database connection script
           </div>
         </div>
         <div class="hero-image-container">
-          <img src="images/Food Recipe.svg" alt="Food Recipe Illustration" class="hero-image">
+          <img src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089996/feedora/assets/Food-Recipe-svg.svg" alt="Food Recipe Illustration" class="hero-image">
         </div>
       </div>
     </section>
@@ -164,7 +185,7 @@ require_once 'config/config.php'; // Include the database connection script
         <div class="recipe-header">
           <div class="recipe-title-container">
             <h2 class="recipe-title">Recipe Of The Week</h2>
-            <img src="images/Frame 1171277973.svg" alt="Decorative Icon" class="recipe-accent-icon">
+            <img src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090013/feedora/assets/Frame-1171277973-svg.svg" alt="Decorative Icon" class="recipe-accent-icon">
           </div>
           <p class="recipe-description">Our top pick this week—an inspired dish that's simple to make, bursting with flavor, and sure to impress at your next meal.</p>
         </div>
@@ -175,7 +196,7 @@ require_once 'config/config.php'; // Include the database connection script
             <div class="recipe-card">
               <div class="recipe-number">1</div>
               <div class="recipe-image-container">
-                <img src="images/Rfissa+Express+-6.jpg" alt="Rfissa Express" class="recipe-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090063/feedora/assets/Rfissa-Express-6-webp.webp" alt="Rfissa Express" class="recipe-image">
               </div>
               <h3 class="recipe-card-title">Rfissa Express – Fragrant chicken and lentils with papardelle</h3>
             </div>
@@ -184,7 +205,7 @@ require_once 'config/config.php'; // Include the database connection script
             <div class="recipe-card">
               <div class="recipe-number">2</div>
               <div class="recipe-image-container">
-                <img src="images/zaalouk+dip.jpg" alt="Zaalouk Dip" class="recipe-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090138/feedora/assets/zaalouk-dip-webp.webp" alt="Zaalouk Dip" class="recipe-image">
               </div>
               <h3 class="recipe-card-title">Zaalouk Dip</h3>
             </div>
@@ -193,7 +214,7 @@ require_once 'config/config.php'; // Include the database connection script
             <div class="recipe-card">
               <div class="recipe-number">3</div>
               <div class="recipe-image-container">
-                <img src="images/apple+baghrir_-7.jpg" alt="Baghrir pancakes" class="recipe-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090081/feedora/assets/apple-baghrir_-7-webp.webp" alt="Baghrir pancakes" class="recipe-image">
               </div>
               <h3 class="recipe-card-title">Baghrir pancakes with brown butter spiced apples</h3>
             </div>
@@ -202,7 +223,7 @@ require_once 'config/config.php'; // Include the database connection script
             <div class="recipe-card">
               <div class="recipe-number">4</div>
               <div class="recipe-image-container">
-                <img src="images/image-asset.jpeg" alt="Chocolate and Almond Ghriba" class="recipe-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090101/feedora/assets/image-asset-webp.webp" alt="Chocolate and Almond Ghriba" class="recipe-image">
               </div>
               <h3 class="recipe-card-title">Chocolate and Almond Ghriba</h3>
             </div>
@@ -237,7 +258,7 @@ require_once 'config/config.php'; // Include the database connection script
         <div class="live-cooking-header">
           <div class="live-title-container">
             <h2 class="live-title">Live Cooking Sessions</h2>
-            <img src="images/Frame 1171277973.svg" alt="Decorative Icon" class="live-accent-icon">
+            <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090013/feedora/assets/Frame-1171277973-svg.svg" alt="Decorative Icon" class="live-accent-icon">
           </div>
           <p class="live-description">Join our expert chefs in real time—catch the next session's countdown, reserve your spot, and never miss a moment of hands-on culinary action.</p>
         </div>
@@ -253,7 +274,7 @@ require_once 'config/config.php'; // Include the database connection script
             <!-- Live Session 1 -->
             <div class="live-card">
               <div class="live-image-container">
-                <img src="images/Firefly_-imagine https---contais3.s3.amazonaws.com-public-original_images-vZcXwLUkGj0T1r4et6K 275575.jpg" alt="Crispy Fried Chicken" class="live-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089993/feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-vZcXwLUkGj0T1r4et6K-275575-webp.webp" alt="Crispy Fried Chicken" class="live-image">
                 <div class="live-badge">
                   <span class="live-indicator"></span>
                   Live
@@ -268,7 +289,7 @@ require_once 'config/config.php'; // Include the database connection script
               </div>
               <h3 class="live-card-title">How To make easy Crispy Fried Chicken</h3>
               <div class="chef-info">
-                <img src="images/Cooking_1.svg" alt="Chef Gordon Ra" class="chef-avatar">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089874/feedora/assets/Cooking_1-svg.svg" alt="Chef Gordon Ra" class="chef-avatar">
                 <div class="chef-details">
                   <span class="chef-name">Gordon Ra</span>
                   <span class="chef-title">Chef</span>
@@ -279,7 +300,7 @@ require_once 'config/config.php'; // Include the database connection script
             <!-- Live Session 2 -->
             <div class="live-card">
               <div class="live-image-container">
-                <img src="images/Firefly_-imagine https---contais3.s3.amazonaws.com-public-original_images-7EqeUk5bLytzTvFhI0e 747404.jpg" alt="Pineapple Strainer Cocktail" class="live-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089986/feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-7EqeUk5bLytzTvFhI0e-747404-webp.webp" alt="Pineapple Strainer Cocktail" class="live-image">
                 <div class="live-badge">
                   <span class="live-indicator"></span>
                   Live
@@ -294,7 +315,7 @@ require_once 'config/config.php'; // Include the database connection script
               </div>
               <h3 class="live-card-title">How to make Pineapple Strainer Cocktail</h3>
               <div class="chef-info">
-                <img src="images/Cooking_5.svg" alt="Chef Quique" class="chef-avatar">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089938/feedora/assets/Cooking_5-svg.svg" alt="Chef Quique" class="chef-avatar">
                 <div class="chef-details">
                   <span class="chef-name">Quique</span>
                   <span class="chef-title">Chef</span>
@@ -305,7 +326,7 @@ require_once 'config/config.php'; // Include the database connection script
             <!-- Live Session 3 -->
             <div class="live-card">
               <div class="live-image-container">
-                <img src="images/UaaovMo6khVpYfMleLpa0VBhoiQQAHCMBozIHx7x.jpg" alt="Quick and Easy Chicken Spaghetti" class="live-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090068/feedora/assets/UaaovMo6khVpYfMleLpa0VBhoiQQAHCMBozIHx7x-webp.webp" alt="Quick and Easy Chicken Spaghetti" class="live-image">
                 <div class="live-badge">
                   <span class="live-indicator"></span>
                   Live
@@ -320,7 +341,7 @@ require_once 'config/config.php'; // Include the database connection script
               </div>
               <h3 class="live-card-title">How to make easy Quick and Easy Chicken Spaghetti</h3>
               <div class="chef-info">
-                <img src="images/Cooking_9.svg" alt="Chef Yannick" class="chef-avatar">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089963/feedora/assets/Cooking_9-svg.svg" alt="Chef Yannick" class="chef-avatar">
                 <div class="chef-details">
                   <span class="chef-name">Yannick</span>
                   <span class="chef-title">Chef</span>
@@ -331,7 +352,7 @@ require_once 'config/config.php'; // Include the database connection script
             <!-- Live Session 4 -->
             <div class="live-card">
               <div class="live-image-container">
-                <img src="images/AlucLNmdregb2ySpPUfyut4HuPvF2BGTaDPsI7MW.jpg" alt="Georgia Pot Roast" class="live-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089827/feedora/assets/AlucLNmdregb2ySpPUfyut4HuPvF2BGTaDPsI7MW-webp.webp" alt="Georgia Pot Roast" class="live-image">
                 <div class="live-badge">
                   <span class="live-indicator"></span>
                   Live
@@ -346,7 +367,7 @@ require_once 'config/config.php'; // Include the database connection script
               </div>
               <h3 class="live-card-title">How to make Georgia Pot Roast</h3>
               <div class="chef-info">
-                <img src="images/Cooking_12.svg" alt="Chef Knuckles" class="chef-avatar">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089896/feedora/assets/Cooking_12-svg.svg" alt="Chef Knuckles" class="chef-avatar">
                 <div class="chef-details">
                   <span class="chef-name">Knuckles</span>
                   <span class="chef-title">Chef</span>
@@ -357,7 +378,7 @@ require_once 'config/config.php'; // Include the database connection script
             <!-- Live Session 5 -->
             <div class="live-card">
               <div class="live-image-container">
-                <img src="images/9xk2WYdTHkOkRaClvqi16bf28I9adxogVmfFjxnY.jpg" alt="Yummy Sweet Potato Casserole" class="live-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089822/feedora/assets/9xk2WYdTHkOkRaClvqi16bf28I9adxogVmfFjxnY-webp.webp" alt="Yummy Sweet Potato Casserole" class="live-image">
                 <div class="live-badge">
                   <span class="live-indicator"></span>
                   Live
@@ -372,7 +393,7 @@ require_once 'config/config.php'; // Include the database connection script
               </div>
               <h3 class="live-card-title">How to make Yummy Sweet Potato Casserole</h3>
               <div class="chef-info">
-                <img src="images/Cooking_10.svg" alt="Chef Quique" class="chef-avatar">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089886/feedora/assets/Cooking_10-svg.svg" alt="Chef Quique" class="chef-avatar">
                 <div class="chef-details">
                   <span class="chef-name">Quique</span>
                   <span class="chef-title">Chef</span>
@@ -386,7 +407,7 @@ require_once 'config/config.php'; // Include the database connection script
             <!-- Upcoming Session 1 -->
             <div class="live-card">
               <div class="live-image-container">
-                <img src="images/apple+baghrir_-7.jpg" alt="Baghrir Pancakes" class="live-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090081/feedora/assets/apple-baghrir_-7-webp.webp" alt="Baghrir Pancakes" class="live-image">
                 <div class="upcoming-badge">
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
@@ -397,7 +418,7 @@ require_once 'config/config.php'; // Include the database connection script
               </div>
               <h3 class="live-card-title">Baghrir Pancakes with Brown Butter Spiced Apples</h3>
               <div class="chef-info">
-                <img src="images/Cooking_12.svg" alt="Chef Knuckles" class="chef-avatar">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089896/feedora/assets/Cooking_12-svg.svg" alt="Chef Knuckles" class="chef-avatar">
                 <div class="chef-details">
                   <span class="chef-name">Knuckles</span>
                   <span class="chef-title">Chef</span>
@@ -408,7 +429,7 @@ require_once 'config/config.php'; // Include the database connection script
             <!-- Upcoming Session 2 -->
             <div class="live-card">
               <div class="live-image-container">
-                <img src="images/bEeEOjt3fCQGMuYywteM8WNsM7EdOWIeToNisZgy.jpg" alt="Moroccan Tagine" class="live-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090086/feedora/assets/bEeEOjt3fCQGMuYywteM8WNsM7EdOWIeToNisZgy-webp.webp" alt="Moroccan Tagine" class="live-image">
                 <div class="upcoming-badge">
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
@@ -419,7 +440,7 @@ require_once 'config/config.php'; // Include the database connection script
               </div>
               <h3 class="live-card-title">Authentic Moroccan Tagine with Preserved Lemons</h3>
               <div class="chef-info">
-                <img src="images/Cooking_11.svg" alt="Chef Maria" class="chef-avatar">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089891/feedora/assets/Cooking_11-svg.svg" alt="Chef Maria" class="chef-avatar">
                 <div class="chef-details">
                   <span class="chef-name">Maria</span>
                   <span class="chef-title">Chef</span>
@@ -430,7 +451,7 @@ require_once 'config/config.php'; // Include the database connection script
             <!-- Upcoming Session 3 -->
             <div class="live-card">
               <div class="live-image-container">
-                <img src="images/zaalouk+dip.jpg" alt="Zaalouk Dip" class="live-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090138/feedora/assets/zaalouk-dip-webp.webp" alt="Zaalouk Dip" class="live-image">
                 <div class="upcoming-badge">
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
@@ -441,7 +462,7 @@ require_once 'config/config.php'; // Include the database connection script
               </div>
               <h3 class="live-card-title">Zaalouk Dip and Moroccan Mezze Platter</h3>
               <div class="chef-info">
-                <img src="images/Cooking_9.svg" alt="Chef Yannick" class="chef-avatar">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089963/feedora/assets/Cooking_9-svg.svg" alt="Chef Yannick" class="chef-avatar">
                 <div class="chef-details">
                   <span class="chef-name">Yannick</span>
                   <span class="chef-title">Chef</span>
@@ -452,7 +473,7 @@ require_once 'config/config.php'; // Include the database connection script
             <!-- Upcoming Session 4 -->
             <div class="live-card">
               <div class="live-image-container">
-                <img src="images/apple+baghrir_-7.jpg" alt="Moroccan Breakfast" class="live-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090081/feedora/assets/apple-baghrir_-7-webp.webp" alt="Moroccan Breakfast" class="live-image">
                 <div class="upcoming-badge">
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
@@ -463,7 +484,7 @@ require_once 'config/config.php'; // Include the database connection script
               </div>
               <h3 class="live-card-title">Traditional Moroccan Breakfast Spread</h3>
               <div class="chef-info">
-                <img src="images/Cooking_7.svg" alt="Chef Samira" class="chef-avatar">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089949/feedora/assets/Cooking_7-svg.svg" alt="Chef Samira" class="chef-avatar">
                 <div class="chef-details">
                   <span class="chef-name">Samira</span>
                   <span class="chef-title">Chef</span>
@@ -517,7 +538,7 @@ require_once 'config/config.php'; // Include the database connection script
         <div class="chefs-header">
           <div class="chefs-title-wrapper">
             <h2 class="chefs-title">Meet the Chefs</h2>
-            <img src="images/Frame 1171277973.svg" alt="Decorative Icon" class="chefs-accent-icon">
+            <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090013/feedora/assets/Frame-1171277973-svg.svg" alt="Decorative Icon" class="chefs-accent-icon">
           </div>
           <p class="chefs-description">Discover the culinary artists behind every dish—browse their specialties, follow your favorites, and uncover each chef's signature creations at a glance.</p>
         </div>
@@ -527,7 +548,7 @@ require_once 'config/config.php'; // Include the database connection script
             <!-- Chef 1 -->
             <div class="chef-card">
               <div class="chef-image-container">
-                <img src="images/vf_gordon_ramsay_5265.webp" alt="Gordon Ramsay" class="chef-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090132/feedora/assets/vf_gordon_ramsay_5265-webp.webp" alt="Gordon Ramsay" class="chef-image">
               </div>
               <div class="chef-info-container">
                 <h4 class="chef-category">British Celebrity Chef</h4>
@@ -545,7 +566,7 @@ require_once 'config/config.php'; // Include the database connection script
             <!-- Chef 2 -->
             <div class="chef-card">
               <div class="chef-image-container">
-                <img src="images/Choumicha-Lambassadrice-de-la-cuisine-marocaine-dans-le-monde-jpg.webp" alt="Choumicha Chafai" class="chef-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089862/feedora/assets/Choumicha-Lambassadrice-de-la-cuisine-marocaine-dans-le-monde-jpg-webp.webp" alt="Choumicha Chafai" class="chef-image">
               </div>
               <div class="chef-info-container">
                 <h4 class="chef-category">The Great Lady Of Moroccan cuisine</h4>
@@ -563,7 +584,7 @@ require_once 'config/config.php'; // Include the database connection script
             <!-- Chef 3 -->
             <div class="chef-card">
               <div class="chef-image-container">
-                <img src="images/images.jpg" alt="Wolfgang Puck" class="chef-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090107/feedora/assets/images-webp.webp" alt="Wolfgang Puck" class="chef-image">
               </div>
               <div class="chef-info-container">
                 <h4 class="chef-category">Austrian Chef And Restaurateur</h4>
@@ -608,7 +629,7 @@ require_once 'config/config.php'; // Include the database connection script
           <div class="community-header">
             <div class="community-title-container">
               <h2 class="community-title">Community Feed</h2>
-              <img src="images/Frame 1171277973.svg" alt="Decorative Icon" class="community-accent-icon">
+              <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090013/feedora/assets/Frame-1171277973-svg.svg" alt="Decorative Icon" class="community-accent-icon">
             </div>
             <a href="post.php" class="post-now-button">
               Post Now
@@ -624,7 +645,7 @@ require_once 'config/config.php'; // Include the database connection script
               <div class="post-card" id="post1">
                 <div class="post-header">
                   <div class="post-user">
-                    <img src="images/vf_gordon_ramsay_5265.webp" alt="Gordon Ramsay" class="post-user-avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; display: block; border: 2px solid #ED5A2C;">
+                    <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090132/feedora/assets/vf_gordon_ramsay_5265-webp.webp" alt="Gordon Ramsay" class="post-user-avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; display: block; border: 2px solid #ED5A2C;">
                     <div class="post-user-info">
                       <div class="post-username">Gordon Ramsay</div>
                       <div class="post-meta">
@@ -643,7 +664,7 @@ require_once 'config/config.php'; // Include the database connection script
                   </button>
                 </div>
                 <div class="post-image-container">
-                  <img src="images/Firefly_-imagine https---contais3.s3.amazonaws.com-public-original_images-vZcXwLUkGj0T1r4et6K 275575.jpg" alt="Blackstone Griddle Grilled Nachos" class="post-image">
+                  <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089993/feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-vZcXwLUkGj0T1r4et6K-275575-webp.webp" alt="Blackstone Griddle Grilled Nachos" class="post-image">
                 </div>
                 <div class="post-content">
                   <p class="post-description">Craving something delicious and cheesy? Try these irresistible Blackstone Griddle Grilled Nachos that are perfect for sharing! 🌮🧀</p>
@@ -674,7 +695,7 @@ require_once 'config/config.php'; // Include the database connection script
               <div class="post-card" id="post2">
                 <div class="post-header">
                   <div class="post-user">
-                    <img src="images/images.jpg" alt="Wolfgang Puck" class="post-user-avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; display: block;">
+                    <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090107/feedora/assets/images-webp.webp" alt="Wolfgang Puck" class="post-user-avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; display: block;">
                     <div class="post-user-info">
                       <div class="post-username">Wolfgang Puck</div>
                       <div class="post-meta">
@@ -693,7 +714,7 @@ require_once 'config/config.php'; // Include the database connection script
                   </button>
                 </div>
                 <div class="post-image-container">
-                  <img src="images/Firefly_-imagine https---contais3.s3.amazonaws.com-public-original_images-7EqeUk5bLytzTvFhI0e 747404.jpg" alt="Sausage Gravy and Biscuits" class="post-image">
+                  <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089986/feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-7EqeUk5bLytzTvFhI0e-747404-webp.webp" alt="Sausage Gravy and Biscuits" class="post-image">
                 </div>
                 <div class="post-content">
                   <p class="post-description">Looking for a comforting breakfast? This Sausage Gravy and Biscuits recipe is your answer—creamy, savory, and oh-so-delicious! 🍳🥓</p>
@@ -724,7 +745,7 @@ require_once 'config/config.php'; // Include the database connection script
               <div class="post-card" id="post3">
                 <div class="post-header">
                   <div class="post-user">
-                    <img src="images/Choumicha-Lambassadrice-de-la-cuisine-marocaine-dans-le-monde-jpg.webp" alt="Choumicha Chafai" class="post-user-avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; display: block; border: 2px solid #ED5A2C;">
+                    <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089862/feedora/assets/Choumicha-Lambassadrice-de-la-cuisine-marocaine-dans-le-monde-jpg-webp.webp" alt="Choumicha Chafai" class="post-user-avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; display: block; border: 2px solid #ED5A2C;">
                     <div class="post-user-info">
                       <div class="post-username">Choumicha Chafai</div>
                       <div class="post-meta">
@@ -743,7 +764,7 @@ require_once 'config/config.php'; // Include the database connection script
                   </button>
                 </div>
                 <div class="post-image-container">
-                  <img src="images/zaalouk+dip.jpg" alt="Moroccan Zaalouk Dip" class="post-image">
+                  <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090138/feedora/assets/zaalouk-dip-webp.webp" alt="Moroccan Zaalouk Dip" class="post-image">
                 </div>
                 <div class="post-content">
                   <p class="post-description">Get ready to impress your guests with this authentic Moroccan Zaalouk dip! The smoky eggplant and golden brown spices create a flavor explosion. #MoroccanCuisine</p>
@@ -816,7 +837,7 @@ require_once 'config/config.php'; // Include the database connection script
               <div class="hiw-header-row">
                 <div class="hiw-title-container">
                   <h2 class="hiw-title">How It Works</h2>
-                  <img src="images/Frame 1171277973.svg" alt="How It Works Icon" class="hiw-icon">
+                  <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090013/feedora/assets/Frame-1171277973-svg.svg" alt="How It Works Icon" class="hiw-icon">
                 </div>
 
                 <div class="hiw-description-container">
@@ -834,7 +855,7 @@ require_once 'config/config.php'; // Include the database connection script
 
                 <!-- Image container -->
                 <div class="hiw-image-container">
-                  <img src="images/man is logged in.png" alt="User login illustration" class="hiw-image">
+                  <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090119/feedora/assets/man-is-logged-in-webp.webp" alt="User login illustration" class="hiw-image">
                 </div>
               </div>
             </div>
@@ -843,13 +864,13 @@ require_once 'config/config.php'; // Include the database connection script
           <div class="explore-recipes-section">
             <div class="explore-container">
               <div class="explore-left">
-                <img src="images/Cooking partner.svg" alt="Cooking partners" class="explore-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089869/feedora/assets/Cooking-partner-svg.svg" alt="Cooking partners" class="explore-image">
               </div>
 
               <div class="explore-right">
                 <div class="explore-title-container">
                   <h2 class="explore-title">Explore & Share Your Favorite Recipes</h2>
-                  <img src="images/Frame 1171277973.svg" alt="Icon" class="explore-title-icon">
+                  <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090013/feedora/assets/Frame-1171277973-svg.svg" alt="Icon" class="explore-title-icon">
                 </div>
 
                 <div class="explore-buttons">
@@ -880,7 +901,7 @@ require_once 'config/config.php'; // Include the database connection script
                 <div class="live-title-container">
                   <div class="live-title-with-icon">
                     <h2 class="live-title">Join Live Sessions</h2>
-                    <img src="images/Frame 1171277973.svg" alt="Icon" class="live-title-icon">
+                    <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090013/feedora/assets/Frame-1171277973-svg.svg" alt="Icon" class="live-title-icon">
                   </div>
                 </div>
 
@@ -896,7 +917,7 @@ require_once 'config/config.php'; // Include the database connection script
               </div>
 
               <div class="live-right">
-                <img src="images/VNU_M698_15.jpg" alt="Live cooking session" class="live-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090075/feedora/assets/VNU_M698_15-webp.webp" alt="Live cooking session" class="live-image">
               </div>
             </div>
           </div>
@@ -904,13 +925,13 @@ require_once 'config/config.php'; // Include the database connection script
           <div class="global-container">
             <div class="community-section">
               <div class="community-image-container">
-                <img src="images/men and women working as chefs.jpg" alt="Chef community" class="community-image">
+                <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090126/feedora/assets/men-and-women-working-as-chefs-webp.webp" alt="Chef community" class="community-image">
               </div>
 
               <div class="community-content">
                 <div class="community-title-container">
                   <h2 class="community-title">Engage with the Community</h2>
-                  <img src="images/Frame 1171277973.svg" alt="Icon" class="community-title-icon">
+                  <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090013/feedora/assets/Frame-1171277973-svg.svg" alt="Icon" class="community-title-icon">
                 </div>
                 <p class="community-description">Like, comment, and connect with fellow food lovers.</p>
               </div>
@@ -919,7 +940,7 @@ require_once 'config/config.php'; // Include the database connection script
 
           <div class="feature-box brand-box">
             <div class="feature-content">
-              <img src="images/logo-feedora2.png" alt="Feedora Logo" class="brand-logo">
+              <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090112/feedora/assets/logo-feedora2-webp.webp" alt="Feedora Logo" class="brand-logo">
             </div>
           </div>
         </div>
@@ -931,7 +952,7 @@ require_once 'config/config.php'; // Include the database connection script
         <div class="testimonials-container">
           <div class="testimonials-header">
             <h2 class="testimonials-title">What Our Community Says About Us</h2>
-            <img src="images/Frame 1171277973.svg" alt="Testimonials Icon" class="testimonials-icon">
+            <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090013/feedora/assets/Frame-1171277973-svg.svg" alt="Testimonials Icon" class="testimonials-icon">
           </div>
 
           <div class="testimonials-slider-container">
@@ -995,7 +1016,7 @@ require_once 'config/config.php'; // Include the database connection script
     <div class="footer-container">
       <div class="footer-logo-section">
         <div class="footer-logo">
-          <img src="images/Feedora-logo.svg" alt="Feedora Logo" class="footer-logo-img">
+          <img loading="lazy" decoding="async" src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089973/feedora/assets/Feedora-logo-svg.svg" alt="Feedora Logo" class="footer-logo-img">
         </div>
         <p class="footer-description">Feedora is a platform for cooking lovers to share, learn, and connect.</p>
         <div class="footer-social">
@@ -1041,7 +1062,13 @@ require_once 'config/config.php'; // Include the database connection script
     </div>
   </footer>
 
-  <script src="Home.js"></script>
+  <script src="<?php echo asset('Home.js'); ?>" defer></script>
+  <!-- Feedora browser image cache (IndexedDB, 1h TTL) -->
+  <script src="<?php echo asset('assets/js/cache-manager.js'); ?>" defer></script>
+  <!-- Feedora live search (recipes + posts, FULLTEXT) -->
+  <script src="<?php echo asset('assets/js/search.js'); ?>" defer></script>
+  <!-- Feedora scroll effects: auto-hiding header + section reveal -->
+  <script src="<?php echo asset('assets/js/scroll-fx.js'); ?>" defer></script>
 </body>
 
 </html>

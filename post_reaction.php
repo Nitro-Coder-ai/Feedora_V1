@@ -5,6 +5,7 @@ require_once 'notification_utils.php';
 
 // Start the session to manage user data
 session_start();
+csrf_verify(); // CSRF: reject forged state-changing POSTs
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {

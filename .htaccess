@@ -1,0 +1,81 @@
+# ----------------------------------------------------------------------
+# Block script execution in user-upload dirs (defense against an attacker
+# uploading evil.php disguised as an image). Requests for scripts under
+# uploads/ are forbidden even if such a file lands on disk.
+# ----------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^uploads/.+\.(php|php[0-9]|phtml|phar|cgi|pl|py|sh|htaccess)$ - [F,L,NC]
+</IfModule>
+
+# Feedora performance: compression + caching (Apache / XAMPP / MAMP).
+# Safe no-ops if a module is missing (each block is guarded by IfModule).
+# NOTE: the `php -S` dev server ignores .htaccess — these gains apply when
+# served through Apache (production / XAMPP htdocs).
+
+# ----------------------------------------------------------------------
+# 1) Compression — shrink text assets ~70% on the wire
+# ----------------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/javascript application/x-javascript text/javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
+    AddOutputFilterByType DEFLATE application/font-woff application/font-woff2 font/woff font/woff2
+</IfModule>
+
+# Optional Brotli (better than gzip) if the module is available.
+<IfModule mod_brotli.c>
+    AddOutputFilterByType BROTLI_COMPRESS text/html text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+# ----------------------------------------------------------------------
+# 2) Caching — versioned static assets can be cached hard
+# ----------------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # CSS/JS are cache-busted via ?v=<filemtime> (see asset() in config.php),
+    # so they can be cached hard — a content change changes the URL.
+    ExpiresByType text/css                 "access plus 1 year"
+    ExpiresByType application/javascript   "access plus 1 year"
+    ExpiresByType text/javascript          "access plus 1 year"
+    ExpiresByType image/svg+xml            "access plus 1 year"
+    ExpiresByType image/png                "access plus 1 year"
+    ExpiresByType image/jpeg               "access plus 1 year"
+    ExpiresByType image/webp               "access plus 1 year"
+    ExpiresByType image/gif                "access plus 1 year"
+    ExpiresByType font/woff                "access plus 1 year"
+    ExpiresByType font/woff2               "access plus 1 year"
+    ExpiresByType application/font-woff2   "access plus 1 year"
+
+    # HTML: always revalidate (pages are dynamic)
+    ExpiresByType text/html                "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # CSS/JS/images/fonts: long-lived immutable (CSS/JS are ?v=-busted)
+    <FilesMatch "\.(css|js|svg|png|jpe?g|webp|gif|woff2?)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    # Never hard-cache dynamic PHP output
+    <FilesMatch "\.php$">
+        Header set Cache-Control "no-cache, must-revalidate"
+    </FilesMatch>
+
+    # ------------------------------------------------------------------
+    # Security headers (defense in depth)
+    # ------------------------------------------------------------------
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    # HSTS — only meaningful over HTTPS; harmless on http. Enable once on TLS.
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+    # CSP: permissive (allows the app's existing inline handlers + https CDNs)
+    # but still blocks framing, plugins, base-tag injection, and mixed content.
+    # Tighten later by replacing 'unsafe-inline' with per-request nonces.
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' https: data:; connect-src 'self' https:; media-src 'self' https: blob:; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"
+</IfModule>

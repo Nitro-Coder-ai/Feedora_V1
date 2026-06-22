@@ -1261,9 +1261,16 @@ window.addEventListener('load', function() {
     const likeButtonContainers = document.querySelectorAll('.like-button-container');
     const globalReactionContainer = document.getElementById('global-reaction-container');
     const reactionsPanel = document.querySelector('#global-reaction-container .reaction-icons');
-    
+
     let currentPostId = null;
-    
+
+    // Null-guard: pages without a posts feed (e.g. Home landing, sign-in) have
+    // no reaction UI. Bail out early so a missing element can't throw and abort
+    // the rest of the main script.
+    if (!globalReactionContainer || !reactionsPanel) {
+      return;
+    }
+
     // Position reaction icons on hover
     likeButtonContainers.forEach(container => {
       container.addEventListener('mouseenter', function(e) {
@@ -1307,8 +1314,10 @@ window.addEventListener('load', function() {
         const reaction = this.getAttribute('data-reaction');
         
         // Find the like button container for the current post
-        const postCard = document.getElementById(currentPostId);
+        const postCard = currentPostId ? document.getElementById(currentPostId) : null;
+        if (!postCard) { return; }
         const container = postCard.querySelector('.like-button-container');
+        if (!container) { return; }
         const likeButton = container.querySelector('.like-button');
         const likesCountElement = container.parentElement.querySelector('.likes-count');
         

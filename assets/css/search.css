@@ -1,0 +1,159 @@
+/* =============================================================================
+   Feedora live search panel + header polish
+   Loaded AFTER Home.css so these refinements win on equal specificity.
+   ========================================================================== */
+
+/* ---- Header: subtle professional polish ---------------------------------
+   Important: do NOT override the responsive widths in Home.css. The results
+   panel is rendered on <body>, so center-container overflow can stay as-is.
+   We only add a sticky header + a focus-expand that is gated to large screens
+   where there is spare room. */
+header {
+  position: sticky;
+  top: 12px;
+  z-index: 100;
+  transition: box-shadow .3s ease;
+}
+header:hover { box-shadow: 0 8px 22px rgba(0, 0, 0, .12); }
+
+@media (min-width: 1025px) {
+  .search-container { transition: width .35s cubic-bezier(.22,.61,.36,1); }
+  .search-container:focus-within { width: 220px; transform: none; }
+}
+
+/* ---- Search panel (rendered on <body>, fixed-positioned by JS) ----------- */
+.fd-search-panel {
+  position: fixed;
+  z-index: 4000;
+  width: 380px;
+  max-width: calc(100vw - 24px);
+  max-height: min(70vh, 520px);
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(20, 20, 40, .18), 0 2px 8px rgba(0, 0, 0, .06);
+  border: 1px solid rgba(237, 90, 44, .08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(10px) scale(.98);
+  transform-origin: top center;
+  pointer-events: none;
+  transition: opacity .22s ease, transform .26s cubic-bezier(.22,.61,.36,1);
+}
+.fd-search-panel.fd-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.fd-search-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #9aa0ab;
+}
+.fd-search-head .fd-count { font-weight: 600; color: #ed5a2c; }
+
+.fd-search-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  padding: 4px 8px 10px;
+}
+/* slim branded scrollbar */
+.fd-search-body::-webkit-scrollbar { width: 8px; }
+.fd-search-body::-webkit-scrollbar-thumb { background: rgba(237,90,44,.25); border-radius: 8px; }
+.fd-search-body::-webkit-scrollbar-thumb:hover { background: rgba(237,90,44,.45); }
+
+/* ---- Result rows --------------------------------------------------------- */
+.fd-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #2b2f38;
+  cursor: pointer;
+  /* entrance: staggered slide+fade; --d is set inline by JS */
+  opacity: 0;
+  transform: translateY(8px);
+  animation: fdItemIn .42s cubic-bezier(.22,.61,.36,1) forwards;
+  animation-delay: var(--d, 0ms);
+}
+.fd-item:hover,
+.fd-item.fd-active { background: #fff5f1; }
+.fd-item.fd-active { box-shadow: inset 0 0 0 1.5px rgba(237,90,44,.35); }
+.fd-item:focus-visible { outline: 2px solid #ed5a2c; outline-offset: -2px; }
+
+.fd-item .fd-thumb {
+  position: relative;
+  width: 46px; height: 46px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: #eef0f3;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+.fd-item .fd-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Shimmer skeleton: shown until a real image loads, and kept if none/failed. */
+.fd-skeleton {
+  background-image: linear-gradient(100deg, #e7e9ee 30%, #f4f5f8 50%, #e7e9ee 70%);
+  background-size: 200% 100%;
+  animation: fdShimmer 1.15s ease-in-out infinite;
+}
+@keyframes fdShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.fd-item .fd-meta { min-width: 0; flex: 1; display: block; }
+.fd-item .fd-title {
+  display: block;
+  font-weight: 600; font-size: 14px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fd-item .fd-sub { display: block; font-size: 12px; color: #9aa0ab; margin-top: 2px; }
+.fd-item .fd-badge {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  color: #ed5a2c; background: rgba(237,90,44,.1);
+  padding: 3px 8px; border-radius: 999px; flex-shrink: 0;
+}
+
+/* ---- Tag chips (discover) ------------------------------------------------ */
+.fd-tags { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 12px 14px; }
+.fd-tag {
+  font-size: 12px; font-weight: 600; color: #ed5a2c;
+  background: rgba(237,90,44,.08);
+  padding: 6px 12px; border-radius: 999px;
+  text-decoration: none; cursor: pointer;
+  opacity: 0; transform: translateY(6px);
+  animation: fdItemIn .4s ease forwards; animation-delay: var(--d, 0ms);
+  transition: background .2s ease, transform .2s ease;
+}
+.fd-tag:hover { background: rgba(237,90,44,.18); transform: translateY(-1px); }
+
+/* ---- States -------------------------------------------------------------- */
+.fd-empty, .fd-loading {
+  padding: 26px 16px; text-align: center; color: #9aa0ab; font-size: 14px;
+}
+.fd-loading .fd-spinner {
+  width: 22px; height: 22px; margin: 0 auto 10px;
+  border: 3px solid rgba(237,90,44,.2); border-top-color: #ed5a2c;
+  border-radius: 50%; animation: fdSpin .7s linear infinite;
+}
+
+@keyframes fdItemIn { to { opacity: 1; transform: translateY(0); } }
+@keyframes fdSpin   { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .fd-search-panel, .fd-item, .fd-skeleton { transition: none !important; animation: none !important; opacity: 1; transform: none; }
+  .fd-skeleton { background: #e7e9ee; }
+}
+
+/* Mobile: anchor panel comfortably */
+@media (max-width: 560px) {
+  .fd-search-panel { width: calc(100vw - 20px); }
+}

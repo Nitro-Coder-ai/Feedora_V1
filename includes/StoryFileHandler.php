@@ -3,6 +3,8 @@
  * Story File Handler - Handles file upload, validation, and deletion
  * Follows Single Responsibility Principle
  */
+require_once __DIR__ . '/CloudinaryService.php';
+
 class StoryFileHandler {
     private $uploadDir;
     private $allowedTypes;
@@ -86,8 +88,19 @@ class StoryFileHandler {
             $random = mt_rand(1000, 9999);
             $newFileName = "story_{$userId}_{$timestamp}_{$microtime}_{$random}.{$fileExtension}";
             $targetFilePath = $this->uploadDir . $newFileName;
-            
-            // Move uploaded file
+
+            // Upload to Cloudinary first; the secure URL keeps the original
+            // extension so downstream image/video detection still works.
+            $cloud = CloudinaryService::upload($file['tmp_name'], 'feedora/stories', "story_{$userId}_{$timestamp}_{$random}");
+            if ($cloud['success']) {
+                return [
+                    'success' => true,
+                    'file_path' => $cloud['url'],
+                    'filename' => $newFileName
+                ];
+            }
+
+            // Fallback: move uploaded file to local disk.
             if (move_uploaded_file($file['tmp_name'], $targetFilePath)) {
                 return [
                     'success' => true,
@@ -115,7 +128,13 @@ class StoryFileHandler {
      */
     public function deleteFile($filePath) {
         try {
-            if (file_exists($filePath)) {
+            if (empty($filePath)) {
+                return true;
+            }
+            if (strpos($filePath, 'http') === 0) {
+                CloudinaryService::destroyByUrl($filePath);
+                return true;
+            } elseif (file_exists($filePath)) {
                 return unlink($filePath);
             }
             return true; // File doesn't exist, consider it deleted

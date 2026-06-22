@@ -6,7 +6,7 @@ session_start();
 
 // Helper function to get profile image
 function getProfileImage($userProfileImage) {
-    return !empty($userProfileImage) ? htmlspecialchars($userProfileImage) : 'images/default-profile.png';
+    return !empty($userProfileImage) ? htmlspecialchars($userProfileImage) : 'https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg';
 }
 
 // Check if the user is logged in

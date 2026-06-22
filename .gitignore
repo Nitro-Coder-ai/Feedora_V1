@@ -1,0 +1,28 @@
+# User Uploads
+uploads/
+
+# Backfill manifestations
+scripts/backfill_manifest.json
+
+# Log Files
+*.log
+debug_post_ids.txt
+
+# DB backups
+Feedora_backup_*.sql
+
+# Refactor / perf / UX backups
+*.refbak
+*.perfbak
+*.uxbak
+
+# Node / Playwright
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+.auth/
+playwright/.cache/
+
+# Secrets — keep real config out of git (use config.sample.php as template)
+config/config.php

@@ -1,6 +1,7 @@
 <?php
 require_once '../config/config.php';
 session_start();
+csrf_verify(); // CSRF: reject forged state-changing POSTs
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {

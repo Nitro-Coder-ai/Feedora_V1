@@ -1,0 +1,43 @@
+/* =============================================================================
+   Feedora scroll effects: auto-hiding header + section reveal-on-scroll.
+   The `.fd-js` class is set on <html> by an inline <head> script BEFORE first
+   paint, so sections start hidden with no flash of unstyled content. If JS is
+   disabled, `.fd-js` is never added and everything is visible by default.
+   ========================================================================== */
+
+/* ---- Section reveal ------------------------------------------------------ */
+.fd-js section,
+.fd-js .footer-section {
+  opacity: 0;
+  transform: translateY(34px);
+  transition: opacity .75s cubic-bezier(.22, .61, .36, 1),
+              transform .75s cubic-bezier(.22, .61, .36, 1);
+  will-change: opacity, transform;
+}
+.fd-js section.fd-in,
+.fd-js .footer-section.fd-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---- Auto-hiding header (hide on scroll down, show on scroll up) ----------
+   NOTE: do NOT add `will-change: transform` or a static `transform` to <header>.
+   The mobile menu (#mobileNav) is a position:fixed CHILD of <header>; any of
+   those would make <header> its containing block and trap the full-screen menu
+   inside the header box. The transition alone is safe (no containing block). */
+header {
+  transition: transform .4s cubic-bezier(.22, .61, .36, 1), box-shadow .3s ease;
+}
+header.fd-nav-hidden {
+  transform: translateY(calc(-100% - 30px));
+  pointer-events: none;
+}
+/* When the mobile menu is open, never hide/transform the header (scroll is
+   locked anyway) so the fixed menu is positioned against the viewport. */
+header:has(.mobile-menu.active) { transform: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fd-js section,
+  .fd-js .footer-section { opacity: 1 !important; transform: none !important; transition: none !important; }
+  header.fd-nav-hidden { transform: none !important; }
+}

@@ -1,8 +1,11 @@
 <?php
 // Include the database connection script
 require_once 'config/config.php';
+// Cloudinary uploader (with graceful local-disk fallback)
+require_once 'includes/CloudinaryService.php';
 // Start the session to manage user data
 session_start();
+csrf_verify(); // CSRF: reject forged state-changing POSTs
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -129,22 +132,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $fileExtension = pathinfo($file['name'], PATHINFO_EXTENSION);
                 $newFileName = 'profile_' . $userId . '_' . time() . '.' . $fileExtension;
                 $destination = $uploadDir . $newFileName;
-                
-                if (move_uploaded_file($file['tmp_name'], $destination)) {
+
+                // Upload to Cloudinary first; fall back to local disk for uptime.
+                $cloud = CloudinaryService::upload($file['tmp_name'], 'feedora/profiles');
+                $newImageUrl = null;
+                if ($cloud['success']) {
+                    $newImageUrl = $cloud['url'];
+                } elseif (move_uploaded_file($file['tmp_name'], $destination)) {
+                    $newImageUrl = $destination;
+                }
+
+                if ($newImageUrl !== null) {
                     try {
-                        // Delete old profile image if exists
-                        if (!empty($user['PROFILE_IMAGE']) && file_exists($user['PROFILE_IMAGE'])) {
-                            unlink($user['PROFILE_IMAGE']);
-                        }
-                        
+                        $oldImage = $user['PROFILE_IMAGE'] ?? null;
+
                         // Update profile image in database
                         $updateStmt = $pdo->prepare("UPDATE USERS SET PROFILE_IMAGE = ? WHERE USER_ID = ?");
-                        $updateStmt->execute([$destination, $userId]);
-                        
+                        $updateStmt->execute([$newImageUrl, $userId]);
+
                         // Update session and user data
-                        $_SESSION['profile_image'] = $destination;
-                        $user['PROFILE_IMAGE'] = $destination;
-                        
+                        $_SESSION['profile_image'] = $newImageUrl;
+                        $user['PROFILE_IMAGE'] = $newImageUrl;
+
+                        // Delete old image if it exists.
+                        if (!empty($oldImage)) {
+                            if (strpos($oldImage, 'http') === 0) {
+                                CloudinaryService::destroyByUrl($oldImage);
+                            } elseif (file_exists($oldImage)) {
+                                unlink($oldImage);
+                            }
+                        }
+
                         $message = 'Profile image updated successfully!';
                         $messageType = 'success';
                     } catch (PDOException $e) {
@@ -180,8 +198,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $deleteStmt->execute([$userId]);
                     
                     // Delete profile image if exists
-                    if (!empty($user['PROFILE_IMAGE']) && file_exists($user['PROFILE_IMAGE'])) {
-                        unlink($user['PROFILE_IMAGE']);
+                    if (!empty($user['PROFILE_IMAGE'])) {
+                        if (strpos($user['PROFILE_IMAGE'], 'http') === 0) {
+                            CloudinaryService::destroyByUrl($user['PROFILE_IMAGE']);
+                        } elseif (file_exists($user['PROFILE_IMAGE'])) {
+                            unlink($user['PROFILE_IMAGE']);
+                        }
                     }
                     
                     // Destroy session and redirect
@@ -201,13 +223,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Set default profile image if none exists
-$profileImage = !empty($user['PROFILE_IMAGE']) ? $user['PROFILE_IMAGE'] : 'images/default-profile.png';
+$profileImage = !empty($user['PROFILE_IMAGE']) ? $user['PROFILE_IMAGE'] : 'https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES); ?>">
+    <script src="<?php echo asset('assets/js/csrf.js'); ?>"></script>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Feedora - Account Settings">
     <meta name="theme-color" content="#ED5A2C">
@@ -215,533 +240,11 @@ $profileImage = !empty($user['PROFILE_IMAGE']) ? $user['PROFILE_IMAGE'] : 'image
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="fonts.css">
-    <link rel="stylesheet" href="Home.css">
+    <link rel="stylesheet" href="<?php echo asset('fonts.css'); ?>">
+    <link rel="stylesheet" href="<?php echo asset('Home.css'); ?>">
     <!-- Favicon -->
-    <link rel="icon" href="images/Frame 1171277973.svg" type="image/svg+xml">
-    <style>
-        :root {
-            --primary-color: #ED5A2C;
-            --secondary-color: #4CAF50;
-            --text-color: #333;
-            --light-text: #666;
-            --background-color: #fff;
-            --light-background: #f9f9f9;
-            --border-radius: 12px;
-            --transition-speed: 0.3s;
-            --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            --hover-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-            --sidebar-width: 250px;
-            --danger-color: #e74c3c;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Qurova', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: #f5f5f5;
-            color: var(--text-color);
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Settings Container */
-        .settings-container {
-            max-width: 900px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .settings-header {
-            background-color: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            padding: 30px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .settings-title {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            color: var(--text-color);
-            font-family: 'DM Serif Display', serif;
-        }
-
-        .settings-subtitle {
-            color: var(--light-text);
-            font-size: 1.1rem;
-        }
-
-        /* Settings Tabs */
-        .settings-tabs {
-            display: flex;
-            background-color: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            margin-bottom: 30px;
-            overflow: hidden;
-        }
-
-        .settings-tab {
-            flex: 1;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all var(--transition-speed);
-            font-weight: 600;
-            border-bottom: 3px solid transparent;
-        }
-
-        .settings-tab.active {
-            background-color: var(--light-background);
-            color: var(--primary-color);
-            border-bottom-color: var(--primary-color);
-        }
-
-        .settings-tab:hover:not(.active) {
-            background-color: rgba(237, 90, 44, 0.05);
-        }
-
-        /* Settings Content */
-        .settings-content {
-            background-color: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            padding: 40px;
-            margin-bottom: 30px;
-        }
-
-        .settings-section {
-            display: none;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        .settings-section.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .section-title {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            color: var(--text-color);
-            font-family: 'DM Serif Display', serif;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .section-icon {
-            width: 40px;
-            height: 40px;
-            background-color: var(--primary-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-
-        /* Form Styles */
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--text-color);
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all var(--transition-speed);
-            background-color: #fafafa;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            background-color: white;
-            box-shadow: 0 0 0 3px rgba(237, 90, 44, 0.1);
-        }
-
-        .form-textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        /* Profile Image Section */
-        .profile-image-section {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-            margin-bottom: 30px;
-            padding: 25px;
-            background-color: var(--light-background);
-            border-radius: var(--border-radius);
-        }
-
-        .current-profile-image {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid var(--primary-color);
-            box-shadow: var(--box-shadow);
-        }
-
-        .profile-image-info {
-            flex: 1;
-        }
-
-        .profile-image-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: var(--text-color);
-        }
-
-        .profile-image-desc {
-            color: var(--light-text);
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-
-        /* File Upload Button */
-        .file-upload-btn {
-            position: relative;
-            display: inline-block;
-            overflow: hidden;
-            background-color: var(--primary-color);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all var(--transition-speed);
-            font-weight: 600;
-            border: none;
-        }
-
-        .file-upload-btn:hover {
-            background-color: #d94e20;
-            transform: translateY(-2px);
-            box-shadow: var(--hover-shadow);
-        }
-
-        .file-upload-input {
-            position: absolute;
-            left: -9999px;
-        }
-
-        /* Button Styles */
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all var(--transition-speed);
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            justify-content: center;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: #d94e20;
-            transform: translateY(-2px);
-            box-shadow: var(--hover-shadow);
-        }
-
-        .btn-success {
-            background-color: var(--success-color);
-            color: white;
-        }
-
-        .btn-success:hover {
-            background-color: #229954;
-            transform: translateY(-2px);
-            box-shadow: var(--hover-shadow);
-        }
-
-        .btn-danger {
-            background-color: var(--danger-color);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background-color: #c0392b;
-            transform: translateY(-2px);
-            box-shadow: var(--hover-shadow);
-        }
-
-        .btn-outline {
-            background-color: transparent;
-            color: var(--text-color);
-            border: 2px solid #e0e0e0;
-        }
-
-        .btn-outline:hover {
-            background-color: var(--light-background);
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
-
-        /* Message Styles */
-        .message {
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 500;
-        }
-
-        .message-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .message-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        /* Statistics Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, var(--primary-color), #f39c12);
-            color: white;
-            padding: 25px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            transition: all var(--transition-speed);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--hover-shadow);
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: white;
-        }
-
-        .stat-label {
-            color: white;
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        /* Account Activity */
-        .activity-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 15px;
-            background-color: var(--light-background);
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        .activity-icon {
-            width: 40px;
-            height: 40px;
-            background-color: var(--primary-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-
-        .activity-info {
-            flex: 1;
-        }
-
-        .activity-title {
-            font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 4px;
-        }
-
-        .activity-time {
-            color: var(--light-text);
-            font-size: 0.9rem;
-        }
-
-        /* Danger Zone */
-        .danger-zone {
-            background-color: #fff5f5;
-            border: 2px solid #fed7d7;
-            border-radius: var(--border-radius);
-            padding: 25px;
-            margin-top: 30px;
-        }
-
-        .danger-zone-title {
-            color: var(--danger-color);
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .danger-zone-desc {
-            color: #742a2a;
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-        }
-
-        .modal-content {
-            background-color: white;
-            margin: 10% auto;
-            padding: 30px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            width: 90%;
-            max-width: 500px;
-            position: relative;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-color);
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--light-text);
-        }
-
-        .close-modal:hover {
-            color: var(--danger-color);
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .main-content {
-                margin-left: 0;
-                padding: 15px;
-            }
-
-            .settings-tabs {
-                flex-direction: column;
-            }
-
-            .settings-tab {
-                border-bottom: none;
-                border-left: 3px solid transparent;
-            }
-
-            .settings-tab.active {
-                border-left-color: var(--primary-color);
-                border-bottom-color: transparent;
-            }
-
-            .profile-image-section {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .settings-content {
-                padding: 25px;
-            }
-
-            .settings-header {
-                padding: 20px;
-            }
-
-            .settings-title {
-                font-size: 2rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .settings-content {
-                padding: 20px;
-            }
-
-            .form-input {
-                padding: 12px;
-            }
-
-            .btn {
-                padding: 12px 20px;
-                font-size: 14px;
-            }
-        }
-    </style>
+    <link rel="icon" href="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090013/feedora/assets/Frame-1171277973-svg.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="<?php echo asset('assets/css/settings.css'); ?>">
 </head>
 
 <body>
@@ -819,6 +322,7 @@ $profileImage = !empty($user['PROFILE_IMAGE']) ? $user['PROFILE_IMAGE'] : 'image
                             <h3 class="profile-image-title">Profile Picture</h3>
                             <p class="profile-image-desc">Upload a new profile picture. Recommended size: 400x400px. Supported formats: JPG, PNG, GIF, WEBP.</p>
                             <form action="settings.php" method="POST" enctype="multipart/form-data" style="display: inline;">
+          <?php echo csrf_field(); ?>
                                 <input type="hidden" name="action" value="update_profile_image">
                                 <label for="profile_image" class="file-upload-btn">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
@@ -835,6 +339,7 @@ $profileImage = !empty($user['PROFILE_IMAGE']) ? $user['PROFILE_IMAGE'] : 'image
 
                     <!-- Profile Form -->
                     <form action="settings.php" method="POST">
+          <?php echo csrf_field(); ?>
                         <input type="hidden" name="action" value="update_profile">
                         
                         <div class="form-group">
@@ -875,6 +380,7 @@ $profileImage = !empty($user['PROFILE_IMAGE']) ? $user['PROFILE_IMAGE'] : 'image
 
                     <!-- Password Change Form -->
                     <form action="settings.php" method="POST">
+          <?php echo csrf_field(); ?>
                         <input type="hidden" name="action" value="change_password">
                         
                         <div class="form-group">
@@ -1037,6 +543,7 @@ $profileImage = !empty($user['PROFILE_IMAGE']) ? $user['PROFILE_IMAGE'] : 'image
                 <button type="button" class="close-modal" onclick="closeDeleteModal()">&times;</button>
             </div>
             <form action="settings.php" method="POST">
+          <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="delete_account">
                 <p style="color: var(--danger-color); margin-bottom: 20px; font-weight: 500;">
                     ⚠️ This action cannot be undone. Your account and all associated data will be permanently deleted.
@@ -1053,78 +560,7 @@ $profileImage = !empty($user['PROFILE_IMAGE']) ? $user['PROFILE_IMAGE'] : 'image
         </div>
     </div>
 
-    <script>
-        // Tab switching functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const tabs = document.querySelectorAll('.settings-tab');
-            const sections = document.querySelectorAll('.settings-section');
-
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const targetTab = this.getAttribute('data-tab');
-
-                    // Remove active class from all tabs and sections
-                    tabs.forEach(t => t.classList.remove('active'));
-                    sections.forEach(s => s.classList.remove('active'));
-
-                    // Add active class to clicked tab and corresponding section
-                    this.classList.add('active');
-                    document.getElementById(targetTab + '-section').classList.add('active');
-                });
-            });
-
-            // Password confirmation validation
-            const newPassword = document.getElementById('new_password');
-            const confirmPassword = document.getElementById('confirm_password');
-
-            function validatePassword() {
-                if (newPassword.value !== confirmPassword.value) {
-                    confirmPassword.setCustomValidity('Passwords do not match');
-                } else {
-                    confirmPassword.setCustomValidity('');
-                }
-            }
-
-            if (newPassword && confirmPassword) {
-                newPassword.addEventListener('change', validatePassword);
-                confirmPassword.addEventListener('keyup', validatePassword);
-            }
-        });
-
-        // Modal functions
-        function openDeleteModal() {
-            document.getElementById('deleteModal').style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').style.display = 'none';
-            document.body.style.overflow = 'auto';
-            document.getElementById('delete_password').value = '';
-        }
-
-        // Close modal when clicking outside
-        window.addEventListener('click', function(event) {
-            const modal = document.getElementById('deleteModal');
-            if (event.target === modal) {
-                closeDeleteModal();
-            }
-        });
-
-        // Auto-hide messages after 5 seconds
-        document.addEventListener('DOMContentLoaded', function() {
-            const messages = document.querySelectorAll('.message');
-            messages.forEach(message => {
-                setTimeout(() => {
-                    message.style.opacity = '0';
-                    message.style.transform = 'translateY(-10px)';
-                    setTimeout(() => {
-                        message.remove();
-                    }, 300);
-                }, 5000);
-            });
-        });
-    </script>
+    <script src="<?php echo asset('assets/js/settings.js'); ?>" defer></script>
 </body>
 
 </html>

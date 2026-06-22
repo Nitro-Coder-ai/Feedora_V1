@@ -1,0 +1,693 @@
+[
+    {
+        "local_path": "images/010-frame.png",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089817/feedora/assets/010-frame-png.png",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089817/feedora/assets/010-frame-png.png",
+        "public_id": "feedora/assets/010-frame-png",
+        "resource_type": "image",
+        "format": "png",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:04:54+00:00"
+    },
+    {
+        "local_path": "images/9xk2WYdTHkOkRaClvqi16bf28I9adxogVmfFjxnY.jpg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089820/feedora/assets/9xk2WYdTHkOkRaClvqi16bf28I9adxogVmfFjxnY-jpg.jpg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089820/feedora/assets/9xk2WYdTHkOkRaClvqi16bf28I9adxogVmfFjxnY-jpg.jpg",
+        "public_id": "feedora/assets/9xk2WYdTHkOkRaClvqi16bf28I9adxogVmfFjxnY-jpg",
+        "resource_type": "image",
+        "format": "jpg",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:04:56+00:00"
+    },
+    {
+        "local_path": "images/9xk2WYdTHkOkRaClvqi16bf28I9adxogVmfFjxnY.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089822/feedora/assets/9xk2WYdTHkOkRaClvqi16bf28I9adxogVmfFjxnY-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089822/feedora/assets/9xk2WYdTHkOkRaClvqi16bf28I9adxogVmfFjxnY-webp.webp",
+        "public_id": "feedora/assets/9xk2WYdTHkOkRaClvqi16bf28I9adxogVmfFjxnY-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:04:59+00:00"
+    },
+    {
+        "local_path": "images/AlucLNmdregb2ySpPUfyut4HuPvF2BGTaDPsI7MW.jpg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089825/feedora/assets/AlucLNmdregb2ySpPUfyut4HuPvF2BGTaDPsI7MW-jpg.jpg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089825/feedora/assets/AlucLNmdregb2ySpPUfyut4HuPvF2BGTaDPsI7MW-jpg.jpg",
+        "public_id": "feedora/assets/AlucLNmdregb2ySpPUfyut4HuPvF2BGTaDPsI7MW-jpg",
+        "resource_type": "image",
+        "format": "jpg",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:05:02+00:00"
+    },
+    {
+        "local_path": "images/AlucLNmdregb2ySpPUfyut4HuPvF2BGTaDPsI7MW.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089827/feedora/assets/AlucLNmdregb2ySpPUfyut4HuPvF2BGTaDPsI7MW-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089827/feedora/assets/AlucLNmdregb2ySpPUfyut4HuPvF2BGTaDPsI7MW-webp.webp",
+        "public_id": "feedora/assets/AlucLNmdregb2ySpPUfyut4HuPvF2BGTaDPsI7MW-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:05:04+00:00"
+    },
+    {
+        "local_path": "images/Asset 27.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089829/feedora/assets/Asset-27-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089829/feedora/assets/Asset-27-svg.svg",
+        "public_id": "feedora/assets/Asset-27-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:05:08+00:00"
+    },
+    {
+        "local_path": "images/Asset 29.png",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089833/feedora/assets/Asset-29-png.png",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089833/feedora/assets/Asset-29-png.png",
+        "public_id": "feedora/assets/Asset-29-png",
+        "resource_type": "image",
+        "format": "png",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:05:10+00:00"
+    },
+    {
+        "local_path": "images/Asset 29.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089835/feedora/assets/Asset-29-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089835/feedora/assets/Asset-29-svg.svg",
+        "public_id": "feedora/assets/Asset-29-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:05:15+00:00"
+    },
+    {
+        "local_path": "images/Asset 45.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089840/feedora/assets/Asset-45-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089840/feedora/assets/Asset-45-svg.svg",
+        "public_id": "feedora/assets/Asset-45-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:05:18+00:00"
+    },
+    {
+        "local_path": "images/Asset 51.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089843/feedora/assets/Asset-51-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089843/feedora/assets/Asset-51-svg.svg",
+        "public_id": "feedora/assets/Asset-51-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:05:22+00:00"
+    },
+    {
+        "local_path": "images/Asset 60.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089847/feedora/assets/Asset-60-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089847/feedora/assets/Asset-60-svg.svg",
+        "public_id": "feedora/assets/Asset-60-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:05:26+00:00"
+    },
+    {
+        "local_path": "images/Chef 3.png",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089852/feedora/assets/Chef-3-png.png",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089852/feedora/assets/Chef-3-png.png",
+        "public_id": "feedora/assets/Chef-3-png",
+        "resource_type": "image",
+        "format": "png",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:05:29+00:00"
+    },
+    {
+        "local_path": "images/Chef 3.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089855/feedora/assets/Chef-3-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089855/feedora/assets/Chef-3-webp.webp",
+        "public_id": "feedora/assets/Chef-3-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:05:32+00:00"
+    },
+    {
+        "local_path": "images/Chef.png",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089857/feedora/assets/Chef-png.png",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089857/feedora/assets/Chef-png.png",
+        "public_id": "feedora/assets/Chef-png",
+        "resource_type": "image",
+        "format": "png",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:05:34+00:00"
+    },
+    {
+        "local_path": "images/Chef.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089860/feedora/assets/Chef-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089860/feedora/assets/Chef-webp.webp",
+        "public_id": "feedora/assets/Chef-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:05:37+00:00"
+    },
+    {
+        "local_path": "images/Choumicha-Lambassadrice-de-la-cuisine-marocaine-dans-le-monde-jpg.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089862/feedora/assets/Choumicha-Lambassadrice-de-la-cuisine-marocaine-dans-le-monde-jpg-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089862/feedora/assets/Choumicha-Lambassadrice-de-la-cuisine-marocaine-dans-le-monde-jpg-webp.webp",
+        "public_id": "feedora/assets/Choumicha-Lambassadrice-de-la-cuisine-marocaine-dans-le-monde-jpg-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:05:39+00:00"
+    },
+    {
+        "local_path": "images/Coming-Soon.png",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089865/feedora/assets/Coming-Soon-png.png",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089865/feedora/assets/Coming-Soon-png.png",
+        "public_id": "feedora/assets/Coming-Soon-png",
+        "resource_type": "image",
+        "format": "png",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:05:42+00:00"
+    },
+    {
+        "local_path": "images/Cooking partner.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089869/feedora/assets/Cooking-partner-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089869/feedora/assets/Cooking-partner-svg.svg",
+        "public_id": "feedora/assets/Cooking-partner-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:05:49+00:00"
+    },
+    {
+        "local_path": "images/Cooking_1.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089874/feedora/assets/Cooking_1-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089874/feedora/assets/Cooking_1-svg.svg",
+        "public_id": "feedora/assets/Cooking_1-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:06:01+00:00"
+    },
+    {
+        "local_path": "images/Cooking_10.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089886/feedora/assets/Cooking_10-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089886/feedora/assets/Cooking_10-svg.svg",
+        "public_id": "feedora/assets/Cooking_10-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:06:06+00:00"
+    },
+    {
+        "local_path": "images/Cooking_11.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089891/feedora/assets/Cooking_11-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089891/feedora/assets/Cooking_11-svg.svg",
+        "public_id": "feedora/assets/Cooking_11-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:06:11+00:00"
+    },
+    {
+        "local_path": "images/Cooking_12.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089896/feedora/assets/Cooking_12-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089896/feedora/assets/Cooking_12-svg.svg",
+        "public_id": "feedora/assets/Cooking_12-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:06:22+00:00"
+    },
+    {
+        "local_path": "images/Cooking_2.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089907/feedora/assets/Cooking_2-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089907/feedora/assets/Cooking_2-svg.svg",
+        "public_id": "feedora/assets/Cooking_2-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:06:35+00:00"
+    },
+    {
+        "local_path": "images/Cooking_3.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089920/feedora/assets/Cooking_3-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089920/feedora/assets/Cooking_3-svg.svg",
+        "public_id": "feedora/assets/Cooking_3-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:06:41+00:00"
+    },
+    {
+        "local_path": "images/Cooking_4.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089925/feedora/assets/Cooking_4-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089925/feedora/assets/Cooking_4-svg.svg",
+        "public_id": "feedora/assets/Cooking_4-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:06:53+00:00"
+    },
+    {
+        "local_path": "images/Cooking_5.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089938/feedora/assets/Cooking_5-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089938/feedora/assets/Cooking_5-svg.svg",
+        "public_id": "feedora/assets/Cooking_5-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:06:59+00:00"
+    },
+    {
+        "local_path": "images/Cooking_6.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089944/feedora/assets/Cooking_6-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089944/feedora/assets/Cooking_6-svg.svg",
+        "public_id": "feedora/assets/Cooking_6-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:07:04+00:00"
+    },
+    {
+        "local_path": "images/Cooking_7.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089949/feedora/assets/Cooking_7-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089949/feedora/assets/Cooking_7-svg.svg",
+        "public_id": "feedora/assets/Cooking_7-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:07:09+00:00"
+    },
+    {
+        "local_path": "images/Cooking_8.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089954/feedora/assets/Cooking_8-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089954/feedora/assets/Cooking_8-svg.svg",
+        "public_id": "feedora/assets/Cooking_8-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:07:18+00:00"
+    },
+    {
+        "local_path": "images/Cooking_9.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089963/feedora/assets/Cooking_9-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089963/feedora/assets/Cooking_9-svg.svg",
+        "public_id": "feedora/assets/Cooking_9-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:07:27+00:00"
+    },
+    {
+        "local_path": "images/Feedora-logo.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089973/feedora/assets/Feedora-logo-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089973/feedora/assets/Feedora-logo-svg.svg",
+        "public_id": "feedora/assets/Feedora-logo-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:07:31+00:00"
+    },
+    {
+        "local_path": "images/Feedora.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089976/feedora/assets/Feedora-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089976/feedora/assets/Feedora-svg.svg",
+        "public_id": "feedora/assets/Feedora-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:07:34+00:00"
+    },
+    {
+        "local_path": "images/Firefly_-imagine https---contais3.s3.amazonaws.com-public-original_images-7EqeUk5bLytzTvFhI0e 747404.jpg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089983/feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-7EqeUk5bLytzTvFhI0e-747404-jpg.jpg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089983/feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-7EqeUk5bLytzTvFhI0e-747404-jpg.jpg",
+        "public_id": "feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-7EqeUk5bLytzTvFhI0e-747404-jpg",
+        "resource_type": "image",
+        "format": "jpg",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:07:40+00:00"
+    },
+    {
+        "local_path": "images/Firefly_-imagine https---contais3.s3.amazonaws.com-public-original_images-7EqeUk5bLytzTvFhI0e 747404.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089986/feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-7EqeUk5bLytzTvFhI0e-747404-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089986/feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-7EqeUk5bLytzTvFhI0e-747404-webp.webp",
+        "public_id": "feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-7EqeUk5bLytzTvFhI0e-747404-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:07:42+00:00"
+    },
+    {
+        "local_path": "images/Firefly_-imagine https---contais3.s3.amazonaws.com-public-original_images-vZcXwLUkGj0T1r4et6K 275575.jpg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089991/feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-vZcXwLUkGj0T1r4et6K-275575-jpg.jpg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089991/feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-vZcXwLUkGj0T1r4et6K-275575-jpg.jpg",
+        "public_id": "feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-vZcXwLUkGj0T1r4et6K-275575-jpg",
+        "resource_type": "image",
+        "format": "jpg",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:07:48+00:00"
+    },
+    {
+        "local_path": "images/Firefly_-imagine https---contais3.s3.amazonaws.com-public-original_images-vZcXwLUkGj0T1r4et6K 275575.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782089993/feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-vZcXwLUkGj0T1r4et6K-275575-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089993/feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-vZcXwLUkGj0T1r4et6K-275575-webp.webp",
+        "public_id": "feedora/assets/Firefly_-imagine-https-contais3-s3-amazonaws-com-public-original_images-vZcXwLUkGj0T1r4et6K-275575-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:07:50+00:00"
+    },
+    {
+        "local_path": "images/Food Recipe.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089996/feedora/assets/Food-Recipe-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089996/feedora/assets/Food-Recipe-svg.svg",
+        "public_id": "feedora/assets/Food-Recipe-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:08:05+00:00"
+    },
+    {
+        "local_path": "images/Frame 1171277971.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090010/feedora/assets/Frame-1171277971-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090010/feedora/assets/Frame-1171277971-svg.svg",
+        "public_id": "feedora/assets/Frame-1171277971-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:08:08+00:00"
+    },
+    {
+        "local_path": "images/Frame 1171277973.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090013/feedora/assets/Frame-1171277973-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090013/feedora/assets/Frame-1171277973-svg.svg",
+        "public_id": "feedora/assets/Frame-1171277973-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:08:11+00:00"
+    },
+    {
+        "local_path": "images/Gold.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090016/feedora/assets/Gold-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090016/feedora/assets/Gold-svg.svg",
+        "public_id": "feedora/assets/Gold-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:08:14+00:00"
+    },
+    {
+        "local_path": "images/Muslim Woman Cooking Illustration_Muslim Woman Cooking Illustration-01.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090019/feedora/assets/Muslim-Woman-Cooking-Illustration_Muslim-Woman-Cooking-Illustration-01-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090019/feedora/assets/Muslim-Woman-Cooking-Illustration_Muslim-Woman-Cooking-Illustration-01-svg.svg",
+        "public_id": "feedora/assets/Muslim-Woman-Cooking-Illustration_Muslim-Woman-Cooking-Illustration-01-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:08:21+00:00"
+    },
+    {
+        "local_path": "images/Pizza (8).webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090050/feedora/assets/Pizza-8-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090050/feedora/assets/Pizza-8-webp.webp",
+        "public_id": "feedora/assets/Pizza-8-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:08:47+00:00"
+    },
+    {
+        "local_path": "images/Rfissa+Express+-6.jpg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090058/feedora/assets/Rfissa-Express-6-jpg.jpg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090058/feedora/assets/Rfissa-Express-6-jpg.jpg",
+        "public_id": "feedora/assets/Rfissa-Express-6-jpg",
+        "resource_type": "image",
+        "format": "jpg",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:08:56+00:00"
+    },
+    {
+        "local_path": "images/Rfissa+Express+-6.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090063/feedora/assets/Rfissa-Express-6-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090063/feedora/assets/Rfissa-Express-6-webp.webp",
+        "public_id": "feedora/assets/Rfissa-Express-6-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:08:59+00:00"
+    },
+    {
+        "local_path": "images/UaaovMo6khVpYfMleLpa0VBhoiQQAHCMBozIHx7x.jpg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090065/feedora/assets/UaaovMo6khVpYfMleLpa0VBhoiQQAHCMBozIHx7x-jpg.jpg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090065/feedora/assets/UaaovMo6khVpYfMleLpa0VBhoiQQAHCMBozIHx7x-jpg.jpg",
+        "public_id": "feedora/assets/UaaovMo6khVpYfMleLpa0VBhoiQQAHCMBozIHx7x-jpg",
+        "resource_type": "image",
+        "format": "jpg",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:02+00:00"
+    },
+    {
+        "local_path": "images/UaaovMo6khVpYfMleLpa0VBhoiQQAHCMBozIHx7x.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090068/feedora/assets/UaaovMo6khVpYfMleLpa0VBhoiQQAHCMBozIHx7x-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090068/feedora/assets/UaaovMo6khVpYfMleLpa0VBhoiQQAHCMBozIHx7x-webp.webp",
+        "public_id": "feedora/assets/UaaovMo6khVpYfMleLpa0VBhoiQQAHCMBozIHx7x-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:04+00:00"
+    },
+    {
+        "local_path": "images/VNU_M698_15.jpg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090073/feedora/assets/VNU_M698_15-jpg.jpg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090073/feedora/assets/VNU_M698_15-jpg.jpg",
+        "public_id": "feedora/assets/VNU_M698_15-jpg",
+        "resource_type": "image",
+        "format": "jpg",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:10+00:00"
+    },
+    {
+        "local_path": "images/VNU_M698_15.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090075/feedora/assets/VNU_M698_15-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090075/feedora/assets/VNU_M698_15-webp.webp",
+        "public_id": "feedora/assets/VNU_M698_15-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:12+00:00"
+    },
+    {
+        "local_path": "images/apple+baghrir_-7.jpg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090079/feedora/assets/apple-baghrir_-7-jpg.jpg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090079/feedora/assets/apple-baghrir_-7-jpg.jpg",
+        "public_id": "feedora/assets/apple-baghrir_-7-jpg",
+        "resource_type": "image",
+        "format": "jpg",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:16+00:00"
+    },
+    {
+        "local_path": "images/apple+baghrir_-7.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090081/feedora/assets/apple-baghrir_-7-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090081/feedora/assets/apple-baghrir_-7-webp.webp",
+        "public_id": "feedora/assets/apple-baghrir_-7-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:18+00:00"
+    },
+    {
+        "local_path": "images/bEeEOjt3fCQGMuYywteM8WNsM7EdOWIeToNisZgy.jpg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090084/feedora/assets/bEeEOjt3fCQGMuYywteM8WNsM7EdOWIeToNisZgy-jpg.jpg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090084/feedora/assets/bEeEOjt3fCQGMuYywteM8WNsM7EdOWIeToNisZgy-jpg.jpg",
+        "public_id": "feedora/assets/bEeEOjt3fCQGMuYywteM8WNsM7EdOWIeToNisZgy-jpg",
+        "resource_type": "image",
+        "format": "jpg",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:21+00:00"
+    },
+    {
+        "local_path": "images/bEeEOjt3fCQGMuYywteM8WNsM7EdOWIeToNisZgy.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090086/feedora/assets/bEeEOjt3fCQGMuYywteM8WNsM7EdOWIeToNisZgy-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090086/feedora/assets/bEeEOjt3fCQGMuYywteM8WNsM7EdOWIeToNisZgy-webp.webp",
+        "public_id": "feedora/assets/bEeEOjt3fCQGMuYywteM8WNsM7EdOWIeToNisZgy-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:23+00:00"
+    },
+    {
+        "local_path": "images/default-profile.png",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090088/feedora/assets/default-profile-png.svg",
+        "public_id": "feedora/assets/default-profile-png",
+        "resource_type": "image",
+        "format": "png",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:26+00:00"
+    },
+    {
+        "local_path": "images/default-recipe.svg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090091/feedora/assets/default-recipe-svg.svg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090091/feedora/assets/default-recipe-svg.svg",
+        "public_id": "feedora/assets/default-recipe-svg",
+        "resource_type": "image",
+        "format": "svg",
+        "webp": false,
+        "migrated_at": "2026-06-22T01:09:29+00:00"
+    },
+    {
+        "local_path": "images/image-asset.jpeg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090098/feedora/assets/image-asset-jpeg.jpg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090098/feedora/assets/image-asset-jpeg.jpg",
+        "public_id": "feedora/assets/image-asset-jpeg",
+        "resource_type": "image",
+        "format": "jpeg",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:35+00:00"
+    },
+    {
+        "local_path": "images/image-asset.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090101/feedora/assets/image-asset-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090101/feedora/assets/image-asset-webp.webp",
+        "public_id": "feedora/assets/image-asset-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:38+00:00"
+    },
+    {
+        "local_path": "images/images.jpg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090104/feedora/assets/images-jpg.jpg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090104/feedora/assets/images-jpg.jpg",
+        "public_id": "feedora/assets/images-jpg",
+        "resource_type": "image",
+        "format": "jpg",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:42+00:00"
+    },
+    {
+        "local_path": "images/images.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090107/feedora/assets/images-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090107/feedora/assets/images-webp.webp",
+        "public_id": "feedora/assets/images-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:44+00:00"
+    },
+    {
+        "local_path": "images/logo-feedora2.png",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090110/feedora/assets/logo-feedora2-png.png",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090110/feedora/assets/logo-feedora2-png.png",
+        "public_id": "feedora/assets/logo-feedora2-png",
+        "resource_type": "image",
+        "format": "png",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:47+00:00"
+    },
+    {
+        "local_path": "images/logo-feedora2.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090112/feedora/assets/logo-feedora2-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090112/feedora/assets/logo-feedora2-webp.webp",
+        "public_id": "feedora/assets/logo-feedora2-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:49+00:00"
+    },
+    {
+        "local_path": "images/man is logged in.png",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090116/feedora/assets/man-is-logged-in-png.png",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090116/feedora/assets/man-is-logged-in-png.png",
+        "public_id": "feedora/assets/man-is-logged-in-png",
+        "resource_type": "image",
+        "format": "png",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:53+00:00"
+    },
+    {
+        "local_path": "images/man is logged in.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090119/feedora/assets/man-is-logged-in-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090119/feedora/assets/man-is-logged-in-webp.webp",
+        "public_id": "feedora/assets/man-is-logged-in-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:09:56+00:00"
+    },
+    {
+        "local_path": "images/men and women working as chefs.jpg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090123/feedora/assets/men-and-women-working-as-chefs-jpg.jpg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090123/feedora/assets/men-and-women-working-as-chefs-jpg.jpg",
+        "public_id": "feedora/assets/men-and-women-working-as-chefs-jpg",
+        "resource_type": "image",
+        "format": "jpg",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:10:01+00:00"
+    },
+    {
+        "local_path": "images/men and women working as chefs.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090126/feedora/assets/men-and-women-working-as-chefs-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090126/feedora/assets/men-and-women-working-as-chefs-webp.webp",
+        "public_id": "feedora/assets/men-and-women-working-as-chefs-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:10:04+00:00"
+    },
+    {
+        "local_path": "images/nicole-mclaughlin-portrait-129b390897334dedad8bf1ae0fc22633.jpg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090130/feedora/assets/nicole-mclaughlin-portrait-129b390897334dedad8bf1ae0fc22633-jpg.jpg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090130/feedora/assets/nicole-mclaughlin-portrait-129b390897334dedad8bf1ae0fc22633-jpg.jpg",
+        "public_id": "feedora/assets/nicole-mclaughlin-portrait-129b390897334dedad8bf1ae0fc22633-jpg",
+        "resource_type": "image",
+        "format": "jpg",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:10:06+00:00"
+    },
+    {
+        "local_path": "images/vf_gordon_ramsay_5265.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090132/feedora/assets/vf_gordon_ramsay_5265-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090132/feedora/assets/vf_gordon_ramsay_5265-webp.webp",
+        "public_id": "feedora/assets/vf_gordon_ramsay_5265-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:10:09+00:00"
+    },
+    {
+        "local_path": "images/zaalouk+dip.jpg",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090135/feedora/assets/zaalouk-dip-jpg.jpg",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090135/feedora/assets/zaalouk-dip-jpg.jpg",
+        "public_id": "feedora/assets/zaalouk-dip-jpg",
+        "resource_type": "image",
+        "format": "jpg",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:10:12+00:00"
+    },
+    {
+        "local_path": "images/zaalouk+dip.webp",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090138/feedora/assets/zaalouk-dip-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090138/feedora/assets/zaalouk-dip-webp.webp",
+        "public_id": "feedora/assets/zaalouk-dip-webp",
+        "resource_type": "image",
+        "format": "webp",
+        "webp": true,
+        "migrated_at": "2026-06-22T01:10:15+00:00"
+    },
+    {
+        "local_path": "images/Pizza (8).png",
+        "cloudinary_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090050/feedora/assets/Pizza-8-webp.webp",
+        "raw_secure_url": "https://res.cloudinary.com/dio1bvxbv/image/upload/v1782090050/feedora/assets/Pizza-8-webp.webp",
+        "public_id": "feedora/assets/Pizza-8-webp",
+        "resource_type": "image",
+        "format": "png",
+        "webp": true,
+        "note": "original png 16MB exceeded Cloudinary free limit; mapped to identical webp twin",
+        "migrated_at": "2026-06-22T01:10:41+00:00"
+    }
+]

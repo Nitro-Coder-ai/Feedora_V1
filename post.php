@@ -3,8 +3,11 @@
 require_once 'config/config.php';
 // Include FIXED notification utilities
 require_once 'notification_utils.php';
+// Cloudinary uploader (with graceful local-disk fallback)
+require_once 'includes/CloudinaryService.php';
 // Start the session to manage user data
 session_start();
+csrf_verify(); // CSRF: reject forged state-changing POSTs
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -61,15 +64,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mkdir($uploadDir, 0777, true);
         }
         
-        // Generate unique filename
-        $fileExtension = pathinfo($_FILES['post_image']['name'], PATHINFO_EXTENSION);
-        $newFileName = uniqid('post_') . '.' . $fileExtension;
-        $targetFilePath = $uploadDir . $newFileName;
-        
         // Check if file is an image or video
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4'];
         $fileType = $_FILES['post_image']['type'];
         $fileSize = $_FILES['post_image']['size'];
+
+        // Derive a SAFE extension from the file's ACTUAL content — never the
+        // client-supplied filename/MIME. This blocks evil.php uploads and shell
+        // metacharacters reaching the ffmpeg exec() below.
+        if ($fileType === 'video/mp4') {
+            $finfo    = finfo_open(FILEINFO_MIME_TYPE);
+            $realMime = $finfo ? finfo_file($finfo, $_FILES['post_image']['tmp_name']) : '';
+            if ($finfo) { finfo_close($finfo); }
+            $safeExt = ($realMime === 'video/mp4') ? 'mp4' : null;
+        } else {
+            $safeExt = safe_image_ext($_FILES['post_image']['tmp_name']);
+        }
+        if ($safeExt === null) {
+            $message  = "Invalid or unsupported file.";
+            $fileType = 'invalid'; // force the allow-list check below to reject
+        }
+
+        // Generate unique filename using the validated extension only.
+        $newFileName    = uniqid('post_') . '.' . ($safeExt ?? 'bin');
+        $targetFilePath = $uploadDir . $newFileName;
         
         // Set size limits based on file type
         $maxImageSize = 5 * 1024 * 1024; // 5MB for images
@@ -121,11 +139,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }
                 } else { // if not a video
-                    // For images or if ffmpeg is not available
-                    if (move_uploaded_file($_FILES['post_image']['tmp_name'], $targetFilePath)) {
+                    // Try Cloudinary first (direct from the temp file, no local write).
+                    $cloud = CloudinaryService::upload($_FILES['post_image']['tmp_name'], 'feedora/posts');
+                    if ($cloud['success']) {
+                        $imageUrl = $cloud['url'];
+                    } elseif (move_uploaded_file($_FILES['post_image']['tmp_name'], $targetFilePath)) {
+                        // Fallback: keep the legacy local-disk behaviour.
                         $imageUrl = $targetFilePath;
                     } else {
                         $message = "Sorry, there was an error uploading your file.";
+                    }
+                }
+
+                // If a video was processed to local disk, push it to Cloudinary too.
+                if ($isVideo && $imageUrl !== null && strpos($imageUrl, 'uploads/') === 0 && is_file($imageUrl)) {
+                    $cloudV = CloudinaryService::upload($imageUrl, 'feedora/posts');
+                    if ($cloudV['success']) {
+                        @unlink($imageUrl);
+                        $imageUrl = $cloudV['url'];
                     }
                 }
             }

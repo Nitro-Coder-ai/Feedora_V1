@@ -1,6 +1,8 @@
 <?php
 // Include the database connection script
 require_once 'config/config.php';
+// Cloudinary uploader (with graceful local-disk fallback)
+require_once 'includes/CloudinaryService.php';
 // Start the session to manage user data
 session_start();
 
@@ -13,7 +15,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = $_SESSION['user_id'];
 $userName = $_SESSION['user_name'] ?? 'User';
-$userProfileImage = $_SESSION['profile_image'] ?? 'images/default-profile.png';
+$userProfileImage = $_SESSION['profile_image'] ?? 'https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg';
 
 // Check if recipe ID is provided
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -47,8 +49,12 @@ if (isset($_POST['delete_recipe'])) {
             $deleteCollections->execute([$recipeId]);
             
             // Delete the recipe photo if it exists
-            if (!empty($recipeOwner['PHOTO_URL']) && file_exists($recipeOwner['PHOTO_URL'])) {
-                unlink($recipeOwner['PHOTO_URL']);
+            if (!empty($recipeOwner['PHOTO_URL'])) {
+                if (strpos($recipeOwner['PHOTO_URL'], 'http') === 0) {
+                    CloudinaryService::destroyByUrl($recipeOwner['PHOTO_URL']);
+                } elseif (file_exists($recipeOwner['PHOTO_URL'])) {
+                    unlink($recipeOwner['PHOTO_URL']);
+                }
             }
             
             // Delete the recipe itself
@@ -91,13 +97,23 @@ if (isset($_POST['edit_recipe'])) {
                 
                 $fileName = uniqid() . '_' . basename($_FILES['edit_recipe_photo']['name']);
                 $uploadFile = $uploadDir . $fileName;
-                
-                if (move_uploaded_file($_FILES['edit_recipe_photo']['tmp_name'], $uploadFile)) {
-                    // Delete old photo if it exists
-                    if (!empty($photoUrl) && file_exists($photoUrl)) {
-                        unlink($photoUrl);
-                    }
+
+                // Try Cloudinary first; fall back to local disk to guarantee uptime.
+                $oldPhoto = $photoUrl;
+                $cloud = CloudinaryService::upload($_FILES['edit_recipe_photo']['tmp_name'], 'feedora/recipes');
+                if ($cloud['success']) {
+                    $photoUrl = $cloud['url'];
+                } elseif (move_uploaded_file($_FILES['edit_recipe_photo']['tmp_name'], $uploadFile)) {
                     $photoUrl = $uploadFile;
+                }
+
+                // Delete the old photo if it changed.
+                if ($photoUrl !== $oldPhoto && !empty($oldPhoto)) {
+                    if (strpos($oldPhoto, 'http') === 0) {
+                        CloudinaryService::destroyByUrl($oldPhoto);
+                    } elseif (file_exists($oldPhoto)) {
+                        unlink($oldPhoto);
+                    }
                 }
             }
             
@@ -218,6 +234,80 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
 $difficultiesStmt = $pdo->prepare("SELECT * FROM DIFFICULTY ORDER BY DIFFICULTY_ID");
 $difficultiesStmt->execute();
 $difficulties = $difficultiesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+/* ---------------------------------------------------------------------------
+ * Phase 4 SEO: build JSON-LD Recipe schema + meta/OpenGraph values.
+ * Handles both Cloudinary (absolute https) and local upload paths.
+ * ------------------------------------------------------------------------- */
+$seoBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+    . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+
+$feedoraAbsUrl = function ($path) use ($seoBaseUrl) {
+    if (!$path) return '';
+    if (preg_match('#^https?://#i', $path)) return $path; // already absolute (Cloudinary)
+    return $seoBaseUrl . '/' . ltrim($path, '/');
+};
+
+$seoImage = !empty($recipe['PHOTO_URL'])
+    ? $feedoraAbsUrl($recipe['PHOTO_URL'])
+    : $feedoraAbsUrl('images/default-recipe.jpg');
+$seoUrl   = $seoBaseUrl . '/view-recipe.php?id=' . (int)$recipeId;
+$seoTitle = $recipe['TITLE'] ?? 'Recipe';
+
+$seoDescRaw = trim(strip_tags($recipe['INSTRUCTIONS'] ?? ''));
+if ($seoDescRaw === '') {
+    $seoDescRaw = 'A delicious ' . ($recipe['NAME_CATEGORIE'] ?? '') . ' recipe shared on Feedora.';
+}
+$seoDescRaw = preg_replace('/\s+/', ' ', $seoDescRaw);
+$seoDescription = mb_substr($seoDescRaw, 0, 157) . (mb_strlen($seoDescRaw) > 157 ? '…' : '');
+
+$feedoraIsoMinutes = function ($m) {
+    $m = (int)$m;
+    return $m > 0 ? ('PT' . $m . 'M') : null;
+};
+$seoPrep = $feedoraIsoMinutes($recipe['PREP_TIME_MINUTES'] ?? 0);
+$seoCook = $feedoraIsoMinutes($recipe['COOK_TIME_MINUTES'] ?? 0);
+
+$seoIngredients = [];
+foreach ($ingredients as $ing) {
+    $line = trim(preg_replace('/\s+/', ' ',
+        ($ing['QUANTITY'] ?? '') . ' ' . ($ing['UNIT_NAME'] ?? '') . ' ' . ($ing['NAME'] ?? '')));
+    if ($line !== '') $seoIngredients[] = $line;
+}
+
+$seoSteps = array_values(array_filter(
+    array_map('trim', preg_split('/\r\n|\r|\n/', $recipe['INSTRUCTIONS'] ?? '')),
+    function ($s) { return $s !== ''; }
+));
+
+$seoJsonLd = [
+    '@context'       => 'https://schema.org',
+    '@type'          => 'Recipe',
+    'name'           => $seoTitle,
+    'description'    => $seoDescription,
+    'image'          => [$seoImage],
+    'author'         => ['@type' => 'Person', 'name' => $recipe['AUTHOR_NAME'] ?? 'Feedora Chef'],
+    'datePublished'  => !empty($recipe['CREATED_AT']) ? date('c', strtotime($recipe['CREATED_AT'])) : null,
+    'recipeCategory' => $recipe['NAME_CATEGORIE'] ?? null,
+    'recipeYield'    => !empty($recipe['SERVINGS']) ? ((string)$recipe['SERVINGS'] . ' servings') : null,
+    'prepTime'       => $seoPrep,
+    'cookTime'       => $seoCook,
+    'totalTime'      => ($seoPrep && $seoCook)
+        ? ('PT' . ((int)$recipe['PREP_TIME_MINUTES'] + (int)$recipe['COOK_TIME_MINUTES']) . 'M')
+        : null,
+    'url'            => $seoUrl,
+];
+if (!empty($seoIngredients)) {
+    $seoJsonLd['recipeIngredient'] = $seoIngredients;
+}
+if (!empty($seoSteps)) {
+    $seoJsonLd['recipeInstructions'] = array_map(function ($s) {
+        return ['@type' => 'HowToStep', 'text' => $s];
+    }, $seoSteps);
+}
+$seoJsonLd = array_filter($seoJsonLd, function ($v) { return $v !== null && $v !== ''; });
+// JSON_HEX_TAG prevents any "</script>" inside content from breaking out of the block.
+$seoJsonLdJson = json_encode($seoJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_PRETTY_PRINT);
 ?>
 
 <!DOCTYPE html>
@@ -225,693 +315,39 @@ $difficulties = $difficultiesStmt->fetchAll(PDO::FETCH_ASSOC);
 
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES); ?>">
+    <script src="<?php echo asset('assets/js/csrf.js'); ?>"></script>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Feedora - Your Recipe Collection">
+    <meta name="description" content="<?php echo htmlspecialchars($seoDescription, ENT_QUOTES); ?>">
     <meta name="theme-color" content="#ED5A2C">
-    <title><?php echo htmlspecialchars($recipe['TITLE']); ?> - Feedora</title>
-    <link rel="stylesheet" href="Home.css">
-    <link rel="stylesheet" href="fonts.css">
-    <style>
-        :root {
-            --primary-color: #ED5A2C;
-            --secondary-color: #4CAF50;
-            --text-color: #333;
-            --light-text: #666;
-            --background-color: #f5f5f5;
-            --card-background: #fff;
-            --border-color: #e0e0e0;
-            --shadow-color: rgba(0, 0, 0, 0.1);
-            --header-height: 70px;
-            --sidebar-width: 240px;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Qurova', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: #f5f5f5;
-            color: var(--text-color);
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Main Content Styles */
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .recipe-container {
-            flex: 1;
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            padding: 0;
-            overflow: hidden;
-            width: 100%;
-        }
-
-        .recipe-header {
-            position: relative;
-            height: 350px;
-            overflow: hidden;
-        }
-
-        .recipe-header-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .recipe-header-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 100%);
-            padding: 30px;
-            color: white;
-        }
-
-        .recipe-title {
-            font-size: 32px;
-            margin-bottom: 10px;
-            font-weight: 700;
-            color: white;
-        }
-
-        .recipe-meta {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .recipe-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 14px;
-        }
-
-        .recipe-meta-icon {
-            width: 18px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .recipe-author {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .recipe-author-image {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid white;
-        }
-
-        .recipe-author-name {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .recipe-content {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 30px;
-            padding: 30px;
-        }
-
-        .recipe-instructions {
-            padding-right: 20px;
-        }
-
-        .recipe-section-title {
-            font-size: 22px;
-            margin-bottom: 20px;
-            color: var(--text-color);
-            font-weight: 600;
-            position: relative;
-            padding-bottom: 10px;
-        }
-
-        .recipe-section-title::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 40px;
-            height: 3px;
-            background-color: var(--primary-color);
-            border-radius: 3px;
-        }
-
-        .recipe-instructions-text {
-            white-space: pre-line;
-            line-height: 1.6;
-            color: var(--text-color);
-        }
-
-        .recipe-sidebar {
-            background-color: var(--background-color);
-            border-radius: 12px;
-            padding: 25px;
-        }
-
-        .recipe-ingredients-list {
-            list-style: none;
-            margin-bottom: 30px;
-        }
-
-        .recipe-ingredient-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .ingredient-checkbox {
-            margin-right: 15px;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--primary-color);
-            border-radius: 4px;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .ingredient-checkbox:checked {
-            background-color: var(--primary-color);
-        }
-
-        .ingredient-checkbox:checked::after {
-            content: '✓';
-            position: absolute;
-            color: white;
-            font-size: 14px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .ingredient-checkbox:checked + .ingredient-text {
-            text-decoration: line-through;
-            color: var(--light-text);
-        }
-
-        .ingredient-text {
-            flex: 1;
-            transition: all 0.2s;
-        }
-
-        .recipe-details {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .recipe-detail-item {
-            background-color: white;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-
-        .detail-value {
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 5px;
-        }
-
-        .detail-label {
-            font-size: 12px;
-            color: var(--light-text);
-        }
-
-        .recipe-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .recipe-action-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: none;
-        }
-
-        .save-recipe-btn {
-            background-color: <?php echo $isCollected ? '#4CAF50' : 'var(--primary-color)'; ?>;
-            color: white;
-        }
-
-        .save-recipe-btn:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-        }
-
-        .print-recipe-btn {
-            background-color: var(--background-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-        }
-
-        .print-recipe-btn:hover {
-            background-color: var(--border-color);
-        }
-
-        /* Owner Action Buttons */
-        .edit-recipe-btn {
-            background-color: #2196F3;
-            color: white;
-        }
-
-        .edit-recipe-btn:hover {
-            background-color: #1976D2;
-            transform: translateY(-2px);
-        }
-
-        .delete-recipe-btn {
-            background-color: #f44336;
-            color: white;
-        }
-
-        .delete-recipe-btn:hover {
-            background-color: #d32f2f;
-            transform: translateY(-2px);
-        }
-
-        .back-to-recipes {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
-            color: var(--light-text);
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .back-to-recipes:hover {
-            color: var(--primary-color);
-        }
-
-        /* Success/Error Messages */
-        .success-message, .error-message {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            font-weight: 500;
-        }
-
-        .success-message {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .error-message {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-content {
-            background-color: white;
-            margin: 2% auto;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .close-modal {
-            position: absolute;
-            right: 20px;
-            top: 15px;
-            font-size: 28px;
-            font-weight: bold;
-            color: #aaa;
-            cursor: pointer;
-        }
-
-        .close-modal:hover {
-            color: var(--primary-color);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .half {
-            width: 50%;
-        }
-
-        .third {
-            width: calc(33.333% - 14px);
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--text-color);
-        }
-
-        input[type="text"],
-        input[type="number"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            color: var(--text-color);
-            background-color: white;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(237, 90, 44, 0.1);
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 15px;
-            justify-content: flex-end;
-            margin-top: 30px;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-primary:hover {
-            background-color: #d94e20;
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background-color: #f5f5f5;
-            color: var(--text-color);
-            border: 1px solid #ddd;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-secondary:hover {
-            background-color: #e0e0e0;
-        }
-
-        @media (max-width: 992px) {
-            .recipe-content {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media print {
-            @page {
-                margin: 1cm;
-                size: portrait;
-            }
-            
-            body {
-                margin: 0;
-                padding: 0;
-                background: white;
-                font-size: 12pt;
-                width: 100%;
-                display: block;
-            }
-            
-            .main-content {
-                margin: 0 !important;
-                padding: 0 !important;
-                width: 100% !important;
-                margin-left: 0 !important;
-                display: block !important;
-            }
-            
-            body > nav,
-            body > .sidebar,
-            body > #sidebar,
-            nav.sidebar,
-            .sidebar,
-            #sidebar,
-            header, 
-            .back-to-recipes, 
-            .recipe-actions {
-                display: none !important;
-                width: 0 !important;
-                height: 0 !important;
-                position: absolute !important;
-                overflow: hidden !important;
-                visibility: hidden !important;
-                opacity: 0 !important;
-                clip: rect(0, 0, 0, 0) !important;
-            }
-            
-            .recipe-content {
-                display: block !important;
-                width: 100% !important;
-                grid-template-columns: 1fr !important;
-            }
-            
-            .recipe-sidebar {
-                display: block !important;
-                width: 100% !important;
-                margin-top: 20px !important;
-                padding: 0 !important;
-                background: none !important;
-                box-shadow: none !important;
-                float: none !important;
-                page-break-before: auto;
-                page-break-after: auto;
-                page-break-inside: avoid;
-            }
-            
-            .recipe-container {
-                box-shadow: none !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                border: none !important;
-                display: block !important;
-            }
-            
-            .recipe-instructions {
-                width: 100% !important;
-                padding: 0 !important;
-                margin-bottom: 20px !important;
-                display: block !important;
-                page-break-before: auto;
-                page-break-after: auto;
-                page-break-inside: avoid;
-            }
-            
-            .recipe-ingredients-list {
-                display: block !important;
-                width: 100% !important;
-                padding-left: 20px !important;
-                margin-bottom: 20px !important;
-                page-break-inside: avoid;
-            }
-            
-            .recipe-ingredients-list li {
-                display: block !important;
-                width: 100% !important;
-                margin-bottom: 5px !important;
-            }
-            
-            .ingredient-checkbox {
-                display: none !important;
-            }
-            
-            .ingredient-text {
-                display: inline !important;
-            }
-            
-            .recipe-section-title {
-                border-bottom: 1px solid #ccc;
-                padding-bottom: 5px;
-                margin-top: 15px;
-                margin-bottom: 10px;
-                page-break-after: avoid;
-                display: block !important;
-            }
-            
-            .recipe-details {
-                display: flex !important;
-                flex-wrap: wrap !important;
-                margin-bottom: 15px !important;
-                border: 1px solid #eee;
-                padding: 10px;
-                page-break-inside: avoid;
-            }
-            
-            .recipe-detail-item {
-                margin-right: 20px !important;
-                box-shadow: none !important;
-                background: none !important;
-                flex: 1 !important;
-                min-width: 80px !important;
-            }
-            
-            .detail-value {
-                display: block !important;
-                font-weight: bold !important;
-            }
-            
-            .detail-label {
-                display: block !important;
-            }
-            
-            h1, h2, h3 {
-                page-break-after: avoid;
-            }
-            
-            .recipe-instructions-text {
-                page-break-inside: avoid;
-                display: block !important;
-                width: 100% !important;
-            }
-            
-            .recipe-header {
-                height: auto !important;
-                max-height: 300px !important;
-                overflow: visible !important;
-                display: block !important;
-                position: relative !important;
-                margin-bottom: 20px !important;
-                page-break-inside: avoid;
-            }
-            
-            .recipe-header-image {
-                display: block !important;
-                width: 100% !important;
-                height: auto !important;
-                max-height: 300px !important;
-                object-fit: contain !important;
-                page-break-inside: avoid;
-            }
-            
-            .recipe-header-overlay {
-                position: relative !important;
-                background: none !important;
-                padding: 10px 0 !important;
-                color: black !important;
-                display: block !important;
-            }
-            
-            .recipe-title {
-                color: black !important;
-                font-size: 24pt !important;
-                margin-top: 10px !important;
-                display: block !important;
-            }
-            
-            .recipe-meta {
-                display: block !important;
-                margin-bottom: 10px !important;
-            }
-            
-            .recipe-meta-item {
-                display: inline-block !important;
-                margin-right: 15px !important;
-            }
-            
-            .recipe-author {
-                display: block !important;
-                margin-top: 10px !important;
-            }
-            
-            img {
-                max-width: 100% !important;
-                page-break-inside: avoid;
-                display: block !important;
-            }
-            
-            .recipe-container::after {
-                content: "Printed from Feedora - " attr(data-recipe-id);
-                display: block;
-                text-align: center;
-                font-size: 9pt;
-                color: #999;
-                margin-top: 30px;
-            }
-            
-            @page {
-                @bottom-right {
-                    content: "Page " counter(page) " of " counter(pages);
-                }
-            }
-        }
-    </style>
+    <link rel="canonical" href="<?php echo htmlspecialchars($seoUrl, ENT_QUOTES); ?>">
+    <title><?php echo htmlspecialchars($seoTitle); ?> - Feedora</title>
+
+    <!-- Open Graph / social share cards -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="<?php echo htmlspecialchars($seoTitle, ENT_QUOTES); ?> - Feedora">
+    <meta property="og:description" content="<?php echo htmlspecialchars($seoDescription, ENT_QUOTES); ?>">
+    <meta property="og:image" content="<?php echo htmlspecialchars($seoImage, ENT_QUOTES); ?>">
+    <meta property="og:url" content="<?php echo htmlspecialchars($seoUrl, ENT_QUOTES); ?>">
+    <meta property="og:site_name" content="Feedora">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?php echo htmlspecialchars($seoTitle, ENT_QUOTES); ?> - Feedora">
+    <meta name="twitter:description" content="<?php echo htmlspecialchars($seoDescription, ENT_QUOTES); ?>">
+    <meta name="twitter:image" content="<?php echo htmlspecialchars($seoImage, ENT_QUOTES); ?>">
+
+    <!-- JSON-LD structured data: Google Recipe rich result -->
+    <script type="application/ld+json">
+<?php echo $seoJsonLdJson; ?>
+    </script>
+
+    <link rel="stylesheet" href="<?php echo asset('Home.css'); ?>">
+    <link rel="stylesheet" href="<?php echo asset('fonts.css'); ?>">
+    <link rel="stylesheet" href="<?php echo asset('assets/css/view-recipe.css'); ?>">
+    <?php if ($isCollected): ?>
+    <!-- Dynamic value kept inline; the rest of the rule lives in view-recipe.css -->
+    <style>.save-recipe-btn { --save-recipe-bg: #4CAF50; }</style>
+    <?php endif; ?>
 </head>
 
 <body>
@@ -986,7 +422,7 @@ $difficulties = $difficultiesStmt->fetchAll(PDO::FETCH_ASSOC);
                         <?php if (!empty($recipe['AUTHOR_IMAGE'])): ?>
                             <img src="<?php echo htmlspecialchars($recipe['AUTHOR_IMAGE']); ?>" alt="<?php echo htmlspecialchars($recipe['AUTHOR_NAME']); ?>" class="recipe-author-image">
                         <?php else: ?>
-                            <img src="images/default-profile.png" alt="Default Profile" class="recipe-author-image">
+                            <img src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg" alt="Default Profile" class="recipe-author-image">
                         <?php endif; ?>
                         <span class="recipe-author-name">By <?php echo htmlspecialchars($recipe['AUTHOR_NAME']); ?></span>
                     </div>
@@ -1048,6 +484,7 @@ $difficulties = $difficultiesStmt->fetchAll(PDO::FETCH_ASSOC);
                             <!-- Save Recipe Button for Non-Owners -->
                              
                             <form method="post" action="">
+          <?php echo csrf_field(); ?>
                                 <input type="hidden" name="recipe_id" value="<?php echo $recipeId; ?>">
                                 <button type="submit" name="toggle_collect" class="recipe-action-btn save-recipe-btn" id="saveBtn">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="<?php echo $isCollected ? 'white' : 'none'; ?>" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1098,6 +535,7 @@ $difficulties = $difficultiesStmt->fetchAll(PDO::FETCH_ASSOC);
             <h2>Edit Recipe</h2>
             
             <form method="post" action="" enctype="multipart/form-data">
+          <?php echo csrf_field(); ?>
                 <input type="hidden" name="existing_photo_url" value="<?php echo htmlspecialchars($recipe['PHOTO_URL'] ?? ''); ?>">
                 
                 <div class="form-group">
@@ -1175,66 +613,18 @@ $difficulties = $difficultiesStmt->fetchAll(PDO::FETCH_ASSOC);
 
     <!-- Delete Confirmation Form -->
     <form id="deleteForm" method="post" action="" style="display: none;">
+          <?php echo csrf_field(); ?>
         <input type="hidden" name="delete_recipe" value="1">
     </form>
     <?php endif; ?>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Save ingredient checked state to localStorage
-            const checkboxes = document.querySelectorAll('.ingredient-checkbox');
-            const recipeId = '<?php echo $recipeId; ?>';
-            
-            // Load saved state
-            checkboxes.forEach(checkbox => {
-                const id = checkbox.id;
-                const savedState = localStorage.getItem(`recipe_${recipeId}_${id}`);
-                if (savedState === 'true') {
-                    checkbox.checked = true;
-                }
-                
-                // Save state on change
-                checkbox.addEventListener('change', function() {
-                    localStorage.setItem(`recipe_${recipeId}_${id}`, this.checked);
-                });
-            });
-        });
-
-        <?php if ($isOwner): ?>
-        // Edit modal functions
-        function openEditModal() {
-            document.getElementById('editRecipeModal').style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeEditModal() {
-            document.getElementById('editRecipeModal').style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-
-        // Delete confirmation
-        function confirmDelete() {
-            if (confirm('Are you sure you want to delete this recipe? This action cannot be undone and will remove the recipe from all collections.')) {
-                document.getElementById('deleteForm').submit();
-            }
-        }
-
-        // Close modal when clicking outside
-        window.addEventListener('click', function(event) {
-            const modal = document.getElementById('editRecipeModal');
-            if (event.target === modal) {
-                closeEditModal();
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeEditModal();
-            }
-        });
-        <?php endif; ?>
+        window.ViewRecipeConfig = {
+            recipeId: <?php echo json_encode($recipeId); ?>,
+            isOwner: <?php echo json_encode((bool)$isOwner); ?>
+        };
     </script>
+    <script src="<?php echo asset('assets/js/view-recipe.js'); ?>" defer></script>
 </body>
 
 </html>

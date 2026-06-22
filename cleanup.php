@@ -250,73 +250,8 @@ if ($action === 'delete_unreferenced') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feedora - Project Cleanup</title>
-    <link rel="stylesheet" href="Home.css">
-    <style>
-        .cleanup-container {
-            max-width: 1000px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .stats-box {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        .stat-card {
-            flex: 1;
-            min-width: 200px;
-            padding: 15px;
-            background-color: #f5f5f5;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .file-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        .file-table th, .file-table td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        .file-table th {
-            background-color: #f2f2f2;
-        }
-        .file-table tr:hover {
-            background-color: #f9f9f9;
-        }
-        .action-buttons {
-            margin: 20px 0;
-        }
-        .action-button {
-            padding: 10px 15px;
-            margin-right: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .action-button:hover {
-            background-color: #45a049;
-        }
-        .warning {
-            color: #ff0000;
-        }
-        .message {
-            padding: 10px;
-            margin-bottom: 20px;
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            border-radius: 4px;
-            color: #155724;
-        }
-    </style>
+    <link rel="stylesheet" href="<?php echo asset('Home.css'); ?>">
+    <link rel="stylesheet" href="<?php echo asset('assets/css/cleanup.css'); ?>">
 </head>
 <body>
     <div class="cleanup-container">

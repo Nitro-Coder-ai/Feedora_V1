@@ -3,6 +3,7 @@
 require_once 'config/config.php';
 require_once 'notification_utils.php';
 session_start();
+csrf_verify(); // CSRF: reject forged state-changing POSTs
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
