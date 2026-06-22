@@ -147,10 +147,7 @@ body {
     overflow: hidden;
   }
   
-  .center-container:hover {
-    box-shadow: 0 6px 15px rgba(237, 90, 44, 0.4);
-    transform: translateY(-2px);
-  }
+ 
 
   .nav-link {
     color: white;
@@ -632,7 +629,7 @@ body {
   .testimonials-icon {
       position: absolute;
       top: -8px;
-      right: 470px;
+      right: 443px;
       width: 24px;
       height: 24px;
   }
@@ -868,7 +865,7 @@ body {
   /* Button styles */
   .hiw-buttons-container {
     display: flex;
-    gap: 30px;
+    gap: 15px;
     padding: 20px 38px 20px 0;
     width: 40%;
 }
@@ -1080,8 +1077,8 @@ body {
   
   .explore-title-icon {
     position: absolute;
-    top: -8px;
-    right: 0px;
+    top: 36px;
+    right: 156px;
     width: 24px;
     height: 24px;
 }
@@ -1211,9 +1208,9 @@ body {
   }
   
   .live-title-icon {
-    position: absolute;
-    top: -8px;
-    right: -30px;
+position: absolute;
+    top: -5px;
+    right: -17px;
     width: 24px;
     height: 24px;
 }
@@ -1368,7 +1365,7 @@ body {
     width: 24px;
     height: 24px;
     flex-shrink: 0;
-    left: 200px;
+    left: 203px;
     top: 43px;
 }
   
@@ -3576,14 +3573,9 @@ body {
   flex-direction: column;
   align-items: center;
   padding: 20px 15px;
-  background-color: #f9f9f9;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-.chef-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-}
+
 
 .chef-image-container {
   width: 180px;
@@ -4384,19 +4376,18 @@ body {
   }
 }
 /* =====================================================================
-   UX ENHANCEMENTS (2026-06) — lazy-image polish, Live/Upcoming toggle,
-   responsive hardening. Appended last so it overrides earlier rules.
+   UX ENHANCEMENTS (2026-06) — appended last so it overrides earlier rules.
+   Refactored 2026-06: component rules are self-contained (editing one button
+   no longer cascades into others); the two mobile (<=768px) blocks are merged;
+   duplicate hero-button / split newsletter-button rules are consolidated.
    ===================================================================== */
 
-/* 1) Smooth lazy loading: a soft, STATIC placeholder color behind media so fast
-   scrolling shows a calm skeleton instead of a white flash. The loaded image
-   (object-fit:cover, opaque) simply covers it. Static = zero per-frame cost, so
-   it never competes with scrolling. No JS required. */
+/* 1) Smooth lazy loading: a soft, STATIC placeholder behind media so fast
+   scrolling shows a calm skeleton instead of a white flash. Zero per-frame cost. */
 .recipe-image-container,
 .live-image-container,
 .chef-image-container,
 .post-image-container,
-.hero-image-container,
 .recipe-image,
 .live-image,
 .chef-image,
@@ -4404,6 +4395,15 @@ body {
 .post-image,
 .post-user-avatar {
   background-color: #f1ece5;
+}
+
+/* Hero illustration stays fully transparent — no placeholder/overlay/background. */
+.hero-image-container,
+.hero-image,
+.hero-visual,
+.hero-image-wrapper {
+  background: none !important;
+  box-shadow: none !important;
 }
 
 /* 2) Live / Upcoming — polished segmented toggle in the brand font (Qurova). */
@@ -4437,8 +4437,148 @@ body {
   box-shadow: 0 4px 12px rgba(237, 90, 44, 0.35);
 }
 
-/* 3) Responsive hardening for Home sections (mobile-only; desktop untouched). */
+/* 3) Media never overflows its column. */
 img, svg, video { max-width: 100%; }
+
+/* 4) Unified width — the hero and EVERY content section share the same clean
+   max-width, centering and gutter, so they line up perfectly at any zoom level. */
+.hero-container,
+.stats-container,
+.recipe-container,
+.live-cooking-container,
+.chefs-container,
+.community-container,
+.community-feed-section,
+.explore-container,
+.testimonials-container,
+.testimonials-section,
+.feature-container {
+  width: 92%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 5) Remove section-wrapper horizontal padding so every inner container measures
+   the same 92%/1280 of the viewport and lines up exactly with the hero. */
+.hero-section,
+.recipe-section,
+.recipe-of-week-section,
+.live-cooking-section,
+.chefs-section,
+.explore-section,
+.testimonials-section,
+.community-section,
+.stats-section {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* 6) Disable ALL hover effects on cards (no scaling, lift, or image zoom). */
+.recipe-card, .chef-card, .live-card, .post-card,
+.recipe-image, .chef-image, .live-image, .post-image { transition: none !important; }
+.recipe-card:hover, .chef-card:hover, .live-card:hover, .post-card:hover {
+  transform: none !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08) !important;
+}
+.recipe-card:hover .recipe-image,
+.chef-card:hover .chef-image,
+.live-card:hover .live-image,
+.post-card:hover .post-image { transform: none !important; }
+
+/* 7) Clickable header logo (links to Home) — keep it visually identical. */
+.logo-link { display: inline-flex; align-items: center; text-decoration: none; }
+.logo-link img { display: block; }
+
+/* 8) Meet the Chefs — SLIDER of clean, EQUAL profiles (no card box, no hover).
+   Slider layout is driven by Home.js + .chefs-slider CSS; we only strip the card
+   chrome, size the Follow button, and disable the hover. */
+.chef-card {
+  background: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 14px 10px !important;
+}
+.chef-name { margin-bottom: 16px; }
+.chef-card .follow-button { width: 100%; max-width: 200px; }
+.chef-card, .chef-image, .chef-image-container { transition: none !important; }
+.chef-card:hover,
+.chef-card:hover .chef-image,
+.chef-card:hover .chef-image-container { transform: none !important; }
+
+/* 9) Heading flourish icons — inline next to their title at EVERY breakpoint, so
+   they never drift on zoom. (Replaces the old absolute-positioned offsets.) */
+.title-icon, .recipe-icon, .recipe-accent-icon, .live-accent-icon,
+.live-title-icon, .chefs-accent-icon, .explore-title-icon,
+.community-accent-icon, .community-title-icon, .testimonials-icon, .hiw-icon {
+  position: static !important;
+  top: auto !important; right: auto !important; bottom: auto !important; left: auto !important;
+  transform: none !important;
+  display: inline-block !important;
+  vertical-align: middle;
+  margin: 0 0 0 8px !important;
+}
+.explore-title-container, .testimonials-header { display: block; }
+.recipe-title, .live-title, .chefs-title, .explore-title,
+.community-title, .testimonials-title, .hiw-title {
+  display: inline !important;
+  padding-right: 0 !important;
+}
+
+/* 10) Accessibility contrast via the WCAG "Large Text" exception — KEEP the brand
+   orange (#ED5A2C). Bold text >=18.66px only needs 3:1, so 19px/700 labels pass AA
+   with no color change. (Shared CTA group: identical type treatment by design.) */
+.signin-button, .follow-button,
+.post-now-btn, .post-now-button, .live-tab, .live-cooking-section .live-tab,
+.subscribe-btn, .submit-recipe-btn, .explore-button, .live-button,
+.hiw-signin-button, .load-more-button, .cta-button,
+.explore-button span, .live-button span, .follow-button span {
+  font-size: 19px !important;
+  font-weight: 700 !important;
+}
+
+/* ---- Component-scoped overrides (each button is independent) ---------------- */
+
+/* Newsletter button: own font + brand color (consolidated into one rule). */
+.newsletter-button {
+  font-family: 'Qurova', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  background-color: #FF5A1F !important;
+}
+.newsletter-button:hover { background-color: #e84c10 !important; }
+
+/* Hero buttons: keep original size/weight (16px/500) and brand orange. */
+.hero-button, .hero-button.primary-button, .hero-button.secondary-button {
+  background-color: #ed5a2c !important;
+  white-space: nowrap;
+}
+.hero-button:hover,
+.hero-button.primary-button:hover,
+.hero-button.secondary-button:hover {
+  background-color: #ed5a2c !important;
+}
+
+/* Search touch targets (min 48x48) for best-practices compliance. */
+.search-input, .mobile-search-input {
+  min-height: 48px !important;
+  padding-right: 48px !important;
+}
+.search-button, .mobile-search-button {
+  min-height: 48px !important;
+  min-width: 48px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  right: 2px !important;
+  padding: 0 !important;
+}
+
+/* Final contrast polish. */
+.nav-link { color: white !important; font-weight: 500 !important; }
+.chef-title { color: #555 !important; }
+
+/* ---- Mobile hardening (<=768px) — both prior blocks merged into one --------- */
 @media (max-width: 768px) {
   body { overflow-x: hidden; }
   .live-cooking-section .live-tabs { display: flex; justify-content: center; flex-wrap: wrap; }
@@ -4452,41 +4592,23 @@ img, svg, video { max-width: 100%; }
     padding-left: 16px;
     padding-right: 16px;
   }
-}
-
-/* 4) Fill the viewport like the hero — stop content sections from capping at
-   1200px and revealing the orange body on the sides at wide widths / zoom-out.
-   (The hero uses width:95% with no cap; we match that for the content cards.) */
-.stats-container,
-.recipe-container,
-.live-cooking-container,
-.chefs-container,
-.community-container,
-.community-feed-section,
-.explore-container,
-.testimonials-container,
-.testimonials-section,
-.feature-container {
-  width: 95%;
-  max-width: 1500px;
-  margin-left: auto;
-  margin-right: auto;
-}
-@media (min-width: 1600px) {
-  .stats-container,
-  .recipe-container,
-  .live-cooking-container,
-  .chefs-container,
-  .community-container,
-  .community-feed-section,
-  .explore-container,
-  .testimonials-container,
-  .testimonials-section,
-  .feature-container {
-    max-width: 92%;
+  .hero-container { flex-direction: column; text-align: center; }
+  .hero-content { padding: 0; align-items: center; }
+  .hero-image-container { max-width: 100%; }
+  .chefs-grid, .recipe-grid, .recipes-grid, .community-grid,
+  .live-slider, .stats-row, .stats-container {
+    grid-template-columns: 1fr !important;
+    justify-items: center;
+    justify-content: center;
+  }
+  .recipe-card, .chef-card, .live-card, .post-card, .stat-card {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    max-width: 420px;
+    width: 100%;
+  }
+  .chefs-header, .community-header, .live-cooking-header,
+  .recipe-header, .explore-header, .testimonials-header {
+    text-align: center;
   }
 }
-
-/* 5) Clickable header logo (links to Home) — keep it visually identical. */
-.logo-link { display: inline-flex; align-items: center; text-decoration: none; }
-.logo-link img { display: block; }
