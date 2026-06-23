@@ -1,44 +1,7 @@
 /* Extracted from live.php inline <script> (refactor). */
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Mobile hamburger menu functionality
-            const hamburgerMenu = document.getElementById('hamburger-menu');
-            const sidebar = document.querySelector('.sidebar');
-            const sidebarOverlay = document.getElementById('sidebar-overlay');
-            
-            if (hamburgerMenu && sidebar && sidebarOverlay) {
-                // Toggle sidebar on hamburger click
-                hamburgerMenu.addEventListener('click', function() {
-                    hamburgerMenu.classList.toggle('active');
-                    sidebar.classList.toggle('active');
-                    sidebarOverlay.classList.toggle('active');
-                    
-                    // Prevent body scrolling when sidebar is open
-                    if (sidebar.classList.contains('active')) {
-                        document.body.style.overflow = 'hidden';
-                    } else {
-                        document.body.style.overflow = '';
-                    }
-                });
-                
-                // Close sidebar when clicking on overlay
-                sidebarOverlay.addEventListener('click', function() {
-                    hamburgerMenu.classList.remove('active');
-                    sidebar.classList.remove('active');
-                    sidebarOverlay.classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-                
-                // Close sidebar on window resize if mobile view is exited
-                window.addEventListener('resize', function() {
-                    if (window.innerWidth > 768) {
-                        hamburgerMenu.classList.remove('active');
-                        sidebar.classList.remove('active');
-                        sidebarOverlay.classList.remove('active');
-                        document.body.style.overflow = '';
-                    }
-                });
-            }
+            // Mobile hamburger menu functionality is handled by header.js
             
             // Enhanced animated food items
             const animatedBg = document.querySelector('.animated-bg');

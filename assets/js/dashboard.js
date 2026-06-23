@@ -2,236 +2,260 @@
 
 // XSS guard: escape user-controlled values before they enter innerHTML.
 function escapeHtml(value) {
-  if (value === null || value === undefined) return '';
+  if (value === null || value === undefined) return "";
   return String(value).replace(/[&<>"']/g, function (c) {
-    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c];
+    return {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;",
+    }[c];
   });
 }
 
-        // Enhanced JavaScript for dashboard functionality with fixed reactions
-        document.addEventListener('DOMContentLoaded', function() {
-            // Enhanced reaction handling function with better feedback
-            window.handleReaction = function(postId, reactionType) {
-                // Add loading state to the clicked reaction
-                const clickedReactionIcon = document.querySelector(`[data-post-id="${postId}"] [data-reaction="${reactionType}"]`);
-                if (clickedReactionIcon) {
-                    clickedReactionIcon.style.opacity = '0.6';
-                    clickedReactionIcon.style.pointerEvents = 'none';
-                }
+// Enhanced JavaScript for dashboard functionality with fixed reactions
+document.addEventListener("DOMContentLoaded", function () {
+  // Enhanced reaction handling function with better feedback
+  window.handleReaction = function (postId, reactionType) {
+    // Add loading state to the clicked reaction
+    const clickedReactionIcon = document.querySelector(
+      `[data-post-id="${postId}"] [data-reaction="${reactionType}"]`,
+    );
+    if (clickedReactionIcon) {
+      clickedReactionIcon.style.opacity = "0.6";
+      clickedReactionIcon.style.pointerEvents = "none";
+    }
 
-                const formData = new FormData();
-                formData.append('action', 'add_reaction');
-                formData.append('post_id', postId);
-                formData.append('reaction_type', reactionType);
+    const formData = new FormData();
+    formData.append("action", "add_reaction");
+    formData.append("post_id", postId);
+    formData.append("reaction_type", reactionType);
 
-                fetch('post_reaction.php', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Update the UI with new reaction data
-                            updateReactionUI(postId, data.reaction_data, reactionType, data.action_type);
+    fetch("post_reaction.php", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          // Update the UI with new reaction data
+          updateReactionUI(
+            postId,
+            data.reaction_data,
+            reactionType,
+            data.action_type,
+          );
 
-                            // Hide the reaction panel
-                            const container = document.querySelector(`[data-post-id="${postId}"].post-likes-container`);
-                            if (container) {
-                                container.classList.remove('active');
-                            }
+          // Hide the reaction panel
+          const container = document.querySelector(
+            `[data-post-id="${postId}"].post-likes-container`,
+          );
+          if (container) {
+            container.classList.remove("active");
+          }
 
-                            // Show appropriate message
-                            let message = '';
-                            switch (data.action_type) {
-                                case 'added':
-                                    message = `You reacted with ${reactionType}! ✨`;
-                                    break;
-                                case 'updated':
-                                    message = `Changed reaction to ${reactionType}! 🔄`;
-                                    break;
-                                case 'removed':
-                                    message = `Reaction removed! 👋`;
-                                    break;
-                                default:
-                                    message = 'Reaction updated!';
-                            }
-                            showToast(message, 'success');
-                        } else {
-                            showToast(data.message || 'Error adding reaction', 'error');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error handling reaction:', error);
-                        showToast('An error occurred while adding the reaction.', 'error');
-                    })
-                    .finally(() => {
-                        // Remove loading state
-                        if (clickedReactionIcon) {
-                            clickedReactionIcon.style.opacity = '1';
-                            clickedReactionIcon.style.pointerEvents = 'auto';
-                        }
-                    });
-            };
+          // Show appropriate message
+          let message = "";
+          switch (data.action_type) {
+            case "added":
+              message = `You reacted with ${reactionType}! ✨`;
+              break;
+            case "updated":
+              message = `Changed reaction to ${reactionType}! 🔄`;
+              break;
+            case "removed":
+              message = `Reaction removed! 👋`;
+              break;
+            default:
+              message = "Reaction updated!";
+          }
+          showToast(message, "success");
+        } else {
+          showToast(data.message || "Error adding reaction", "error");
+        }
+      })
+      .catch((error) => {
+        console.error("Error handling reaction:", error);
+        showToast("An error occurred while adding the reaction.", "error");
+      })
+      .finally(() => {
+        // Remove loading state
+        if (clickedReactionIcon) {
+          clickedReactionIcon.style.opacity = "1";
+          clickedReactionIcon.style.pointerEvents = "auto";
+        }
+      });
+  };
 
-            // Enhanced UI update function with better visual feedback
-            function updateReactionUI(postId, reactionData, newReaction, actionType) {
-                const container = document.querySelector(`[data-post-id="${postId}"].post-likes-container`);
-                if (!container) return;
+  // Enhanced UI update function with better visual feedback
+  function updateReactionUI(postId, reactionData, newReaction, actionType) {
+    const container = document.querySelector(
+      `[data-post-id="${postId}"].post-likes-container`,
+    );
+    if (!container) return;
 
-                const likeButton = container.querySelector('.post-likes');
-                const likeCount = container.querySelector('.like-count');
-                const likeIcon = container.querySelector('.like-icon');
+    const likeButton = container.querySelector(".post-likes");
+    const likeCount = container.querySelector(".like-count");
+    const likeIcon = container.querySelector(".like-icon");
 
-                // Update like button state based on user reaction
-                if (reactionData.user_reaction) {
-                    likeButton.classList.add('active');
-                    likeButton.setAttribute('data-user-reaction', reactionData.user_reaction);
-                    if (likeIcon) {
-                        likeIcon.setAttribute('fill', 'var(--primary-color)');
-                        likeIcon.setAttribute('stroke', 'var(--primary-color)');
-                    }
-                } else {
-                    likeButton.classList.remove('active');
-                    likeButton.setAttribute('data-user-reaction', '');
-                    if (likeIcon) {
-                        likeIcon.setAttribute('fill', 'none');
-                        likeIcon.setAttribute('stroke', 'currentColor');
-                    }
-                }
+    // Update like button state based on user reaction
+    if (reactionData.user_reaction) {
+      likeButton.classList.add("active");
+      likeButton.setAttribute("data-user-reaction", reactionData.user_reaction);
+      if (likeIcon) {
+        likeIcon.setAttribute("fill", "var(--primary-color)");
+        likeIcon.setAttribute("stroke", "var(--primary-color)");
+      }
+    } else {
+      likeButton.classList.remove("active");
+      likeButton.setAttribute("data-user-reaction", "");
+      if (likeIcon) {
+        likeIcon.setAttribute("fill", "none");
+        likeIcon.setAttribute("stroke", "currentColor");
+      }
+    }
 
-                // Update reaction count with animation
-                const totalReactions = reactionData.total_reactions;
-                if (likeCount) {
-                    // Add a subtle animation to the count change
-                    likeCount.style.transform = 'scale(1.1)';
-                    likeCount.style.transition = 'transform 0.2s ease';
+    // Update reaction count with animation
+    const totalReactions = reactionData.total_reactions;
+    if (likeCount) {
+      // Add a subtle animation to the count change
+      likeCount.style.transform = "scale(1.1)";
+      likeCount.style.transition = "transform 0.2s ease";
 
-                    setTimeout(() => {
-                        if (totalReactions > 0) {
-                            likeCount.textContent = totalReactions + (totalReactions === 1 ? ' reaction' : ' reactions');
-                        } else {
-                            likeCount.textContent = '0 reactions';
-                        }
+      setTimeout(() => {
+        if (totalReactions > 0) {
+          likeCount.textContent =
+            totalReactions +
+            (totalReactions === 1 ? " reaction" : " reactions");
+        } else {
+          likeCount.textContent = "0 reactions";
+        }
 
-                        // Reset animation
-                        likeCount.style.transform = 'scale(1)';
-                    }, 100);
-                }
+        // Reset animation
+        likeCount.style.transform = "scale(1)";
+      }, 100);
+    }
 
-                // Add animation to the clicked reaction icon
-                const clickedReactionIcon = container.querySelector(`[data-reaction="${newReaction}"]`);
-                if (clickedReactionIcon && actionType !== 'removed') {
-                    clickedReactionIcon.classList.add('reaction-animation');
+    // Add animation to the clicked reaction icon
+    const clickedReactionIcon = container.querySelector(
+      `[data-reaction="${newReaction}"]`,
+    );
+    if (clickedReactionIcon && actionType !== "removed") {
+      clickedReactionIcon.classList.add("reaction-animation");
 
-                    // Create a floating emoji effect
-                    createFloatingEmoji(clickedReactionIcon, newReaction);
+      // Create a floating emoji effect
+      createFloatingEmoji(clickedReactionIcon, newReaction);
 
-                    setTimeout(() => {
-                        clickedReactionIcon.classList.remove('reaction-animation');
-                    }, 400);
-                }
+      setTimeout(() => {
+        clickedReactionIcon.classList.remove("reaction-animation");
+      }, 400);
+    }
 
-                // Update visual state of reaction icons
-                const allReactionIcons = container.querySelectorAll('.reaction-icon');
-                allReactionIcons.forEach(icon => {
-                    const iconReaction = icon.getAttribute('data-reaction');
-                    if (iconReaction === reactionData.user_reaction) {
-                        icon.style.backgroundColor = 'rgba(237, 90, 44, 0.2)';
-                        icon.style.transform = 'scale(1.1)';
-                    } else {
-                        icon.style.backgroundColor = '';
-                        icon.style.transform = '';
-                    }
-                });
-            }
+    // Update visual state of reaction icons
+    const allReactionIcons = container.querySelectorAll(".reaction-icon");
+    allReactionIcons.forEach((icon) => {
+      const iconReaction = icon.getAttribute("data-reaction");
+      if (iconReaction === reactionData.user_reaction) {
+        icon.style.backgroundColor = "rgba(237, 90, 44, 0.2)";
+        icon.style.transform = "scale(1.1)";
+      } else {
+        icon.style.backgroundColor = "";
+        icon.style.transform = "";
+      }
+    });
+  }
 
-            // Create floating emoji animation effect
-            function createFloatingEmoji(element, reactionType) {
-                const emojiMap = {
-                    'yummy': '🍔',
-                    'delicious': '🍕',
-                    'tasty': '🍰',
-                    'love': '🍲',
-                    'amazing': '🍗'
-                };
+  // Create floating emoji animation effect
+  function createFloatingEmoji(element, reactionType) {
+    const emojiMap = {
+      yummy: "🍔",
+      delicious: "🍕",
+      tasty: "🍰",
+      love: "🍲",
+      amazing: "🍗",
+    };
 
-                const emoji = emojiMap[reactionType];
-                if (!emoji) return;
+    const emoji = emojiMap[reactionType];
+    if (!emoji) return;
 
-                const floatingEmoji = document.createElement('div');
-                floatingEmoji.textContent = emoji;
-                floatingEmoji.style.position = 'absolute';
-                floatingEmoji.style.fontSize = '20px';
-                floatingEmoji.style.pointerEvents = 'none';
-                floatingEmoji.style.zIndex = '9999';
-                floatingEmoji.style.animation = 'floatUp 2s ease-out forwards';
+    const floatingEmoji = document.createElement("div");
+    floatingEmoji.textContent = emoji;
+    floatingEmoji.style.position = "absolute";
+    floatingEmoji.style.fontSize = "20px";
+    floatingEmoji.style.pointerEvents = "none";
+    floatingEmoji.style.zIndex = "9999";
+    floatingEmoji.style.animation = "floatUp 2s ease-out forwards";
 
-                // Position relative to the clicked element
-                const rect = element.getBoundingClientRect();
-                floatingEmoji.style.left = (rect.left + rect.width / 2) + 'px';
-                floatingEmoji.style.top = (rect.top + window.scrollY) + 'px';
+    // Position relative to the clicked element
+    const rect = element.getBoundingClientRect();
+    floatingEmoji.style.left = rect.left + rect.width / 2 + "px";
+    floatingEmoji.style.top = rect.top + window.scrollY + "px";
 
-                document.body.appendChild(floatingEmoji);
+    document.body.appendChild(floatingEmoji);
 
-                // Remove after animation
-                setTimeout(() => {
-                    if (floatingEmoji.parentNode) {
-                        floatingEmoji.parentNode.removeChild(floatingEmoji);
-                    }
-                }, 2000);
-            }
+    // Remove after animation
+    setTimeout(() => {
+      if (floatingEmoji.parentNode) {
+        floatingEmoji.parentNode.removeChild(floatingEmoji);
+      }
+    }, 2000);
+  }
 
-            // Test function to debug modal
-            window.testModal = function() {
-                console.log('Testing modal...');
-                const modal = document.getElementById('reactionUsersModal');
-                const usersList = document.getElementById('reactionUsersList');
+  // Test function to debug modal
+  window.testModal = function () {
+    console.log("Testing modal...");
+    const modal = document.getElementById("reactionUsersModal");
+    const usersList = document.getElementById("reactionUsersList");
 
-                console.log('Modal element:', modal);
-                console.log('UsersList element:', usersList);
+    console.log("Modal element:", modal);
+    console.log("UsersList element:", usersList);
 
-                if (modal && usersList) {
-                    usersList.innerHTML = '<p style="text-align: center; padding: 20px;">Test data loaded successfully!</p>';
-                    modal.style.display = 'block';
-                    console.log('Modal should be visible now');
-                } else {
-                    console.error('Modal elements not found');
-                }
-            };
+    if (modal && usersList) {
+      usersList.innerHTML =
+        '<p style="text-align: center; padding: 20px;">Test data loaded successfully!</p>';
+      modal.style.display = "block";
+      console.log("Modal should be visible now");
+    } else {
+      console.error("Modal elements not found");
+    }
+  };
 
-            // FIXED: Enhanced function to show POST reaction users with correct modal
-            window.showReactionUsers = function(postId) {
-                console.log('🎯 showReactionUsers called with postId:', postId);
+  // FIXED: Enhanced function to show POST reaction users with correct modal
+  window.showReactionUsers = function (postId) {
+    console.log("🎯 showReactionUsers called with postId:", postId);
 
-                const formData = new FormData();
-                formData.append('action', 'get_reaction_users');
-                formData.append('post_id', postId);
+    const formData = new FormData();
+    formData.append("action", "get_reaction_users");
+    formData.append("post_id", postId);
 
-                // FIXED: Use the correct modal ID for POST reactions  
-                const modal = document.getElementById('postReactionUsersModal');
-                const usersList = document.getElementById('postReactionUsersList');
+    // FIXED: Use the correct modal ID for POST reactions
+    const modal = document.getElementById("postReactionUsersModal");
+    const usersList = document.getElementById("postReactionUsersList");
 
-                console.log('Modal found:', !!modal, 'UsersList found:', !!usersList);
+    console.log("Modal found:", !!modal, "UsersList found:", !!usersList);
 
-                if (!modal) {
-                    console.error('❌ postReactionUsersModal not found - Check your HTML structure');
-                    // Fallback: try to create the modal dynamically
-                    createPostReactionModal();
-                    return showReactionUsers(postId); // Retry after creating modal
-                }
+    if (!modal) {
+      console.error(
+        "❌ postReactionUsersModal not found - Check your HTML structure",
+      );
+      // Fallback: try to create the modal dynamically
+      createPostReactionModal();
+      return showReactionUsers(postId); // Retry after creating modal
+    }
 
-                if (!usersList) {
-                    console.error('❌ postReactionUsersList not found');
-                    return;
-                }
+    if (!usersList) {
+      console.error("❌ postReactionUsersList not found");
+      return;
+    }
 
-                function createPostReactionModal() {
-                    console.log('🔧 Creating missing post reaction modal...');
+    function createPostReactionModal() {
+      console.log("🔧 Creating missing post reaction modal...");
 
-                    const existingModal = document.getElementById('postReactionUsersModal');
-                    if (existingModal) return;
+      const existingModal = document.getElementById("postReactionUsersModal");
+      if (existingModal) return;
 
-                    const modalHTML = `
+      const modalHTML = `
         <div id="postReactionUsersModal" class="modal" style="display: none;">
             <div class="modal-content" style="max-width: 500px; max-height: 70vh; overflow: hidden;">
                 <span class="close-modal" style="cursor: pointer;">&times;</span>
@@ -243,88 +267,91 @@ function escapeHtml(value) {
         </div>
     `;
 
-                    document.body.insertAdjacentHTML('beforeend', modalHTML);
+      document.body.insertAdjacentHTML("beforeend", modalHTML);
 
-                    // Add event listeners to the new modal
-                    const modal = document.getElementById('postReactionUsersModal');
-                    const closeBtn = modal.querySelector('.close-modal');
+      // Add event listeners to the new modal
+      const modal = document.getElementById("postReactionUsersModal");
+      const closeBtn = modal.querySelector(".close-modal");
 
-                    closeBtn.addEventListener('click', function() {
-                        modal.style.display = 'none';
-                    });
+      closeBtn.addEventListener("click", function () {
+        modal.style.display = "none";
+      });
 
-                    modal.addEventListener('click', function(e) {
-                        if (e.target === modal) {
-                            modal.style.display = 'none';
-                        }
-                    });
+      modal.addEventListener("click", function (e) {
+        if (e.target === modal) {
+          modal.style.display = "none";
+        }
+      });
 
-                    console.log('✅ Post reaction modal created successfully');
-                }
+      console.log("✅ Post reaction modal created successfully");
+    }
 
-                // ENSURE this runs when DOM is loaded
-                document.addEventListener('DOMContentLoaded', function() {
-                    // FIXED: Initialize post reaction modal handlers
-                    const postReactionModal = document.getElementById('postReactionUsersModal');
-                    const postReactionCloseBtn = postReactionModal?.querySelector('.close-modal');
+    // ENSURE this runs when DOM is loaded
+    document.addEventListener("DOMContentLoaded", function () {
+      // FIXED: Initialize post reaction modal handlers
+      const postReactionModal = document.getElementById(
+        "postReactionUsersModal",
+      );
+      const postReactionCloseBtn =
+        postReactionModal?.querySelector(".close-modal");
 
-                    if (postReactionCloseBtn) {
-                        postReactionCloseBtn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            console.log('✅ Post reaction modal close button clicked');
-                            postReactionModal.style.display = 'none';
-                        });
-                    }
+      if (postReactionCloseBtn) {
+        postReactionCloseBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          console.log("✅ Post reaction modal close button clicked");
+          postReactionModal.style.display = "none";
+        });
+      }
 
-                    if (postReactionModal) {
-                        postReactionModal.addEventListener('click', function(event) {
-                            if (event.target === postReactionModal) {
-                                console.log('✅ Post reaction modal backdrop clicked');
-                                postReactionModal.style.display = 'none';
-                            }
-                        });
-                    }
+      if (postReactionModal) {
+        postReactionModal.addEventListener("click", function (event) {
+          if (event.target === postReactionModal) {
+            console.log("✅ Post reaction modal backdrop clicked");
+            postReactionModal.style.display = "none";
+          }
+        });
+      }
 
-                    // Check if modal exists, if not create it
-                    if (!postReactionModal) {
-                        console.log('⚠️ Post reaction modal not found, creating it...');
-                        createPostReactionModal();
-                    }
+      // Check if modal exists, if not create it
+      if (!postReactionModal) {
+        console.log("⚠️ Post reaction modal not found, creating it...");
+        createPostReactionModal();
+      }
 
-                    console.log('✅ Post reaction system initialized');
-                });
-                // Show loading state
-                usersList.innerHTML = `
+      console.log("✅ Post reaction system initialized");
+    });
+    // Show loading state
+    usersList.innerHTML = `
         <div style="text-align: center; padding: 30px;">
             <div class="loading-spinner" style="margin: 0 auto 15px;"></div>
             <p style="color: #666;">Loading reactions...</p>
         </div>
     `;
-                modal.style.display = 'block';
+    modal.style.display = "block";
 
-                // Fetch reactions
-                fetch('post_reaction.php', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => {
-                        console.log('Response status:', response.status);
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('✅ Response data:', data);
-                        if (data.success && data.users) {
-                            displayPostReactionUsers(data.users);
-                        } else {
-                            throw new Error(data.message || 'No reaction data found');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('❌ Error fetching reactions:', error);
-                        usersList.innerHTML = `
+    // Fetch reactions
+    fetch("post_reaction.php", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => {
+        console.log("Response status:", response.status);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("✅ Response data:", data);
+        if (data.success && data.users) {
+          displayPostReactionUsers(data.users);
+        } else {
+          throw new Error(data.message || "No reaction data found");
+        }
+      })
+      .catch((error) => {
+        console.error("❌ Error fetching reactions:", error);
+        usersList.innerHTML = `
             <div style="text-align: center; padding: 30px; color: #f44336;">
                 <p style="margin-bottom: 15px;">Failed to load reactions</p>
                 <button onclick="showReactionUsers(${postId})" 
@@ -333,46 +360,54 @@ function escapeHtml(value) {
                 </button>
             </div>
         `;
-                    });
-            };
-            // FIXED: Display function for POST reactions only
-            function displayPostReactionUsers(users) {
-                console.log('🎨 displayPostReactionUsers called with', users?.length, 'users');
+      });
+  };
+  // FIXED: Display function for POST reactions only
+  function displayPostReactionUsers(users) {
+    console.log(
+      "🎨 displayPostReactionUsers called with",
+      users?.length,
+      "users",
+    );
 
-                const usersList = document.getElementById('postReactionUsersList');
-                if (!usersList) {
-                    console.error('❌ postReactionUsersList element not found');
-                    return;
-                }
+    const usersList = document.getElementById("postReactionUsersList");
+    if (!usersList) {
+      console.error("❌ postReactionUsersList element not found");
+      return;
+    }
 
-                if (!users || users.length === 0) {
-                    usersList.innerHTML = `
+    if (!users || users.length === 0) {
+      usersList.innerHTML = `
             <div style="text-align: center; padding: 40px; color: #666;">
                 <div style="font-size: 48px; margin-bottom: 15px;">😔</div>
                 <p style="font-size: 16px;">No reactions yet</p>
                 <p style="font-size: 14px; opacity: 0.8;">Be the first to react!</p>
             </div>
         `;
-                    return;
-                }
+      return;
+    }
 
-                let html = '';
-                users.forEach((user, index) => {
-                    const userImage = user.PROFILE_IMAGE || 'https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg';
-                    const reactionTime = formatReactionTime(user.CREATED_AT);
-                    const reactionType = user.REACTION_TYPE?.charAt(0).toUpperCase() + user.REACTION_TYPE?.slice(1) || 'Like';
-                    const reactionEmoji = user.REACTION_EMOJI || '👍';
+    let html = "";
+    users.forEach((user, index) => {
+      const userImage =
+        user.PROFILE_IMAGE ||
+        "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg";
+      const reactionTime = formatReactionTime(user.CREATED_AT);
+      const reactionType =
+        user.REACTION_TYPE?.charAt(0).toUpperCase() +
+          user.REACTION_TYPE?.slice(1) || "Like";
+      const reactionEmoji = user.REACTION_EMOJI || "👍";
 
-                    html += `
+      html += `
             <div class="reaction-user-item" style="display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; transition: all 0.2s ease; cursor: pointer;">
                 <img loading="lazy" decoding="async" src="${userImage}" 
-                     alt="${escapeHtml(user.NAME || 'User')}" 
+                     alt="${escapeHtml(user.NAME || "User")}" 
                      class="reaction-user-avatar" 
                      style="width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; object-fit: cover; border: 2px solid #f0f0f0; transition: all 0.2s ease;"
                      onerror="this.src='https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg'">
                 <div class="reaction-user-info" style="flex: 1;">
                     <div class="reaction-user-name" style="font-weight: 600; margin-bottom: 5px; color: #333; font-size: 16px;">
-                        ${escapeHtml(user.NAME || 'Unknown User')}
+                        ${escapeHtml(user.NAME || "Unknown User")}
                     </div>
                     <div class="reaction-user-time" style="font-size: 13px; color: #666;">
                         Reacted ${reactionTime}
@@ -386,352 +421,365 @@ function escapeHtml(value) {
                 </div>
             </div>
         `;
-                });
+    });
 
-                usersList.innerHTML = html;
+    usersList.innerHTML = html;
 
+    console.log("✅ Post reaction users displayed successfully");
+  }
 
+  // Helper function to format reaction time
+  function formatReactionTime(dateString) {
+    const now = new Date();
+    const reactionDate = new Date(dateString);
+    const diffInSeconds = Math.floor((now - reactionDate) / 1000);
 
-                console.log('✅ Post reaction users displayed successfully');
-            }
+    if (diffInSeconds < 60) {
+      return "just now";
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    } else if (diffInSeconds < 604800) {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days} day${days > 1 ? "s" : ""} ago`;
+    } else {
+      return reactionDate.toLocaleDateString();
+    }
+  }
 
-            // Helper function to format reaction time
-            function formatReactionTime(dateString) {
-                const now = new Date();
-                const reactionDate = new Date(dateString);
-                const diffInSeconds = Math.floor((now - reactionDate) / 1000);
+  // Enhanced mobile touch support for reactions
+  const likesContainers = document.querySelectorAll(".post-likes-container");
 
-                if (diffInSeconds < 60) {
-                    return 'just now';
-                } else if (diffInSeconds < 3600) {
-                    const minutes = Math.floor(diffInSeconds / 60);
-                    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-                } else if (diffInSeconds < 86400) {
-                    const hours = Math.floor(diffInSeconds / 3600);
-                    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-                } else if (diffInSeconds < 604800) {
-                    const days = Math.floor(diffInSeconds / 86400);
-                    return `${days} day${days > 1 ? 's' : ''} ago`;
-                } else {
-                    return reactionDate.toLocaleDateString();
-                }
-            }
+  likesContainers.forEach((container) => {
+    let touchStartTime = 0;
 
-            // Enhanced mobile touch support for reactions
-            const likesContainers = document.querySelectorAll('.post-likes-container');
+    // Handle touch start
+    container.addEventListener("touchstart", function (e) {
+      touchStartTime = Date.now();
+    });
 
-            likesContainers.forEach(container => {
-                let touchStartTime = 0;
+    // Handle touch end with duration check
+    container.addEventListener("touchend", function (e) {
+      const touchDuration = Date.now() - touchStartTime;
 
-                // Handle touch start
-                container.addEventListener('touchstart', function(e) {
-                    touchStartTime = Date.now();
-                });
+      // Short tap - toggle reactions panel
+      if (touchDuration < 200) {
+        e.preventDefault();
+        if (this.classList.contains("active")) {
+          this.classList.remove("active");
+        } else {
+          // Remove active class from all containers
+          likesContainers.forEach((c) => c.classList.remove("active"));
+          // Add active class to the current container
+          this.classList.add("active");
+        }
+      }
+    });
 
-                // Handle touch end with duration check
-                container.addEventListener('touchend', function(e) {
-                    const touchDuration = Date.now() - touchStartTime;
+    // Handle long press for direct like
+    let longPressTimer;
+    container.addEventListener("touchstart", function (e) {
+      longPressTimer = setTimeout(() => {
+        // Long press detected - directly like with default reaction
+        const postId = this.getAttribute("data-post-id");
+        if (postId) {
+          handleReaction(postId, "yummy");
+          this.classList.remove("active");
 
-                    // Short tap - toggle reactions panel
-                    if (touchDuration < 200) {
-                        e.preventDefault();
-                        if (this.classList.contains('active')) {
-                            this.classList.remove('active');
-                        } else {
-                            // Remove active class from all containers
-                            likesContainers.forEach(c => c.classList.remove('active'));
-                            // Add active class to the current container
-                            this.classList.add('active');
-                        }
-                    }
-                });
+          // Provide haptic feedback if available
+          if ("vibrate" in navigator) {
+            navigator.vibrate(50);
+          }
+        }
+      }, 500);
+    });
 
-                // Handle long press for direct like
-                let longPressTimer;
-                container.addEventListener('touchstart', function(e) {
-                    longPressTimer = setTimeout(() => {
-                        // Long press detected - directly like with default reaction
-                        const postId = this.getAttribute('data-post-id');
-                        if (postId) {
-                            handleReaction(postId, 'yummy');
-                            this.classList.remove('active');
+    container.addEventListener("touchend", function () {
+      clearTimeout(longPressTimer);
+    });
 
-                            // Provide haptic feedback if available
-                            if ('vibrate' in navigator) {
-                                navigator.vibrate(50);
-                            }
-                        }
-                    }, 500);
-                });
+    container.addEventListener("touchmove", function () {
+      clearTimeout(longPressTimer);
+    });
+  });
 
-                container.addEventListener('touchend', function() {
-                    clearTimeout(longPressTimer);
-                });
+  // Close reactions when tapping elsewhere
+  document.addEventListener("touchstart", function (e) {
+    const activeContainers = document.querySelectorAll(
+      ".post-likes-container.active",
+    );
+    activeContainers.forEach((container) => {
+      if (!container.contains(e.target)) {
+        container.classList.remove("active");
+      }
+    });
+  });
 
-                container.addEventListener('touchmove', function() {
-                    clearTimeout(longPressTimer);
-                });
-            });
+  // Close reaction users modal functionality
+  const reactionModal = document.getElementById("reactionUsersModal");
+  const reactionCloseBtn = reactionModal?.querySelector(".close-modal");
 
-            // Close reactions when tapping elsewhere
-            document.addEventListener('touchstart', function(e) {
-                const activeContainers = document.querySelectorAll('.post-likes-container.active');
-                activeContainers.forEach(container => {
-                    if (!container.contains(e.target)) {
-                        container.classList.remove('active');
-                    }
-                });
-            });
+  if (reactionCloseBtn) {
+    reactionCloseBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      console.log("Close button clicked"); // Debug log
+      reactionModal.style.display = "none";
+    });
+  }
 
-            // Close reaction users modal functionality
-            const reactionModal = document.getElementById('reactionUsersModal');
-            const reactionCloseBtn = reactionModal?.querySelector('.close-modal');
+  if (reactionModal) {
+    window.addEventListener("click", function (event) {
+      if (event.target === reactionModal) {
+        console.log("Modal backdrop clicked"); // Debug log
+        reactionModal.style.display = "none";
+      }
+    });
+  }
 
-            if (reactionCloseBtn) {
-                reactionCloseBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log('Close button clicked'); // Debug log
-                    reactionModal.style.display = 'none';
-                });
-            }
+  // Add a global click handler for debugging
+  document.addEventListener("click", function (e) {
+    if (e.target.classList.contains("like-count")) {
+      console.log("Like count clicked:", e.target);
+      e.stopPropagation();
+    }
+  });
 
-            if (reactionModal) {
-                window.addEventListener('click', function(event) {
-                    if (event.target === reactionModal) {
-                        console.log('Modal backdrop clicked'); // Debug log
-                        reactionModal.style.display = 'none';
-                    }
-                });
-            }
+  // Image modal functionality
+  const imageModal = document.getElementById("imageModal");
+  const modalImage = document.getElementById("modalImage");
+  const imageCloseBtn = document.querySelector(".image-close-btn");
 
-            // Add a global click handler for debugging
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('like-count')) {
-                    console.log('Like count clicked:', e.target);
-                    e.stopPropagation();
-                }
-            });
+  // Function to open image modal
+  window.openImageModal = function (imageSrc) {
+    modalImage.src = imageSrc;
+    imageModal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+  };
 
-            // Image modal functionality
-            const imageModal = document.getElementById('imageModal');
-            const modalImage = document.getElementById('modalImage');
-            const imageCloseBtn = document.querySelector('.image-close-btn');
+  // Close image modal when clicking the close button
+  if (imageCloseBtn) {
+    imageCloseBtn.addEventListener("click", function () {
+      imageModal.style.display = "none";
+      document.body.style.overflow = "auto";
+    });
+  }
 
-            // Function to open image modal
-            window.openImageModal = function(imageSrc) {
-                modalImage.src = imageSrc;
-                imageModal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
-            };
+  // Close image modal when clicking outside the image
+  window.addEventListener("click", function (event) {
+    if (event.target === imageModal) {
+      imageModal.style.display = "none";
+      document.body.style.overflow = "auto";
+    }
+  });
 
-            // Close image modal when clicking the close button
-            if (imageCloseBtn) {
-                imageCloseBtn.addEventListener('click', function() {
-                    imageModal.style.display = 'none';
-                    document.body.style.overflow = 'auto';
-                });
-            }
+  // Post menu toggle functionality
+  window.togglePostMenu = function (postId) {
+    const menu = document.getElementById("post-menu-" + postId);
+    if (menu) {
+      // Close all other open menus first
+      document
+        .querySelectorAll(".post-menu-dropdown")
+        .forEach(function (dropdown) {
+          if (
+            dropdown.id !== "post-menu-" + postId &&
+            dropdown.style.display === "block"
+          ) {
+            dropdown.style.display = "none";
+          }
+        });
 
-            // Close image modal when clicking outside the image
-            window.addEventListener('click', function(event) {
-                if (event.target === imageModal) {
-                    imageModal.style.display = 'none';
-                    document.body.style.overflow = 'auto';
-                }
-            });
+      // Toggle the clicked menu
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }
+  };
 
-            // Post menu toggle functionality
-            window.togglePostMenu = function(postId) {
-                const menu = document.getElementById('post-menu-' + postId);
-                if (menu) {
-                    // Close all other open menus first
-                    document.querySelectorAll('.post-menu-dropdown').forEach(function(dropdown) {
-                        if (dropdown.id !== 'post-menu-' + postId && dropdown.style.display === 'block') {
-                            dropdown.style.display = 'none';
-                        }
-                    });
+  // Close menus when clicking outside
+  document.addEventListener("click", function (event) {
+    if (!event.target.closest(".post-actions")) {
+      document
+        .querySelectorAll(".post-menu-dropdown")
+        .forEach(function (dropdown) {
+          dropdown.style.display = "none";
+        });
+    }
+  });
 
-                    // Toggle the clicked menu
-                    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-                }
-            };
+  // Edit post functionality
+  const editModal = document.getElementById("editPostModal");
+  const editForm = document.getElementById("editPostForm");
 
-            // Close menus when clicking outside
-            document.addEventListener('click', function(event) {
-                if (!event.target.closest('.post-actions')) {
-                    document.querySelectorAll('.post-menu-dropdown').forEach(function(dropdown) {
-                        dropdown.style.display = 'none';
-                    });
-                }
-            });
+  window.editPost = function (postId, description, mediaUrl) {
+    document.getElementById("edit_post_id").value = postId;
+    document.getElementById("edit_description").value = description || "";
+    document.getElementById("existing_image").value = mediaUrl || "";
 
-            // Edit post functionality
-            const editModal = document.getElementById('editPostModal');
-            const editForm = document.getElementById('editPostForm');
+    // Show media preview if exists
+    const previewContainer = document.getElementById(
+      "edit-image-preview-container",
+    );
 
-            window.editPost = function(postId, description, mediaUrl) {
-                document.getElementById('edit_post_id').value = postId;
-                document.getElementById('edit_description').value = description || '';
-                document.getElementById('existing_image').value = mediaUrl || '';
+    if (mediaUrl) {
+      // Check if it's a video or an image based on file extension
+      const isVideo = mediaUrl.toLowerCase().endsWith(".mp4");
 
-                // Show media preview if exists
-                const previewContainer = document.getElementById('edit-image-preview-container');
-
-                if (mediaUrl) {
-                    // Check if it's a video or an image based on file extension
-                    const isVideo = mediaUrl.toLowerCase().endsWith('.mp4');
-
-                    if (isVideo) {
-                        // Create a video element for preview
-                        previewContainer.innerHTML = `
+      if (isVideo) {
+        // Create a video element for preview
+        previewContainer.innerHTML = `
                             <video controls id="edit-video-preview" style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); display: block;">
                                 <source src="${mediaUrl}" type="video/mp4">
                                 Your browser does not support the video tag.
                             </video>
                         `;
-                    } else {
-                        // Display image
-                        previewContainer.innerHTML = `
+      } else {
+        // Display image
+        previewContainer.innerHTML = `
                             <img loading="lazy" decoding="async" id="edit-image-preview" src="${mediaUrl}" alt="Image Preview" style="display: block; max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
                         `;
-                    }
-                } else {
-                    // Reset the container to show the default empty image element
-                    previewContainer.innerHTML = `
+      }
+    } else {
+      // Reset the container to show the default empty image element
+      previewContainer.innerHTML = `
                         <img loading="lazy" decoding="async" id="edit-image-preview" src="/placeholder.svg" alt="Image Preview" style="display: none; max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
                     `;
-                }
+    }
 
-                // Show the modal
-                editModal.style.display = 'block';
+    // Show the modal
+    editModal.style.display = "block";
 
-                // Close any open menus
-                document.querySelectorAll('.post-menu-dropdown').forEach(function(dropdown) {
-                    dropdown.style.display = 'none';
-                });
-            };
+    // Close any open menus
+    document
+      .querySelectorAll(".post-menu-dropdown")
+      .forEach(function (dropdown) {
+        dropdown.style.display = "none";
+      });
+  };
 
-            // Close modal when clicking X
-            const closeModalBtns = document.querySelectorAll('.close-modal');
-            closeModalBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const modal = this.closest('.modal');
-                    if (modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-            });
+  // Close modal when clicking X
+  const closeModalBtns = document.querySelectorAll(".close-modal");
+  closeModalBtns.forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const modal = this.closest(".modal");
+      if (modal) {
+        modal.style.display = "none";
+      }
+    });
+  });
 
-            // Close modal when clicking outside
-            window.addEventListener('click', function(event) {
-                const modals = document.querySelectorAll('.modal');
-                modals.forEach(modal => {
-                    if (event.target === modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-            });
+  // Close modal when clicking outside
+  window.addEventListener("click", function (event) {
+    const modals = document.querySelectorAll(".modal");
+    modals.forEach((modal) => {
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+  });
 
-            // Handle edit post media preview (image or video)
-            const editImageInput = document.getElementById('edit_post_image');
-            const editImagePreviewContainer = document.getElementById('edit-image-preview-container');
+  // Handle edit post media preview (image or video)
+  const editImageInput = document.getElementById("edit_post_image");
+  const editImagePreviewContainer = document.getElementById(
+    "edit-image-preview-container",
+  );
 
-            if (editImageInput && editImagePreviewContainer) {
-                editImageInput.addEventListener('change', function() {
-                    const file = this.files[0];
-                    if (file) {
-                        // Check if the file is a video
-                        if (file.type.startsWith('video/')) {
-                            // Create a video element for preview
-                            editImagePreviewContainer.innerHTML = `
+  if (editImageInput && editImagePreviewContainer) {
+    editImageInput.addEventListener("change", function () {
+      const file = this.files[0];
+      if (file) {
+        // Check if the file is a video
+        if (file.type.startsWith("video/")) {
+          // Create a video element for preview
+          editImagePreviewContainer.innerHTML = `
                                 <video controls id="edit-video-preview" style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); display: block;">
                                     <source src="${URL.createObjectURL(file)}" type="${file.type}">
                                     Your browser does not support the video tag.
                                 </video>
                             `;
-                        } else {
-                            // Handle image files
-                            const reader = new FileReader();
-                            reader.onload = function(e) {
-                                // Reset the container with the image
-                                editImagePreviewContainer.innerHTML = `
+        } else {
+          // Handle image files
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            // Reset the container with the image
+            editImagePreviewContainer.innerHTML = `
                                     <img loading="lazy" decoding="async" id="edit-image-preview" src="${e.target.result}" alt="Image Preview" style="display: block; max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
                                 `;
-                            };
-                            reader.readAsDataURL(file);
-                        }
-                    }
-                });
-            }
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    });
+  }
 
-            // Handle edit form submission
-            if (editForm) {
-                editForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const formData = new FormData(this);
-                    formData.append('action', 'edit_post');
+  // Handle edit form submission
+  if (editForm) {
+    editForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      formData.append("action", "edit_post");
 
-                    // Show loading toast
-                    showToast('Updating post...', 'success');
+      // Show loading toast
+      showToast("Updating post...", "success");
 
-                    fetch('dashboard.php', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // Show success toast before reloading
-                                showToast('Post updated successfully!', 'success');
-                                // Give the toast a moment to be seen before reload
-                                setTimeout(() => {
-                                    window.location.reload();
-                                }, 1000);
-                            } else {
-                                // Show error toast
-                                showToast(data.message || 'Error updating post', 'error');
-                            }
-                        })
-                        .catch(error => {
-                            // Show error toast instead of console error and alert
-                            showToast('An error occurred while updating the post.', 'error');
-                        });
-                });
-            }
+      fetch("dashboard.php", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            // Show success toast before reloading
+            showToast("Post updated successfully!", "success");
+            // Give the toast a moment to be seen before reload
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            // Show error toast
+            showToast(data.message || "Error updating post", "error");
+          }
+        })
+        .catch((error) => {
+          // Show error toast instead of console error and alert
+          showToast("An error occurred while updating the post.", "error");
+        });
+    });
+  }
 
-            // Create a toast notification function
-            function showToast(message, type = 'success') {
-                // Create toast container if it doesn't exist
-                let toastContainer = document.getElementById('toast-container');
-                if (!toastContainer) {
-                    toastContainer = document.createElement('div');
-                    toastContainer.id = 'toast-container';
-                    toastContainer.style.position = 'fixed';
-                    toastContainer.style.bottom = '20px';
-                    toastContainer.style.right = '20px';
-                    toastContainer.style.zIndex = '9999';
-                    document.body.appendChild(toastContainer);
-                }
+  // Create a toast notification function
+  function showToast(message, type = "success") {
+    // Create toast container if it doesn't exist
+    let toastContainer = document.getElementById("toast-container");
+    if (!toastContainer) {
+      toastContainer = document.createElement("div");
+      toastContainer.id = "toast-container";
+      toastContainer.style.position = "fixed";
+      toastContainer.style.bottom = "20px";
+      toastContainer.style.right = "20px";
+      toastContainer.style.zIndex = "9999";
+      document.body.appendChild(toastContainer);
+    }
 
-                // Create toast element
-                const toast = document.createElement('div');
-                toast.className = `toast ${type}`;
-                toast.style.minWidth = '250px';
-                toast.style.margin = '10px';
-                toast.style.padding = '15px 20px';
-                toast.style.borderRadius = '4px';
-                toast.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
-                toast.style.backgroundColor = type === 'success' ? '#4CAF50' : '#ED5A2C';
-                toast.style.color = 'white';
-                toast.style.display = 'flex';
-                toast.style.alignItems = 'center';
-                toast.style.justifyContent = 'space-between';
-                toast.style.animation = 'fadeIn 0.5s, fadeOut 0.5s 2.5s';
-                toast.style.animationFillMode = 'forwards';
+    // Create toast element
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.style.minWidth = "250px";
+    toast.style.margin = "10px";
+    toast.style.padding = "15px 20px";
+    toast.style.borderRadius = "4px";
+    toast.style.boxShadow = "0 2px 10px rgba(0,0,0,0.2)";
+    toast.style.backgroundColor = type === "success" ? "#4CAF50" : "#ED5A2C";
+    toast.style.color = "white";
+    toast.style.display = "flex";
+    toast.style.alignItems = "center";
+    toast.style.justifyContent = "space-between";
+    toast.style.animation = "fadeIn 0.5s, fadeOut 0.5s 2.5s";
+    toast.style.animationFillMode = "forwards";
 
-                // Add styles for animations
-                const style = document.createElement('style');
-                style.textContent = `
+    // Add styles for animations
+    const style = document.createElement("style");
+    style.textContent = `
                     @keyframes fadeIn {
                         from { opacity: 0; transform: translateY(20px); }
                         to { opacity: 1; transform: translateY(0); }
@@ -741,101 +789,112 @@ function escapeHtml(value) {
                         to { opacity: 0; transform: translateY(20px); }
                     }
                 `;
-                document.head.appendChild(style);
+    document.head.appendChild(style);
 
-                // Add content
-                const icon = document.createElement('span');
-                icon.innerHTML = type === 'success' ?
-                    '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>' :
-                    '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
-                icon.style.marginRight = '10px';
+    // Add content
+    const icon = document.createElement("span");
+    icon.innerHTML =
+      type === "success"
+        ? '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'
+        : '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+    icon.style.marginRight = "10px";
 
-                const messageSpan = document.createElement('span');
-                messageSpan.textContent = message;
-                messageSpan.style.flex = '1';
+    const messageSpan = document.createElement("span");
+    messageSpan.textContent = message;
+    messageSpan.style.flex = "1";
 
-                const closeBtn = document.createElement('span');
-                closeBtn.innerHTML = '&times;';
-                closeBtn.style.marginLeft = '10px';
-                closeBtn.style.cursor = 'pointer';
-                closeBtn.style.fontSize = '20px';
-                closeBtn.onclick = function() {
-                    toast.remove();
-                };
+    const closeBtn = document.createElement("span");
+    closeBtn.innerHTML = "&times;";
+    closeBtn.style.marginLeft = "10px";
+    closeBtn.style.cursor = "pointer";
+    closeBtn.style.fontSize = "20px";
+    closeBtn.onclick = function () {
+      toast.remove();
+    };
 
-                toast.appendChild(icon);
-                toast.appendChild(messageSpan);
-                toast.appendChild(closeBtn);
+    toast.appendChild(icon);
+    toast.appendChild(messageSpan);
+    toast.appendChild(closeBtn);
 
-                // Add to container
-                toastContainer.appendChild(toast);
+    // Add to container
+    toastContainer.appendChild(toast);
 
-                // Auto remove after 3 seconds
-                setTimeout(() => {
-                    toast.remove();
-                }, 3000);
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  }
+
+  // Delete post functionality
+  window.deletePost = function (postId) {
+    if (
+      confirm(
+        "Are you sure you want to delete this post? This action cannot be undone.",
+      )
+    ) {
+      const formData = new FormData();
+      formData.append("action", "delete_post");
+      formData.append("post_id", postId);
+
+      fetch("dashboard.php", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            // Remove the post from the DOM
+            const postElement = document.querySelector(
+              `[data-post-id="${postId}"]`,
+            );
+            if (postElement) {
+              postElement.remove();
+              // Show success notification
+              showToast("Post deleted successfully!", "success");
+            } else {
+              // Reload the page if we can't find the element
+              window.location.reload();
             }
+          } else {
+            // Show error notification instead of alert
+            showToast(data.message || "Error deleting post", "error");
+          }
+        })
+        .catch((error) => {
+          // Show error notification instead of console error and alert
+          showToast("An error occurred while deleting the post.", "error");
+        });
+    }
 
-            // Delete post functionality
-            window.deletePost = function(postId) {
-                if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
-                    const formData = new FormData();
-                    formData.append('action', 'delete_post');
-                    formData.append('post_id', postId);
+    // Close any open menus
+    document
+      .querySelectorAll(".post-menu-dropdown")
+      .forEach(function (dropdown) {
+        dropdown.style.display = "none";
+      });
+  };
 
-                    fetch('dashboard.php', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // Remove the post from the DOM
-                                const postElement = document.querySelector(`[data-post-id="${postId}"]`);
-                                if (postElement) {
-                                    postElement.remove();
-                                    // Show success notification
-                                    showToast('Post deleted successfully!', 'success');
-                                } else {
-                                    // Reload the page if we can't find the element
-                                    window.location.reload();
-                                }
-                            } else {
-                                // Show error notification instead of alert
-                                showToast(data.message || 'Error deleting post', 'error');
-                            }
-                        })
-                        .catch(error => {
-                            // Show error notification instead of console error and alert
-                            showToast('An error occurred while deleting the post.', 'error');
-                        });
-                }
+  // Handle media preview for new posts (image or video)
+  const postImage = document.getElementById("postImage");
+  const imagePreview = document.getElementById("imagePreview");
+  const imagePreviewContainer = document.getElementById(
+    "imagePreviewContainer",
+  );
+  const removeImage = document.getElementById("removeImage");
+  const postDescription = document.getElementById("postDescription");
+  const postButton = document.getElementById("postButton");
 
-                // Close any open menus
-                document.querySelectorAll('.post-menu-dropdown').forEach(function(dropdown) {
-                    dropdown.style.display = 'none';
-                });
-            };
+  if (postImage && imagePreviewContainer) {
+    // Initially hide the preview container
+    imagePreviewContainer.style.display = "none";
 
-            // Handle media preview for new posts (image or video)
-            const postImage = document.getElementById('postImage');
-            const imagePreview = document.getElementById('imagePreview');
-            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-            const removeImage = document.getElementById('removeImage');
-            const postDescription = document.getElementById('postDescription');
-            const postButton = document.getElementById('postButton');
-
-            if (postImage && imagePreviewContainer) {
-                // Initially hide the preview container
-                imagePreviewContainer.style.display = 'none';
-
-                postImage.addEventListener('change', function() {
-                    const file = this.files[0];
-                    if (file) {
-                        // Check if the file is a video
-                        if (file.type.startsWith('video/')) {
-                            // Create a video element instead of using the image
-                            imagePreviewContainer.innerHTML = `
+    postImage.addEventListener("change", function () {
+      const file = this.files[0];
+      if (file) {
+        // Check if the file is a video
+        if (file.type.startsWith("video/")) {
+          // Create a video element instead of using the image
+          imagePreviewContainer.innerHTML = `
                                 <div style="position: relative; display: inline-block;">
                                     <video controls style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
                                         <source src="${URL.createObjectURL(file)}" type="${file.type}">
@@ -850,12 +909,14 @@ function escapeHtml(value) {
                                 </div>
                             `;
 
-                            // Show the preview container
-                            imagePreviewContainer.style.display = 'block';
+          // Show the preview container
+          imagePreviewContainer.style.display = "block";
 
-                            // Add event listener to the new remove button
-                            document.getElementById('removeVideoBtn').addEventListener('click', function() {
-                                imagePreviewContainer.innerHTML = `
+          // Add event listener to the new remove button
+          document
+            .getElementById("removeVideoBtn")
+            .addEventListener("click", function () {
+              imagePreviewContainer.innerHTML = `
                                     <div style="position: relative; display: inline-block;">
                                         <img loading="lazy" decoding="async" src="/placeholder.svg" alt="Preview" class="image-preview" id="imagePreview">
                                         <button type="button" class="remove-image" id="removeImage">
@@ -866,16 +927,16 @@ function escapeHtml(value) {
                                         </button>
                                     </div>
                                 `;
-                                imagePreviewContainer.style.display = 'none';
-                                postImage.value = '';
-                                updatePostButtonState();
-                            });
-                        } else {
-                            // Handle image files as before
-                            const reader = new FileReader();
-                            reader.onload = function(e) {
-                                // Reset the container to its original state with an image
-                                imagePreviewContainer.innerHTML = `
+              imagePreviewContainer.style.display = "none";
+              postImage.value = "";
+              updatePostButtonState();
+            });
+        } else {
+          // Handle image files as before
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            // Reset the container to its original state with an image
+            imagePreviewContainer.innerHTML = `
                                     <div style="position: relative; display: inline-block;">
                                         <img loading="lazy" decoding="async" src="${e.target.result}" alt="Preview" class="image-preview" id="imagePreview">
                                         <button type="button" class="remove-image" id="removeImage">
@@ -886,152 +947,165 @@ function escapeHtml(value) {
                                         </button>
                                     </div>
                                 `;
-                                imagePreviewContainer.style.display = 'block';
+            imagePreviewContainer.style.display = "block";
 
-                                // Add event listener to the new remove button
-                                document.getElementById('removeImage').addEventListener('click', function() {
-                                    imagePreviewContainer.style.display = 'none';
-                                    postImage.value = '';
-                                    updatePostButtonState();
-                                });
-                            };
-                            reader.readAsDataURL(file);
-                        }
-                        updatePostButtonState();
-                    }
-                });
-            }
-
-            // Update post button state
-            function updatePostButtonState() {
-                if (postDescription && postButton && postImage) {
-                    const hasDescription = postDescription.value.trim() !== '';
-                    const hasImage = postImage.files.length > 0;
-                    postButton.disabled = !hasDescription && !hasImage;
-                }
-            }
-
-            // Update button state when description changes
-            if (postDescription) {
-                postDescription.addEventListener('input', updatePostButtonState);
-                // Initial button state
+            // Add event listener to the new remove button
+            document
+              .getElementById("removeImage")
+              .addEventListener("click", function () {
+                imagePreviewContainer.style.display = "none";
+                postImage.value = "";
                 updatePostButtonState();
-            }
+              });
+          };
+          reader.readAsDataURL(file);
+        }
+        updatePostButtonState();
+      }
+    });
+  }
 
-            // Handle tab switching
-            const tabs = document.querySelectorAll('.post-tab');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    // If Make Recipe tab is clicked, redirect to recipes.php
-                    if (this.textContent === 'Make Recipe') {
-                        window.location.href = 'recipes.php?openRecipeForm=1';
-                    }
-                });
-            });
-        });
+  // Update post button state
+  function updatePostButtonState() {
+    if (postDescription && postButton && postImage) {
+      const hasDescription = postDescription.value.trim() !== "";
+      const hasImage = postImage.files.length > 0;
+      postButton.disabled = !hasDescription && !hasImage;
+    }
+  }
 
-        // REPLACE the comments JavaScript in your dashboard.php with this optimized version:
+  // Update button state when description changes
+  if (postDescription) {
+    postDescription.addEventListener("input", updatePostButtonState);
+    // Initial button state
+    updatePostButtonState();
+  }
 
-        // ========================================
-        // ENHANCED COMMENTS SYSTEM - COMPLETE JAVASCRIPT
-        // ========================================
+  // Handle tab switching
+  const tabs = document.querySelectorAll(".post-tab");
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", function () {
+      // If Make Recipe tab is clicked, redirect to recipes.php
+      if (this.textContent === "Make Recipe") {
+        window.location.href = "recipes.php?openRecipeForm=1";
+      }
+    });
+  });
+});
 
-        // Global variables for comment system
-        let currentPostId = null;
-        let commentsLoading = false;
-        let currentOffset = 0;
-        let hasMoreComments = false;
-        let totalCommentsCount = 0;
-        const commentsPerLoad = 10;
+// REPLACE the comments JavaScript in your dashboard.php with this optimized version:
 
-        // FIXED: Enhanced function to show POST reaction users with separate modal
-        // REPLACE your existing showReactionUsers function with this FIXED version:
+// ========================================
+// ENHANCED COMMENTS SYSTEM - COMPLETE JAVASCRIPT
+// ========================================
 
-        // FIXED: Enhanced function to show POST reaction users with separate modal
-        window.showReactionUsers = function(postId) {
-            console.log('showReactionUsers called with postId:', postId);
+// Global variables for comment system
+let currentPostId = null;
+let commentsLoading = false;
+let currentOffset = 0;
+let hasMoreComments = false;
+let totalCommentsCount = 0;
+const commentsPerLoad = 10;
 
-            const formData = new FormData();
-            formData.append('action', 'get_reaction_users');
-            formData.append('post_id', postId);
+// FIXED: Enhanced function to show POST reaction users with separate modal
+// REPLACE your existing showReactionUsers function with this FIXED version:
 
-            // FIXED: Use the correct modal ID for POST reactions
-            const modal = document.getElementById('postReactionUsersModal');
-            const usersList = document.getElementById('postReactionUsersList');
-            const modalTitle = modal?.querySelector('h2');
+// FIXED: Enhanced function to show POST reaction users with separate modal
+window.showReactionUsers = function (postId) {
+  console.log("showReactionUsers called with postId:", postId);
 
-            if (!modal) {
-                console.error('❌ postReactionUsersModal not found - Check your HTML');
-                return;
-            }
+  const formData = new FormData();
+  formData.append("action", "get_reaction_users");
+  formData.append("post_id", postId);
 
-            if (!usersList) {
-                console.error('❌ postReactionUsersList not found - Check your HTML');
-                return;
-            }
+  // FIXED: Use the correct modal ID for POST reactions
+  const modal = document.getElementById("postReactionUsersModal");
+  const usersList = document.getElementById("postReactionUsersList");
+  const modalTitle = modal?.querySelector("h2");
 
-            // Set the correct title for POST reactions
-            if (modalTitle) {
-                modalTitle.textContent = 'People who reacted';
-            }
+  if (!modal) {
+    console.error("❌ postReactionUsersModal not found - Check your HTML");
+    return;
+  }
 
-            usersList.innerHTML = '<p style="text-align: center; padding: 20px; color: #666;">Loading reactions...</p>';
-            modal.style.display = 'block';
+  if (!usersList) {
+    console.error("❌ postReactionUsersList not found - Check your HTML");
+    return;
+  }
 
-            fetch('post_reaction.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Response data:', data);
-                    if (data.success) {
-                        displayPostReactionUsers(data.users);
-                    } else {
-                        usersList.innerHTML = '<p style="text-align: center; padding: 20px; color: #f44336;">Error: ' + (data.message || 'Failed to load reactions') + '</p>';
-                        console.error('API Error:', data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Fetch Error:', error);
-                    usersList.innerHTML = '<p style="text-align: center; padding: 20px; color: #f44336;">Network error occurred</p>';
-                });
-        };
+  // Set the correct title for POST reactions
+  if (modalTitle) {
+    modalTitle.textContent = "People who reacted";
+  }
 
-        // FIXED: Separate display function for POST reactions
-        function displayPostReactionUsers(users) {
-            console.log('displayPostReactionUsers called with users:', users);
+  usersList.innerHTML =
+    '<p style="text-align: center; padding: 20px; color: #666;">Loading reactions...</p>';
+  modal.style.display = "block";
 
-            const modal = document.getElementById('postReactionUsersModal');
-            const usersList = document.getElementById('postReactionUsersList');
+  fetch("post_reaction.php", {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => {
+      console.log("Response status:", response.status);
+      return response.json();
+    })
+    .then((data) => {
+      console.log("Response data:", data);
+      if (data.success) {
+        displayPostReactionUsers(data.users);
+      } else {
+        usersList.innerHTML =
+          '<p style="text-align: center; padding: 20px; color: #f44336;">Error: ' +
+          (data.message || "Failed to load reactions") +
+          "</p>";
+        console.error("API Error:", data.message);
+      }
+    })
+    .catch((error) => {
+      console.error("Fetch Error:", error);
+      usersList.innerHTML =
+        '<p style="text-align: center; padding: 20px; color: #f44336;">Network error occurred</p>';
+    });
+};
 
-            if (!usersList) {
-                console.error('postReactionUsersList element not found');
-                return;
-            }
+// FIXED: Separate display function for POST reactions
+function displayPostReactionUsers(users) {
+  console.log("displayPostReactionUsers called with users:", users);
 
-            if (!users || users.length === 0) {
-                usersList.innerHTML = '<p style="text-align: center; padding: 30px; color: #666; font-size: 16px;">No reactions yet</p>';
-            } else {
-                console.log('Displaying', users.length, 'users');
-                let usersHTML = '';
-                users.forEach((user, index) => {
-                    console.log('Processing user', index, ':', user);
-                    const userImage = user.PROFILE_IMAGE || 'https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg';
-                    const reactionTime = formatReactionTime(user.CREATED_AT);
-                    const reactionTypeCapitalized = user.REACTION_TYPE ? user.REACTION_TYPE.charAt(0).toUpperCase() + user.REACTION_TYPE.slice(1) : 'Unknown';
-                    const reactionEmoji = user.REACTION_EMOJI || '👍';
+  const modal = document.getElementById("postReactionUsersModal");
+  const usersList = document.getElementById("postReactionUsersList");
 
-                    usersHTML += `
+  if (!usersList) {
+    console.error("postReactionUsersList element not found");
+    return;
+  }
+
+  if (!users || users.length === 0) {
+    usersList.innerHTML =
+      '<p style="text-align: center; padding: 30px; color: #666; font-size: 16px;">No reactions yet</p>';
+  } else {
+    console.log("Displaying", users.length, "users");
+    let usersHTML = "";
+    users.forEach((user, index) => {
+      console.log("Processing user", index, ":", user);
+      const userImage =
+        user.PROFILE_IMAGE ||
+        "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg";
+      const reactionTime = formatReactionTime(user.CREATED_AT);
+      const reactionTypeCapitalized = user.REACTION_TYPE
+        ? user.REACTION_TYPE.charAt(0).toUpperCase() +
+          user.REACTION_TYPE.slice(1)
+        : "Unknown";
+      const reactionEmoji = user.REACTION_EMOJI || "👍";
+
+      usersHTML += `
                 <div class="reaction-user-item" style="display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; transition: background-color 0.2s; cursor: pointer;">
-                    <img loading="lazy" decoding="async" src="${userImage}" alt="${escapeHtml(user.NAME || 'User')}" class="reaction-user-avatar" 
+                    <img loading="lazy" decoding="async" src="${userImage}" alt="${escapeHtml(user.NAME || "User")}" class="reaction-user-avatar" 
                          style="width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; object-fit: cover; border: 2px solid #f0f0f0;"
                          onerror="this.src='https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg'">
                     <div class="reaction-user-info" style="flex: 1;">
-                        <div class="reaction-user-name" style="font-weight: 600; margin-bottom: 5px; color: #333; font-size: 16px;">${escapeHtml(user.NAME || 'Unknown User')}</div>
+                        <div class="reaction-user-name" style="font-weight: 600; margin-bottom: 5px; color: #333; font-size: 16px;">${escapeHtml(user.NAME || "Unknown User")}</div>
                         <div class="reaction-user-time" style="font-size: 13px; color: #666;">Reacted ${reactionTime}</div>
                     </div>
                     <div class="reaction-user-emoji" style="font-size: 28px; margin-left: 15px; display: flex; flex-direction: column; align-items: center;">
@@ -1040,54 +1114,58 @@ function escapeHtml(value) {
                     </div>
                 </div>
             `;
-                });
-                usersList.innerHTML = usersHTML;
+    });
+    usersList.innerHTML = usersHTML;
+  }
 
+  if (modal) {
+    modal.style.display = "block";
+    // Add backdrop click to close
+    modal.onclick = function (e) {
+      if (e.target === modal) {
+        modal.style.display = "none";
+      }
+    };
+  }
+}
 
-            }
+// FIXED: Separate display function for POST reactions
+function displayPostReactionUsers(users) {
+  console.log("displayPostReactionUsers called with users:", users);
 
-            if (modal) {
-                modal.style.display = 'block';
-                // Add backdrop click to close
-                modal.onclick = function(e) {
-                    if (e.target === modal) {
-                        modal.style.display = 'none';
-                    }
-                };
-            }
-        }
+  const modal = document.getElementById("postReactionUsersModal");
+  const usersList = document.getElementById("postReactionUsersList");
 
-        // FIXED: Separate display function for POST reactions
-        function displayPostReactionUsers(users) {
-            console.log('displayPostReactionUsers called with users:', users);
+  if (!usersList) {
+    console.error("postReactionUsersList element not found");
+    return;
+  }
 
-            const modal = document.getElementById('postReactionUsersModal');
-            const usersList = document.getElementById('postReactionUsersList');
+  if (!users || users.length === 0) {
+    usersList.innerHTML =
+      '<p style="text-align: center; padding: 30px; color: #666; font-size: 16px;">No reactions yet</p>';
+  } else {
+    console.log("Displaying", users.length, "users");
+    let usersHTML = "";
+    users.forEach((user, index) => {
+      console.log("Processing user", index, ":", user);
+      const userImage =
+        user.PROFILE_IMAGE ||
+        "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg";
+      const reactionTime = formatReactionTime(user.CREATED_AT);
+      const reactionTypeCapitalized = user.REACTION_TYPE
+        ? user.REACTION_TYPE.charAt(0).toUpperCase() +
+          user.REACTION_TYPE.slice(1)
+        : "Unknown";
+      const reactionEmoji = user.REACTION_EMOJI || "👍";
 
-            if (!usersList) {
-                console.error('postReactionUsersList element not found');
-                return;
-            }
-
-            if (!users || users.length === 0) {
-                usersList.innerHTML = '<p style="text-align: center; padding: 30px; color: #666; font-size: 16px;">No reactions yet</p>';
-            } else {
-                console.log('Displaying', users.length, 'users');
-                let usersHTML = '';
-                users.forEach((user, index) => {
-                    console.log('Processing user', index, ':', user);
-                    const userImage = user.PROFILE_IMAGE || 'https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg';
-                    const reactionTime = formatReactionTime(user.CREATED_AT);
-                    const reactionTypeCapitalized = user.REACTION_TYPE ? user.REACTION_TYPE.charAt(0).toUpperCase() + user.REACTION_TYPE.slice(1) : 'Unknown';
-                    const reactionEmoji = user.REACTION_EMOJI || '👍';
-
-                    usersHTML += `
+      usersHTML += `
                 <div class="reaction-user-item" style="display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; transition: background-color 0.2s; cursor: pointer;">
-                    <img loading="lazy" decoding="async" src="${userImage}" alt="${escapeHtml(user.NAME || 'User')}" class="reaction-user-avatar" 
+                    <img loading="lazy" decoding="async" src="${userImage}" alt="${escapeHtml(user.NAME || "User")}" class="reaction-user-avatar" 
                          style="width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; object-fit: cover; border: 2px solid #f0f0f0;"
                          onerror="this.src='https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg'">
                     <div class="reaction-user-info" style="flex: 1;">
-                        <div class="reaction-user-name" style="font-weight: 600; margin-bottom: 5px; color: #333; font-size: 16px;">${escapeHtml(user.NAME || 'Unknown User')}</div>
+                        <div class="reaction-user-name" style="font-weight: 600; margin-bottom: 5px; color: #333; font-size: 16px;">${escapeHtml(user.NAME || "Unknown User")}</div>
                         <div class="reaction-user-time" style="font-size: 13px; color: #666;">Reacted ${reactionTime}</div>
                     </div>
                     <div class="reaction-user-emoji" style="font-size: 28px; margin-left: 15px; display: flex; flex-direction: column; align-items: center;">
@@ -1096,396 +1174,409 @@ function escapeHtml(value) {
                     </div>
                 </div>
             `;
-                });
-                usersList.innerHTML = usersHTML;
+    });
+    usersList.innerHTML = usersHTML;
 
-                // Add hover effects
-                usersList.querySelectorAll('.reaction-user-item').forEach(item => {
-                    item.addEventListener('mouseenter', function() {
-                        this.style.backgroundColor = '#f8f9fa';
-                    });
-                    item.addEventListener('mouseleave', function() {
-                        this.style.backgroundColor = 'transparent';
-                    });
-                });
-            }
+    // Add hover effects
+    usersList.querySelectorAll(".reaction-user-item").forEach((item) => {
+      item.addEventListener("mouseenter", function () {
+        this.style.backgroundColor = "#f8f9fa";
+      });
+      item.addEventListener("mouseleave", function () {
+        this.style.backgroundColor = "transparent";
+      });
+    });
+  }
 
-            if (modal) {
-                modal.style.display = 'block';
-                // Add backdrop click to close
-                modal.onclick = function(e) {
-                    if (e.target === modal) {
-                        modal.style.display = 'none';
-                    }
-                };
-            }
+  if (modal) {
+    modal.style.display = "block";
+    // Add backdrop click to close
+    modal.onclick = function (e) {
+      if (e.target === modal) {
+        modal.style.display = "none";
+      }
+    };
+  }
+}
+
+// Helper function to format reaction time
+function formatReactionTime(dateString) {
+  const now = new Date();
+  const reactionDate = new Date(dateString);
+  const diffInSeconds = Math.floor((now - reactionDate) / 1000);
+
+  if (diffInSeconds < 60) {
+    return "just now";
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60);
+    return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600);
+    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  } else if (diffInSeconds < 604800) {
+    const days = Math.floor(diffInSeconds / 86400);
+    return `${days} day${days > 1 ? "s" : ""} ago`;
+  } else {
+    return reactionDate.toLocaleDateString();
+  }
+}
+
+// Initialize comments system when DOM is loaded
+document.addEventListener("DOMContentLoaded", function () {
+  initializeCommentsSystem();
+});
+
+// Main initialization function
+function initializeCommentsSystem() {
+  console.log("🚀 Initializing Enhanced Comments System...");
+
+  // Initialize modal elements
+  const commentsModal = document.getElementById("commentsModal");
+  const closeButton = document.querySelector(".close-comments");
+  const commentInput = document.getElementById("commentInput");
+  const commentSubmit = document.getElementById("commentSubmit");
+
+  // Close button event listener
+  if (closeButton) {
+    closeButton.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      closeCommentsModal();
+    });
+  }
+
+  // Modal backdrop click to close
+  if (commentsModal) {
+    commentsModal.addEventListener("click", function (e) {
+      if (e.target === commentsModal) {
+        closeCommentsModal();
+      }
+    });
+
+    // Prevent modal content clicks from closing modal
+    const modalContent = commentsModal.querySelector(".comments-modal-content");
+    if (modalContent) {
+      modalContent.addEventListener("click", function (e) {
+        e.stopPropagation();
+      });
+    }
+  }
+
+  // Comment input event listeners
+  if (commentInput) {
+    // Auto-resize textarea
+    commentInput.addEventListener("input", function () {
+      this.style.height = "auto";
+      this.style.height = this.scrollHeight + "px";
+      updateCommentSubmitButton();
+    });
+
+    // Enter key to submit (Shift+Enter for new line)
+    commentInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        if (this.value.trim() && !commentSubmit.disabled) {
+          addComment();
         }
+      }
+    });
 
-        // Helper function to format reaction time
-        function formatReactionTime(dateString) {
-            const now = new Date();
-            const reactionDate = new Date(dateString);
-            const diffInSeconds = Math.floor((now - reactionDate) / 1000);
+    // Focus event
+    commentInput.addEventListener("focus", function () {
+      this.parentElement.style.borderColor = "var(--primary-color)";
+    });
 
-            if (diffInSeconds < 60) {
-                return 'just now';
-            } else if (diffInSeconds < 3600) {
-                const minutes = Math.floor(diffInSeconds / 60);
-                return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-            } else if (diffInSeconds < 86400) {
-                const hours = Math.floor(diffInSeconds / 3600);
-                return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-            } else if (diffInSeconds < 604800) {
-                const days = Math.floor(diffInSeconds / 86400);
-                return `${days} day${days > 1 ? 's' : ''} ago`;
-            } else {
-                return reactionDate.toLocaleDateString();
-            }
-        }
+    // Blur event
+    commentInput.addEventListener("blur", function () {
+      this.parentElement.style.borderColor = "#e0e0e0";
+    });
+  }
 
-        // Initialize comments system when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeCommentsSystem();
-        });
+  // Comment submit button event listener
+  if (commentSubmit) {
+    commentSubmit.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!this.disabled && commentInput && commentInput.value.trim()) {
+        addComment();
+      }
+    });
+  }
 
-        // Main initialization function
-        function initializeCommentsSystem() {
-            console.log('🚀 Initializing Enhanced Comments System...');
+  // Initialize keyboard shortcuts
+  document.addEventListener("keydown", function (e) {
+    // Escape key to close modal
+    if (
+      e.key === "Escape" &&
+      commentsModal &&
+      commentsModal.style.display === "block"
+    ) {
+      closeCommentsModal();
+    }
+  });
 
-            // Initialize modal elements
-            const commentsModal = document.getElementById('commentsModal');
-            const closeButton = document.querySelector('.close-comments');
-            const commentInput = document.getElementById('commentInput');
-            const commentSubmit = document.getElementById('commentSubmit');
+  // Initialize comment reaction handlers
+  initializeCommentReactionHandlers();
 
-            // Close button event listener
-            if (closeButton) {
-                closeButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    closeCommentsModal();
-                });
-            }
+  // FIXED: Close POST reaction users modal functionality
+  const postReactionModal = document.getElementById("postReactionUsersModal");
+  const postReactionCloseBtn = postReactionModal?.querySelector(".close-modal");
 
-            // Modal backdrop click to close
-            if (commentsModal) {
-                commentsModal.addEventListener('click', function(e) {
-                    if (e.target === commentsModal) {
-                        closeCommentsModal();
-                    }
-                });
+  if (postReactionCloseBtn) {
+    postReactionCloseBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      console.log("Post reaction modal close button clicked");
+      postReactionModal.style.display = "none";
+    });
+  }
 
-                // Prevent modal content clicks from closing modal
-                const modalContent = commentsModal.querySelector('.comments-modal-content');
-                if (modalContent) {
-                    modalContent.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                    });
-                }
-            }
+  if (postReactionModal) {
+    window.addEventListener("click", function (event) {
+      if (event.target === postReactionModal) {
+        console.log("Post reaction modal backdrop clicked");
+        postReactionModal.style.display = "none";
+      }
+    });
+  }
 
-            // Comment input event listeners
-            if (commentInput) {
-                // Auto-resize textarea
-                commentInput.addEventListener('input', function() {
-                    this.style.height = 'auto';
-                    this.style.height = (this.scrollHeight) + 'px';
-                    updateCommentSubmitButton();
-                });
+  // FIXED: Close COMMENT reaction users modal functionality
+  const commentReactionModal = document.getElementById(
+    "commentReactionUsersModal",
+  );
+  const commentReactionCloseBtn =
+    commentReactionModal?.querySelector(".close-modal");
 
-                // Enter key to submit (Shift+Enter for new line)
-                commentInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        if (this.value.trim() && !commentSubmit.disabled) {
-                            addComment();
-                        }
-                    }
-                });
+  if (commentReactionCloseBtn) {
+    commentReactionCloseBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      console.log("Comment reaction modal close button clicked");
+      commentReactionModal.style.display = "none";
+    });
+  }
 
-                // Focus event
-                commentInput.addEventListener('focus', function() {
-                    this.parentElement.style.borderColor = 'var(--primary-color)';
-                });
+  if (commentReactionModal) {
+    window.addEventListener("click", function (event) {
+      if (event.target === commentReactionModal) {
+        console.log("Comment reaction modal backdrop clicked");
+        commentReactionModal.style.display = "none";
+      }
+    });
+  }
 
-                // Blur event
-                commentInput.addEventListener('blur', function() {
-                    this.parentElement.style.borderColor = '#e0e0e0';
-                });
-            }
+  console.log("✅ Comments System Initialized Successfully!");
+}
 
-            // Comment submit button event listener
-            if (commentSubmit) {
-                commentSubmit.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (!this.disabled && commentInput && commentInput.value.trim()) {
-                        addComment();
-                    }
-                });
-            }
+// Function to open comments modal
+function openCommentsModal(postId) {
+  console.log("📖 Opening comments modal for post:", postId);
 
-            // Initialize keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                // Escape key to close modal
-                if (e.key === 'Escape' && commentsModal && commentsModal.style.display === 'block') {
-                    closeCommentsModal();
-                }
-            });
+  currentPostId = postId;
+  currentOffset = 0;
+  hasMoreComments = false;
+  totalCommentsCount = 0;
 
-            // Initialize comment reaction handlers
-            initializeCommentReactionHandlers();
+  const modal = document.getElementById("commentsModal");
+  const commentsBody = document.getElementById("commentsBody");
+  const commentInput = document.getElementById("commentInput");
 
-            // FIXED: Close POST reaction users modal functionality
-            const postReactionModal = document.getElementById('postReactionUsersModal');
-            const postReactionCloseBtn = postReactionModal?.querySelector('.close-modal');
+  if (!modal || !commentsBody) {
+    console.error("❌ Comments modal elements not found");
+    return;
+  }
 
-            if (postReactionCloseBtn) {
-                postReactionCloseBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log('Post reaction modal close button clicked');
-                    postReactionModal.style.display = 'none';
-                });
-            }
+  // Show modal immediately
+  modal.style.display = "block";
+  document.body.style.overflow = "hidden";
 
-            if (postReactionModal) {
-                window.addEventListener('click', function(event) {
-                    if (event.target === postReactionModal) {
-                        console.log('Post reaction modal backdrop clicked');
-                        postReactionModal.style.display = 'none';
-                    }
-                });
-            }
-
-            // FIXED: Close COMMENT reaction users modal functionality
-            const commentReactionModal = document.getElementById('commentReactionUsersModal');
-            const commentReactionCloseBtn = commentReactionModal?.querySelector('.close-modal');
-
-            if (commentReactionCloseBtn) {
-                commentReactionCloseBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log('Comment reaction modal close button clicked');
-                    commentReactionModal.style.display = 'none';
-                });
-            }
-
-            if (commentReactionModal) {
-                window.addEventListener('click', function(event) {
-                    if (event.target === commentReactionModal) {
-                        console.log('Comment reaction modal backdrop clicked');
-                        commentReactionModal.style.display = 'none';
-                    }
-                });
-            }
-
-            console.log('✅ Comments System Initialized Successfully!');
-        }
-
-        // Function to open comments modal
-        function openCommentsModal(postId) {
-            console.log('📖 Opening comments modal for post:', postId);
-
-            currentPostId = postId;
-            currentOffset = 0;
-            hasMoreComments = false;
-            totalCommentsCount = 0;
-
-            const modal = document.getElementById('commentsModal');
-            const commentsBody = document.getElementById('commentsBody');
-            const commentInput = document.getElementById('commentInput');
-
-            if (!modal || !commentsBody) {
-                console.error('❌ Comments modal elements not found');
-                return;
-            }
-
-            // Show modal immediately
-            modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-
-            // Clear previous content and show loading
-            commentsBody.innerHTML = `
+  // Clear previous content and show loading
+  commentsBody.innerHTML = `
         <div style="text-align: center; padding: 40px; color: #666;">
             <div class="loading-spinner" style="margin: 0 auto 15px;"></div>
             <p>Loading comments...</p>
         </div>
     `;
 
-            // Reset comment input
-            if (commentInput) {
-                commentInput.value = '';
-                commentInput.style.height = 'auto';
-            }
+  // Reset comment input
+  if (commentInput) {
+    commentInput.value = "";
+    commentInput.style.height = "auto";
+  }
 
-            updateCommentSubmitButton();
+  updateCommentSubmitButton();
 
-            // Load initial comments
-            loadComments(postId, true);
+  // Load initial comments
+  loadComments(postId, true);
 
-            // Focus on comment input after a short delay
-            setTimeout(() => {
-                if (commentInput) {
-                    commentInput.focus();
-                }
-            }, 500);
+  // Focus on comment input after a short delay
+  setTimeout(() => {
+    if (commentInput) {
+      commentInput.focus();
+    }
+  }, 500);
+}
+
+// Function to close comments modal
+function closeCommentsModal() {
+  console.log("🔒 Closing comments modal");
+
+  const modal = document.getElementById("commentsModal");
+  if (modal) {
+    modal.style.display = "none";
+  }
+
+  document.body.style.overflow = "auto";
+  currentPostId = null;
+  currentOffset = 0;
+  hasMoreComments = false;
+
+  // Close any open reaction panels
+  closeAllCommentReactionPanels();
+}
+
+// Enhanced function to load comments with pagination
+function loadComments(postId, isFirstLoad = false) {
+  if (commentsLoading) {
+    console.log("⏳ Comments already loading, skipping...");
+    return;
+  }
+
+  console.log(
+    `📥 Loading comments for post ${postId}, first load: ${isFirstLoad}`,
+  );
+  commentsLoading = true;
+
+  const formData = new FormData();
+  formData.append("action", "get_comments");
+  formData.append("post_id", postId);
+  formData.append("offset", isFirstLoad ? 0 : currentOffset);
+  formData.append("limit", commentsPerLoad);
+
+  // Update load more button if not first load
+  if (!isFirstLoad) {
+    const loadMoreBtn = document.getElementById("loadMoreCommentsBtn");
+    if (loadMoreBtn) {
+      loadMoreBtn.disabled = true;
+      loadMoreBtn.innerHTML = '<div class="loading-spinner small"></div>';
+    }
+  }
+
+  fetch("comments.php", {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      // Check if response is actually JSON
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Response is not JSON");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log("📨 Comments response:", data);
+
+      if (data.success) {
+        // Update pagination variables
+        currentOffset = data.next_offset || 0;
+        hasMoreComments = data.has_more || false;
+        totalCommentsCount = data.total_comments || 0;
+
+        if (isFirstLoad) {
+          displayComments(data.comments, data.reactions, true);
+        } else {
+          appendComments(data.comments);
         }
+      } else {
+        throw new Error(data.message || "Failed to load comments");
+      }
+    })
+    .catch((error) => {
+      console.error("❌ Error loading comments:", error);
+      if (isFirstLoad) {
+        showCommentsError("Failed to load comments. Please try again.");
+      } else {
+        showToast("Failed to load more comments. Please try again.", "error");
+      }
+    })
+    .finally(() => {
+      commentsLoading = false;
 
-        // Function to close comments modal
-        function closeCommentsModal() {
-            console.log('🔒 Closing comments modal');
+      // Reset load more button
+      if (!isFirstLoad) {
+        const loadMoreBtn = document.getElementById("loadMoreCommentsBtn");
+        if (loadMoreBtn) {
+          loadMoreBtn.disabled = false;
+          loadMoreBtn.innerHTML = "Load More Comments";
 
-            const modal = document.getElementById('commentsModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-
-            document.body.style.overflow = 'auto';
-            currentPostId = null;
-            currentOffset = 0;
-            hasMoreComments = false;
-
-            // Close any open reaction panels
-            closeAllCommentReactionPanels();
+          if (!hasMoreComments) {
+            loadMoreBtn.style.display = "none";
+          }
         }
+      }
+    });
+}
 
-        // Enhanced function to load comments with pagination
-        function loadComments(postId, isFirstLoad = false) {
-            if (commentsLoading) {
-                console.log('⏳ Comments already loading, skipping...');
-                return;
-            }
+// Function to load more comments
+function loadMoreComments() {
+  if (!currentPostId || !hasMoreComments || commentsLoading) {
+    console.log("⚠️ Cannot load more comments:", {
+      currentPostId,
+      hasMoreComments,
+      commentsLoading,
+    });
+    return;
+  }
+  loadComments(currentPostId, false);
+}
 
-            console.log(`📥 Loading comments for post ${postId}, first load: ${isFirstLoad}`);
-            commentsLoading = true;
+// Enhanced function to display comments (first load)
+function displayComments(comments, reactions, isFirstLoad = true) {
+  console.log(
+    `🎨 Displaying ${comments?.length || 0} comments, first load: ${isFirstLoad}`,
+  );
 
-            const formData = new FormData();
-            formData.append('action', 'get_comments');
-            formData.append('post_id', postId);
-            formData.append('offset', isFirstLoad ? 0 : currentOffset);
-            formData.append('limit', commentsPerLoad);
+  const commentsBody = document.getElementById("commentsBody");
+  if (!commentsBody) return;
 
-            // Update load more button if not first load
-            if (!isFirstLoad) {
-                const loadMoreBtn = document.getElementById('loadMoreCommentsBtn');
-                if (loadMoreBtn) {
-                    loadMoreBtn.disabled = true;
-                    loadMoreBtn.innerHTML = '<div class="loading-spinner small"></div>';
-                }
-            }
+  let html = "";
 
-            fetch('comments.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    // Check if response is actually JSON
-                    const contentType = response.headers.get('content-type');
-                    if (!contentType || !contentType.includes('application/json')) {
-                        throw new Error('Response is not JSON');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('📨 Comments response:', data);
+  // Display comments
+  if (comments && comments.length > 0) {
+    comments.forEach((comment) => {
+      html += generateCommentHTML(comment);
+    });
+  }
 
-                    if (data.success) {
-                        // Update pagination variables
-                        currentOffset = data.next_offset || 0;
-                        hasMoreComments = data.has_more || false;
-                        totalCommentsCount = data.total_comments || 0;
-
-                        if (isFirstLoad) {
-                            displayComments(data.comments, data.reactions, true);
-                        } else {
-                            appendComments(data.comments);
-                        }
-                    } else {
-                        throw new Error(data.message || 'Failed to load comments');
-                    }
-                })
-                .catch(error => {
-                    console.error('❌ Error loading comments:', error);
-                    if (isFirstLoad) {
-                        showCommentsError('Failed to load comments. Please try again.');
-                    } else {
-                        showToast('Failed to load more comments. Please try again.', 'error');
-                    }
-                })
-                .finally(() => {
-                    commentsLoading = false;
-
-                    // Reset load more button
-                    if (!isFirstLoad) {
-                        const loadMoreBtn = document.getElementById('loadMoreCommentsBtn');
-                        if (loadMoreBtn) {
-                            loadMoreBtn.disabled = false;
-                            loadMoreBtn.innerHTML = 'Load More Comments';
-
-                            if (!hasMoreComments) {
-                                loadMoreBtn.style.display = 'none';
-                            }
-                        }
-                    }
-                });
-        }
-
-        // Function to load more comments
-        function loadMoreComments() {
-            if (!currentPostId || !hasMoreComments || commentsLoading) {
-                console.log('⚠️ Cannot load more comments:', {
-                    currentPostId,
-                    hasMoreComments,
-                    commentsLoading
-                });
-                return;
-            }
-            loadComments(currentPostId, false);
-        }
-
-        // Enhanced function to display comments (first load)
-        function displayComments(comments, reactions, isFirstLoad = true) {
-            console.log(`🎨 Displaying ${comments?.length || 0} comments, first load: ${isFirstLoad}`);
-
-            const commentsBody = document.getElementById('commentsBody');
-            if (!commentsBody) return;
-
-            let html = '';
-
-            // Display comments
-            if (comments && comments.length > 0) {
-                comments.forEach(comment => {
-                    html += generateCommentHTML(comment);
-                });
-            }
-
-            // Display post reactions section (only on first load)
-            if (isFirstLoad && reactions && reactions.length > 0) {
-                html += `
+  // Display post reactions section (only on first load)
+  if (isFirstLoad && reactions && reactions.length > 0) {
+    html += `
             <div class="reactions-section" style="padding: 20px; border-top: 1px solid #eee; margin-top: 20px; background-color: #f9f9f9;">
                 <div class="reactions-title" style="font-weight: 600; margin-bottom: 15px; color: #333;">Post Reactions:</div>
                 <div class="reactions-list" style="display: flex; flex-wrap: wrap; gap: 10px;">
         `;
 
-                reactions.forEach(reaction => {
-                    const userImage = reaction.PROFILE_IMAGE || 'https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg';
-                    html += `
+    reactions.forEach((reaction) => {
+      const userImage =
+        reaction.PROFILE_IMAGE ||
+        "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg";
+      html += `
                 <div class="reaction-item" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: white; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <img loading="lazy" decoding="async" src="${userImage}" alt="${escapeHtml(reaction.NAME)}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" onerror="this.src='https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg'">
                     <span style="font-size: 18px;">${reaction.REACTION_EMOJI}</span>
                     <span style="font-size: 12px; color: #666;">${escapeHtml(reaction.NAME)}</span>
                 </div>
             `;
-                });
+    });
 
-                html += '</div></div>';
-            }
+    html += "</div></div>";
+  }
 
-            // Add Load More button if there are more comments
-            if (hasMoreComments) {
-                html += `
+  // Add Load More button if there are more comments
+  if (hasMoreComments) {
+    html += `
             <div style="text-align: center; padding: 20px;">
                 <button id="loadMoreCommentsBtn" onclick="loadMoreComments()" 
                         style="background: linear-gradient(135deg, #ED5A2C 0%, #ff6b3d 100%); 
@@ -1496,122 +1587,135 @@ function escapeHtml(value) {
                 </button>
             </div>
         `;
-            }
+  }
 
-            // Show empty state if no content
-            if (!html && isFirstLoad) {
-                html = `
+  // Show empty state if no content
+  if (!html && isFirstLoad) {
+    html = `
             <div class="no-comments" style="text-align: center; padding: 50px 20px; color: #666;">
                 <div style="font-size: 48px; margin-bottom: 15px;">💬</div>
                 <p style="font-size: 16px; margin-bottom: 10px;">No comments yet</p>
                 <p style="font-size: 14px; opacity: 0.8;">Be the first to share your thoughts!</p>
             </div>
         `;
-            }
+  }
 
-            commentsBody.innerHTML = html;
+  commentsBody.innerHTML = html;
 
-            // Initialize comment interactions after content is loaded
-            setTimeout(() => {
-                initializeCommentInteractions();
-            }, 100);
-        }
+  // Initialize comment interactions after content is loaded
+  setTimeout(() => {
+    initializeCommentInteractions();
+  }, 100);
+}
 
-        // Function to append new comments (for load more)
-        function appendComments(comments) {
-            if (!comments || comments.length === 0) return;
+// Function to append new comments (for load more)
+function appendComments(comments) {
+  if (!comments || comments.length === 0) return;
 
-            console.log(`➕ Appending ${comments.length} more comments`);
+  console.log(`➕ Appending ${comments.length} more comments`);
 
-            const commentsBody = document.getElementById('commentsBody');
-            const loadMoreBtn = document.getElementById('loadMoreCommentsBtn');
+  const commentsBody = document.getElementById("commentsBody");
+  const loadMoreBtn = document.getElementById("loadMoreCommentsBtn");
 
-            if (!commentsBody) return;
+  if (!commentsBody) return;
 
-            // Generate HTML for new comments
-            let newCommentsHTML = '';
-            comments.forEach(comment => {
-                newCommentsHTML += generateCommentHTML(comment);
-            });
+  // Generate HTML for new comments
+  let newCommentsHTML = "";
+  comments.forEach((comment) => {
+    newCommentsHTML += generateCommentHTML(comment);
+  });
 
-            // Create temporary container
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = newCommentsHTML;
+  // Create temporary container
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = newCommentsHTML;
 
-            // Insert new comments before the load more button
-            if (loadMoreBtn && loadMoreBtn.parentElement) {
-                const loadMoreContainer = loadMoreBtn.parentElement;
-                while (tempDiv.firstChild) {
-                    commentsBody.insertBefore(tempDiv.firstChild, loadMoreContainer);
-                }
+  // Insert new comments before the load more button
+  if (loadMoreBtn && loadMoreBtn.parentElement) {
+    const loadMoreContainer = loadMoreBtn.parentElement;
+    while (tempDiv.firstChild) {
+      commentsBody.insertBefore(tempDiv.firstChild, loadMoreContainer);
+    }
 
-                // Update or hide load more button
-                if (!hasMoreComments) {
-                    loadMoreContainer.style.display = 'none';
-                }
-            } else {
-                // No load more button, just append
-                while (tempDiv.firstChild) {
-                    commentsBody.appendChild(tempDiv.firstChild);
-                }
-            }
+    // Update or hide load more button
+    if (!hasMoreComments) {
+      loadMoreContainer.style.display = "none";
+    }
+  } else {
+    // No load more button, just append
+    while (tempDiv.firstChild) {
+      commentsBody.appendChild(tempDiv.firstChild);
+    }
+  }
 
-            // Initialize interactions for new comments
-            setTimeout(() => {
-                initializeCommentInteractions();
-            }, 100);
-        }
+  // Initialize interactions for new comments
+  setTimeout(() => {
+    initializeCommentInteractions();
+  }, 100);
+}
 
-        // Helper function to generate comment HTML
-        function generateCommentHTML(comment) {
-            const timeAgo = getTimeAgo(comment.CREATED_AT);
-            const userImage = comment.PROFILE_IMAGE || 'https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg';
-            const currentUserId = window.DashboardConfig ? window.DashboardConfig.currentUserId : null;
-            const isOwner = comment.USER_ID == currentUserId;
+// Helper function to generate comment HTML
+function generateCommentHTML(comment) {
+  const timeAgo = getTimeAgo(comment.CREATED_AT);
+  const userImage =
+    comment.PROFILE_IMAGE ||
+    "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg";
+  const currentUserId = window.DashboardConfig
+    ? window.DashboardConfig.currentUserId
+    : null;
+  const isOwner = comment.USER_ID == currentUserId;
 
-            // Handle comment reactions
-            const hasUserReaction = comment.has_user_reaction === 1 || comment.has_user_reaction === '1';
-            const userReactionType = comment.user_reaction_type;
-            const userReactionEmoji = comment.user_reaction_emoji;
-            const totalReactions = parseInt(comment.total_reactions) || 0;
+  // Handle comment reactions
+  const hasUserReaction =
+    comment.has_user_reaction === 1 || comment.has_user_reaction === "1";
+  const userReactionType = comment.user_reaction_type;
+  const userReactionEmoji = comment.user_reaction_emoji;
+  const totalReactions = parseInt(comment.total_reactions) || 0;
 
-            return `
-        <div class="comment-item ${hasUserReaction ? 'has-reaction' : ''}" data-comment-id="${comment.COMMENT_ID}">
+  return `
+        <div class="comment-item ${hasUserReaction ? "has-reaction" : ""}" data-comment-id="${comment.COMMENT_ID}">
             <img loading="lazy" decoding="async" src="${userImage}" alt="${escapeHtml(comment.NAME)}" class="comment-avatar" onerror="this.src='https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg'">
             <div class="comment-content">
                 <div class="comment-author">${escapeHtml(comment.NAME)}</div>
                 <div class="comment-text">${escapeHtml(comment.COMMENT_TEXT)}</div>
                 
-                ${hasUserReaction ? `
+                ${
+                  hasUserReaction
+                    ? `
                     <div class="comment-reaction-display" style="margin: 8px 0; display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--primary-color); font-weight: 500;">
                         <span class="reaction-emoji">${userReactionEmoji}</span>
                         <span style="text-transform: capitalize;">You reacted with ${userReactionType}</span>
                     </div>
-                ` : ''}
+                `
+                    : ""
+                }
                 
-                ${totalReactions > 0 ? `
+                ${
+                  totalReactions > 0
+                    ? `
                     <div class="comment-reaction-count" onclick="showCommentReactionUsers(${comment.COMMENT_ID})" 
                          style="font-size: 12px; color: #666; cursor: pointer; margin: 8px 0; display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 12px; background-color: #f0f0f0; transition: all 0.2s ease;">
                         <span>👥</span>
-                        <span>${totalReactions} reaction${totalReactions !== 1 ? 's' : ''}</span>
+                        <span>${totalReactions} reaction${totalReactions !== 1 ? "s" : ""}</span>
                     </div>
-                ` : ''}
+                `
+                    : ""
+                }
                 
                 <div class="comment-time" style="font-size: 12px; color: #888; margin: 8px 0;">${timeAgo}</div>
                 
                 <div class="comment-actions" style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
                     <div class="comment-like-container" data-comment-id="${comment.COMMENT_ID}">
-                        <button class="comment-like-btn ${hasUserReaction ? 'active' : ''}" 
+                        <button class="comment-like-btn ${hasUserReaction ? "active" : ""}" 
                                 onclick="toggleCommentReactions(${comment.COMMENT_ID})" 
-                                data-user-reaction="${userReactionType || ''}"
-                                style="background: none; border: none; color: ${hasUserReaction ? 'var(--primary-color)' : '#666'}; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px; padding: 5px 8px; border-radius: 15px; transition: all 0.2s ease; font-weight: ${hasUserReaction ? '600' : '500'};">
+                                data-user-reaction="${userReactionType || ""}"
+                                style="background: none; border: none; color: ${hasUserReaction ? "var(--primary-color)" : "#666"}; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px; padding: 5px 8px; border-radius: 15px; transition: all 0.2s ease; font-weight: ${hasUserReaction ? "600" : "500"};">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
-                                 fill="${hasUserReaction ? 'var(--primary-color)' : 'none'}" 
-                                 stroke="${hasUserReaction ? 'var(--primary-color)' : 'currentColor'}" 
+                                 fill="${hasUserReaction ? "var(--primary-color)" : "none"}" 
+                                 stroke="${hasUserReaction ? "var(--primary-color)" : "currentColor"}" 
                                  stroke-width="2">
                                 <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
                             </svg>
-                            ${hasUserReaction ? userReactionType.charAt(0).toUpperCase() + userReactionType.slice(1) : 'React'}
+                            ${hasUserReaction ? userReactionType.charAt(0).toUpperCase() + userReactionType.slice(1) : "React"}
                         </button>
                         
                         <!-- Comment Food Reactions Panel -->
@@ -1637,7 +1741,9 @@ function escapeHtml(value) {
                         </div>
                     </div>
                     
-                    ${isOwner ? `
+                    ${
+                      isOwner
+                        ? `
                         <button class="comment-delete-btn" onclick="deleteComment(${comment.COMMENT_ID})" 
                                 style="background: none; border: none; color: #f44336; cursor: pointer; font-size: 12px; padding: 5px 8px; border-radius: 15px; transition: all 0.2s ease; font-weight: 500;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1646,80 +1752,95 @@ function escapeHtml(value) {
                             </svg>
                             Delete
                         </button>
-                    ` : ''}
+                    `
+                        : ""
+                    }
                 </div>
             </div>
         </div>
     `;
-        }
+}
 
-        // Function to initialize comment interactions
-        function initializeCommentInteractions() {
-            console.log('🔧 Initializing comment interactions...');
+// Function to initialize comment interactions
+function initializeCommentInteractions() {
+  console.log("🔧 Initializing comment interactions...");
 
-            // Remove any existing event listeners to prevent duplicates
-            document.removeEventListener('click', handleDocumentClick);
+  // Remove any existing event listeners to prevent duplicates
+  document.removeEventListener("click", handleDocumentClick);
 
-            // Add document click listener for closing reaction panels
-            document.addEventListener('click', handleDocumentClick);
+  // Add document click listener for closing reaction panels
+  document.addEventListener("click", handleDocumentClick);
 
-            // Initialize mobile touch support
-            initializeMobileCommentSupport();
-        }
+  // Initialize mobile touch support
+  initializeMobileCommentSupport();
+}
 
-        // Document click handler for closing reaction panels
-        function handleDocumentClick(e) {
-            // Don't close if clicking inside a reaction panel or its trigger
-            if (!e.target.closest('.comment-like-container') && !e.target.closest('.comment-food-reactions')) {
-                closeAllCommentReactionPanels();
-            }
-        }
+// Document click handler for closing reaction panels
+function handleDocumentClick(e) {
+  // Don't close if clicking inside a reaction panel or its trigger
+  if (
+    !e.target.closest(".comment-like-container") &&
+    !e.target.closest(".comment-food-reactions")
+  ) {
+    closeAllCommentReactionPanels();
+  }
+}
 
-        // Function to close all comment reaction panels
-        function closeAllCommentReactionPanels() {
-            document.querySelectorAll('.comment-like-container.active').forEach(container => {
-                container.classList.remove('active');
-            });
+// Function to close all comment reaction panels
+function closeAllCommentReactionPanels() {
+  document
+    .querySelectorAll(".comment-like-container.active")
+    .forEach((container) => {
+      container.classList.remove("active");
+    });
 
-            // Remove mobile backdrops
-            document.querySelectorAll('.comment-reaction-backdrop').forEach(backdrop => {
-                backdrop.remove();
-            });
-        }
+  // Remove mobile backdrops
+  document
+    .querySelectorAll(".comment-reaction-backdrop")
+    .forEach((backdrop) => {
+      backdrop.remove();
+    });
+}
 
-        // Function to toggle comment reaction panel
-        function toggleCommentReactions(commentId) {
-            console.log('🎭 Toggling comment reactions for:', commentId);
+// Function to toggle comment reaction panel
+function toggleCommentReactions(commentId) {
+  console.log("🎭 Toggling comment reactions for:", commentId);
 
-            // Close all other reaction panels first
-            document.querySelectorAll('.comment-like-container.active').forEach(container => {
-                if (container.getAttribute('data-comment-id') != commentId) {
-                    container.classList.remove('active');
-                }
-            });
+  // Close all other reaction panels first
+  document
+    .querySelectorAll(".comment-like-container.active")
+    .forEach((container) => {
+      if (container.getAttribute("data-comment-id") != commentId) {
+        container.classList.remove("active");
+      }
+    });
 
-            // Remove existing backdrops
-            document.querySelectorAll('.comment-reaction-backdrop').forEach(backdrop => backdrop.remove());
+  // Remove existing backdrops
+  document
+    .querySelectorAll(".comment-reaction-backdrop")
+    .forEach((backdrop) => backdrop.remove());
 
-            // Toggle current panel
-            const container = document.querySelector(`[data-comment-id="${commentId}"].comment-like-container`);
-            if (!container) {
-                console.error('❌ Comment reaction container not found for:', commentId);
-                return;
-            }
+  // Toggle current panel
+  const container = document.querySelector(
+    `[data-comment-id="${commentId}"].comment-like-container`,
+  );
+  if (!container) {
+    console.error("❌ Comment reaction container not found for:", commentId);
+    return;
+  }
 
-            const isActive = container.classList.contains('active');
+  const isActive = container.classList.contains("active");
 
-            if (isActive) {
-                container.classList.remove('active');
-            } else {
-                container.classList.add('active');
+  if (isActive) {
+    container.classList.remove("active");
+  } else {
+    container.classList.add("active");
 
-                // Add mobile backdrop if needed
-                if (window.innerWidth <= 768) {
-                    const backdrop = document.createElement('div');
-                    backdrop.className = 'comment-reaction-backdrop';
-                    backdrop.style.cssText = `
+    // Add mobile backdrop if needed
+    if (window.innerWidth <= 768) {
+      const backdrop = document.createElement("div");
+      backdrop.className = "comment-reaction-backdrop";
+      backdrop.style.cssText = `
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -1729,107 +1850,121 @@ function escapeHtml(value) {
                 z-index: 999;
                 backdrop-filter: blur(1px);
             `;
-                    backdrop.addEventListener('click', () => {
-                        container.classList.remove('active');
-                        backdrop.remove();
-                    });
-                    document.body.appendChild(backdrop);
-                }
-            }
+      backdrop.addEventListener("click", () => {
+        container.classList.remove("active");
+        backdrop.remove();
+      });
+      document.body.appendChild(backdrop);
+    }
+  }
+}
+
+// Enhanced function to handle comment reactions
+function handleCommentReaction(commentId, reactionType) {
+  console.log(
+    `👍 Handling comment reaction: ${reactionType} for comment:`,
+    commentId,
+  );
+
+  // Add loading state
+  const clickedIcon = document.querySelector(
+    `[data-comment-id="${commentId}"] [data-reaction="${reactionType}"]`,
+  );
+  if (clickedIcon) {
+    clickedIcon.style.opacity = "0.6";
+    clickedIcon.style.transform = "scale(1.1)";
+    clickedIcon.style.pointerEvents = "none";
+  }
+
+  const formData = new FormData();
+  formData.append("action", "add_comment_reaction");
+  formData.append("comment_id", commentId);
+  formData.append("reaction_type", reactionType);
+
+  fetch("comments.php", {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log("📨 Comment reaction response:", data);
+
+      if (data.success) {
+        // Update UI
+        updateCommentReactionUI(commentId, data, reactionType);
+
+        // Close reaction panel
+        const container = document.querySelector(
+          `[data-comment-id="${commentId}"].comment-like-container`,
+        );
+        if (container) {
+          container.classList.remove("active");
         }
 
-        // Enhanced function to handle comment reactions
-        function handleCommentReaction(commentId, reactionType) {
-            console.log(`👍 Handling comment reaction: ${reactionType} for comment:`, commentId);
+        // Remove backdrop
+        document
+          .querySelectorAll(".comment-reaction-backdrop")
+          .forEach((backdrop) => backdrop.remove());
 
-            // Add loading state
-            const clickedIcon = document.querySelector(`[data-comment-id="${commentId}"] [data-reaction="${reactionType}"]`);
-            if (clickedIcon) {
-                clickedIcon.style.opacity = '0.6';
-                clickedIcon.style.transform = 'scale(1.1)';
-                clickedIcon.style.pointerEvents = 'none';
-            }
+        // Show success message
+        const messages = {
+          added: `You reacted with ${reactionType}! ✨`,
+          updated: `Changed reaction to ${reactionType}! 🔄`,
+          removed: `Reaction removed! 👋`,
+        };
+        showToast(messages[data.action_type] || "Reaction updated!", "success");
+      } else {
+        throw new Error(data.message || "Failed to update reaction");
+      }
+    })
+    .catch((error) => {
+      console.error("❌ Error handling comment reaction:", error);
+      showToast("Failed to update reaction. Please try again.", "error");
+    })
+    .finally(() => {
+      // Remove loading state
+      if (clickedIcon) {
+        clickedIcon.style.opacity = "1";
+        clickedIcon.style.transform = "scale(1)";
+        clickedIcon.style.pointerEvents = "auto";
+      }
+    });
+}
 
-            const formData = new FormData();
-            formData.append('action', 'add_comment_reaction');
-            formData.append('comment_id', commentId);
-            formData.append('reaction_type', reactionType);
+// Function to update comment reaction UI
+function updateCommentReactionUI(commentId, responseData, newReaction) {
+  console.log("🎨 Updating comment reaction UI for:", commentId);
 
-            fetch('comments.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('📨 Comment reaction response:', data);
+  const commentItem = document.querySelector(
+    `[data-comment-id="${commentId}"]`,
+  );
+  const container = document.querySelector(
+    `[data-comment-id="${commentId}"].comment-like-container`,
+  );
+  const likeButton = container?.querySelector(".comment-like-btn");
 
-                    if (data.success) {
-                        // Update UI
-                        updateCommentReactionUI(commentId, data, reactionType);
+  if (!commentItem || !container || !likeButton) {
+    console.error("❌ Comment UI elements not found");
+    return;
+  }
 
-                        // Close reaction panel
-                        const container = document.querySelector(`[data-comment-id="${commentId}"].comment-like-container`);
-                        if (container) {
-                            container.classList.remove('active');
-                        }
+  if (responseData.has_reaction) {
+    // User has a reaction
+    likeButton.classList.add("active");
+    likeButton.setAttribute("data-user-reaction", responseData.reaction_type);
+    likeButton.style.color = "var(--primary-color)";
+    likeButton.style.fontWeight = "600";
 
-                        // Remove backdrop
-                        document.querySelectorAll('.comment-reaction-backdrop').forEach(backdrop => backdrop.remove());
-
-                        // Show success message
-                        const messages = {
-                            'added': `You reacted with ${reactionType}! ✨`,
-                            'updated': `Changed reaction to ${reactionType}! 🔄`,
-                            'removed': `Reaction removed! 👋`
-                        };
-                        showToast(messages[data.action_type] || 'Reaction updated!', 'success');
-
-                    } else {
-                        throw new Error(data.message || 'Failed to update reaction');
-                    }
-                })
-                .catch(error => {
-                    console.error('❌ Error handling comment reaction:', error);
-                    showToast('Failed to update reaction. Please try again.', 'error');
-                })
-                .finally(() => {
-                    // Remove loading state
-                    if (clickedIcon) {
-                        clickedIcon.style.opacity = '1';
-                        clickedIcon.style.transform = 'scale(1)';
-                        clickedIcon.style.pointerEvents = 'auto';
-                    }
-                });
-        }
-
-        // Function to update comment reaction UI
-        function updateCommentReactionUI(commentId, responseData, newReaction) {
-            console.log('🎨 Updating comment reaction UI for:', commentId);
-
-            const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`);
-            const container = document.querySelector(`[data-comment-id="${commentId}"].comment-like-container`);
-            const likeButton = container?.querySelector('.comment-like-btn');
-
-            if (!commentItem || !container || !likeButton) {
-                console.error('❌ Comment UI elements not found');
-                return;
-            }
-
-            if (responseData.has_reaction) {
-                // User has a reaction
-                likeButton.classList.add('active');
-                likeButton.setAttribute('data-user-reaction', responseData.reaction_type);
-                likeButton.style.color = 'var(--primary-color)';
-                likeButton.style.fontWeight = '600';
-
-                // Update button content
-                const reactionText = responseData.reaction_type.charAt(0).toUpperCase() + responseData.reaction_type.slice(1);
-                likeButton.innerHTML = `
+    // Update button content
+    const reactionText =
+      responseData.reaction_type.charAt(0).toUpperCase() +
+      responseData.reaction_type.slice(1);
+    likeButton.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
                  fill="var(--primary-color)" stroke="var(--primary-color)" stroke-width="2">
                 <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
@@ -1837,36 +1972,40 @@ function escapeHtml(value) {
             ${reactionText}
         `;
 
-                commentItem.classList.add('has-reaction');
+    commentItem.classList.add("has-reaction");
 
-                // Update or add reaction display
-                let reactionDisplay = commentItem.querySelector('.comment-reaction-display');
-                if (reactionDisplay) {
-                    reactionDisplay.innerHTML = `
+    // Update or add reaction display
+    let reactionDisplay = commentItem.querySelector(
+      ".comment-reaction-display",
+    );
+    if (reactionDisplay) {
+      reactionDisplay.innerHTML = `
                 <span class="reaction-emoji">${responseData.reaction_emoji}</span>
                 <span style="text-transform: capitalize;">You reacted with ${responseData.reaction_type}</span>
             `;
-                } else {
-                    const commentText = commentItem.querySelector('.comment-text');
-                    if (commentText) {
-                        commentText.insertAdjacentHTML('afterend', `
+    } else {
+      const commentText = commentItem.querySelector(".comment-text");
+      if (commentText) {
+        commentText.insertAdjacentHTML(
+          "afterend",
+          `
                     <div class="comment-reaction-display" style="margin: 8px 0; display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--primary-color); font-weight: 500;">
                         <span class="reaction-emoji">${responseData.reaction_emoji}</span>
                         <span style="text-transform: capitalize;">You reacted with ${responseData.reaction_type}</span>
                     </div>
-                `);
-                    }
-                }
+                `,
+        );
+      }
+    }
+  } else {
+    // User removed reaction
+    likeButton.classList.remove("active");
+    likeButton.setAttribute("data-user-reaction", "");
+    likeButton.style.color = "#666";
+    likeButton.style.fontWeight = "500";
 
-            } else {
-                // User removed reaction
-                likeButton.classList.remove('active');
-                likeButton.setAttribute('data-user-reaction', '');
-                likeButton.style.color = '#666';
-                likeButton.style.fontWeight = '500';
-
-                // Reset button content
-                likeButton.innerHTML = `
+    // Reset button content
+    likeButton.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
                  fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
@@ -1874,221 +2013,233 @@ function escapeHtml(value) {
             React
         `;
 
-                commentItem.classList.remove('has-reaction');
+    commentItem.classList.remove("has-reaction");
 
-                // Remove reaction display
-                const reactionDisplay = commentItem.querySelector('.comment-reaction-display');
-                if (reactionDisplay) {
-                    reactionDisplay.remove();
-                }
-            }
+    // Remove reaction display
+    const reactionDisplay = commentItem.querySelector(
+      ".comment-reaction-display",
+    );
+    if (reactionDisplay) {
+      reactionDisplay.remove();
+    }
+  }
 
-            // Add animation to clicked reaction icon
-            const clickedIcon = container.querySelector(`[data-reaction="${newReaction}"]`);
-            if (clickedIcon && responseData.has_reaction) {
-                clickedIcon.style.transform = 'scale(1.3)';
-                setTimeout(() => {
-                    clickedIcon.style.transform = 'scale(1)';
-                }, 200);
-            }
+  // Add animation to clicked reaction icon
+  const clickedIcon = container.querySelector(
+    `[data-reaction="${newReaction}"]`,
+  );
+  if (clickedIcon && responseData.has_reaction) {
+    clickedIcon.style.transform = "scale(1.3)";
+    setTimeout(() => {
+      clickedIcon.style.transform = "scale(1)";
+    }, 200);
+  }
+}
+
+// Enhanced function to add comment
+function addComment() {
+  console.log("💬 Adding new comment...");
+
+  const commentInput = document.getElementById("commentInput");
+  const submitBtn = document.getElementById("commentSubmit");
+
+  if (!commentInput || !submitBtn) {
+    console.error("❌ Comment input elements not found");
+    return;
+  }
+
+  const commentText = commentInput.value.trim();
+
+  if (!commentText) {
+    showToast("Please write something!", "error");
+    commentInput.focus();
+    return;
+  }
+
+  if (!currentPostId) {
+    showToast("Error: No post selected", "error");
+    return;
+  }
+
+  if (commentText.length > 500) {
+    showToast("Comment is too long (max 500 characters)", "error");
+    return;
+  }
+
+  // Show loading state
+  submitBtn.disabled = true;
+  const originalContent = submitBtn.innerHTML;
+  submitBtn.innerHTML = '<div class="loading-spinner small"></div>';
+
+  const formData = new FormData();
+  formData.append("action", "add_comment");
+  formData.append("post_id", currentPostId);
+  formData.append("comment_text", commentText);
+
+  fetch("comments.php", {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log("📨 Add comment response:", data);
+
+      if (data.success) {
+        // Clear input
+        commentInput.value = "";
+        commentInput.style.height = "auto";
+
+        // Show success
+        showToast("Comment added! 🎉", "success");
+
+        // Reload comments to show the new one
+        currentOffset = 0;
+        loadComments(currentPostId, true);
+
+        // Update comment count in post
+        updatePostCommentCount(currentPostId);
+      } else {
+        throw new Error(data.message || "Failed to add comment");
+      }
+    })
+    .catch((error) => {
+      console.error("❌ Error adding comment:", error);
+      showToast("Failed to add comment. Please try again.", "error");
+    })
+    .finally(() => {
+      // Reset submit button
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalContent;
+      updateCommentSubmitButton();
+    });
+}
+
+// Function to delete comment
+function deleteComment(commentId) {
+  if (!confirm("Are you sure you want to delete this comment?")) {
+    return;
+  }
+
+  console.log("🗑️ Deleting comment:", commentId);
+
+  const formData = new FormData();
+  formData.append("action", "delete_comment");
+  formData.append("comment_id", commentId);
+
+  fetch("comments.php", {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        showToast("Comment deleted! 🗑️", "success");
+
+        // Animate and remove comment
+        const commentElement = document.querySelector(
+          `[data-comment-id="${commentId}"]`,
+        );
+        if (commentElement) {
+          commentElement.style.transition = "all 0.3s ease";
+          commentElement.style.opacity = "0";
+          commentElement.style.transform = "translateX(-20px)";
+
+          setTimeout(() => {
+            commentElement.remove();
+            updatePostCommentCount(currentPostId);
+            totalCommentsCount = Math.max(0, totalCommentsCount - 1);
+          }, 300);
         }
+      } else {
+        throw new Error(data.message || "Failed to delete comment");
+      }
+    })
+    .catch((error) => {
+      console.error("❌ Error deleting comment:", error);
+      showToast("Failed to delete comment. Please try again.", "error");
+    });
+}
 
-        // Enhanced function to add comment
-        function addComment() {
-            console.log('💬 Adding new comment...');
+// FIXED: Function to show COMMENT reaction users with separate modal
+function showCommentReactionUsers(commentId) {
+  console.log("👥 Showing comment reaction users for:", commentId);
 
-            const commentInput = document.getElementById('commentInput');
-            const submitBtn = document.getElementById('commentSubmit');
+  const formData = new FormData();
+  formData.append("action", "get_comment_reaction_users");
+  formData.append("comment_id", commentId);
 
-            if (!commentInput || !submitBtn) {
-                console.error('❌ Comment input elements not found');
-                return;
-            }
+  // Use SEPARATE modal for comment reactions
+  const modal = document.getElementById("commentReactionUsersModal");
+  const usersList = document.getElementById("commentReactionUsersList");
+  const modalTitle = modal?.querySelector("h2");
 
-            const commentText = commentInput.value.trim();
+  if (!modal || !usersList) {
+    console.error("❌ Comment reaction users modal not found");
+    return;
+  }
 
-            if (!commentText) {
-                showToast('Please write something!', 'error');
-                commentInput.focus();
-                return;
-            }
+  // Set the correct title for COMMENT reactions
+  if (modalTitle) {
+    modalTitle.textContent = "People who reacted to this comment";
+  }
 
-            if (!currentPostId) {
-                showToast('Error: No post selected', 'error');
-                return;
-            }
+  usersList.innerHTML =
+    '<div class="loading-spinner" style="margin: 20px auto;"></div><p style="text-align: center; color: #666;">Loading reactions...</p>';
+  modal.style.display = "block";
 
-            if (commentText.length > 500) {
-                showToast('Comment is too long (max 500 characters)', 'error');
-                return;
-            }
+  fetch("comments.php", {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        displayCommentReactionUsers(data.users);
+      } else {
+        throw new Error(data.message || "Failed to load reactions");
+      }
+    })
+    .catch((error) => {
+      console.error("❌ Error loading comment reaction users:", error);
+      usersList.innerHTML =
+        '<p style="text-align: center; padding: 20px; color: #f44336;">Failed to load reactions</p>';
+    });
+}
 
-            // Show loading state
-            submitBtn.disabled = true;
-            const originalContent = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<div class="loading-spinner small"></div>';
+// FIXED: Separate display function for COMMENT reactions
+function displayCommentReactionUsers(users) {
+  const usersList = document.getElementById("commentReactionUsersList");
+  if (!usersList) return;
 
-            const formData = new FormData();
-            formData.append('action', 'add_comment');
-            formData.append('post_id', currentPostId);
-            formData.append('comment_text', commentText);
+  if (!users || users.length === 0) {
+    usersList.innerHTML =
+      '<p style="text-align: center; padding: 30px; color: #666; font-size: 16px;">No reactions yet</p>';
+    return;
+  }
 
-            fetch('comments.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('📨 Add comment response:', data);
+  let html = "";
+  users.forEach((user) => {
+    const userImage =
+      user.PROFILE_IMAGE ||
+      "https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg";
+    const reactionTime = formatReactionTime(user.CREATED_AT);
+    const reactionType =
+      user.REACTION_TYPE?.charAt(0).toUpperCase() +
+        user.REACTION_TYPE?.slice(1) || "Unknown";
+    const reactionEmoji = user.REACTION_EMOJI || "👍";
 
-                    if (data.success) {
-                        // Clear input
-                        commentInput.value = '';
-                        commentInput.style.height = 'auto';
-
-                        // Show success
-                        showToast('Comment added! 🎉', 'success');
-
-                        // Reload comments to show the new one
-                        currentOffset = 0;
-                        loadComments(currentPostId, true);
-
-                        // Update comment count in post
-                        updatePostCommentCount(currentPostId);
-
-                    } else {
-                        throw new Error(data.message || 'Failed to add comment');
-                    }
-                })
-                .catch(error => {
-                    console.error('❌ Error adding comment:', error);
-                    showToast('Failed to add comment. Please try again.', 'error');
-                })
-                .finally(() => {
-                    // Reset submit button
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalContent;
-                    updateCommentSubmitButton();
-                });
-        }
-
-        // Function to delete comment
-        function deleteComment(commentId) {
-            if (!confirm('Are you sure you want to delete this comment?')) {
-                return;
-            }
-
-            console.log('🗑️ Deleting comment:', commentId);
-
-            const formData = new FormData();
-            formData.append('action', 'delete_comment');
-            formData.append('comment_id', commentId);
-
-            fetch('comments.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showToast('Comment deleted! 🗑️', 'success');
-
-                        // Animate and remove comment
-                        const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
-                        if (commentElement) {
-                            commentElement.style.transition = 'all 0.3s ease';
-                            commentElement.style.opacity = '0';
-                            commentElement.style.transform = 'translateX(-20px)';
-
-                            setTimeout(() => {
-                                commentElement.remove();
-                                updatePostCommentCount(currentPostId);
-                                totalCommentsCount = Math.max(0, totalCommentsCount - 1);
-                            }, 300);
-                        }
-                    } else {
-                        throw new Error(data.message || 'Failed to delete comment');
-                    }
-                })
-                .catch(error => {
-                    console.error('❌ Error deleting comment:', error);
-                    showToast('Failed to delete comment. Please try again.', 'error');
-                });
-        }
-
-        // FIXED: Function to show COMMENT reaction users with separate modal
-        function showCommentReactionUsers(commentId) {
-            console.log('👥 Showing comment reaction users for:', commentId);
-
-            const formData = new FormData();
-            formData.append('action', 'get_comment_reaction_users');
-            formData.append('comment_id', commentId);
-
-            // Use SEPARATE modal for comment reactions
-            const modal = document.getElementById('commentReactionUsersModal');
-            const usersList = document.getElementById('commentReactionUsersList');
-            const modalTitle = modal?.querySelector('h2');
-
-            if (!modal || !usersList) {
-                console.error('❌ Comment reaction users modal not found');
-                return;
-            }
-
-            // Set the correct title for COMMENT reactions
-            if (modalTitle) {
-                modalTitle.textContent = 'People who reacted to this comment';
-            }
-
-            usersList.innerHTML = '<div class="loading-spinner" style="margin: 20px auto;"></div><p style="text-align: center; color: #666;">Loading reactions...</p>';
-            modal.style.display = 'block';
-
-            fetch('comments.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        displayCommentReactionUsers(data.users);
-                    } else {
-                        throw new Error(data.message || 'Failed to load reactions');
-                    }
-                })
-                .catch(error => {
-                    console.error('❌ Error loading comment reaction users:', error);
-                    usersList.innerHTML = '<p style="text-align: center; padding: 20px; color: #f44336;">Failed to load reactions</p>';
-                });
-        }
-
-        // FIXED: Separate display function for COMMENT reactions
-        function displayCommentReactionUsers(users) {
-            const usersList = document.getElementById('commentReactionUsersList');
-            if (!usersList) return;
-
-            if (!users || users.length === 0) {
-                usersList.innerHTML = '<p style="text-align: center; padding: 30px; color: #666; font-size: 16px;">No reactions yet</p>';
-                return;
-            }
-
-            let html = '';
-            users.forEach(user => {
-                const userImage = user.PROFILE_IMAGE || 'https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg';
-                const reactionTime = formatReactionTime(user.CREATED_AT);
-                const reactionType = user.REACTION_TYPE?.charAt(0).toUpperCase() + user.REACTION_TYPE?.slice(1) || 'Unknown';
-                const reactionEmoji = user.REACTION_EMOJI || '👍';
-
-                html += `
+    html += `
             <div class="reaction-user-item" style="display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; transition: background-color 0.2s; cursor: pointer;">
-                <img loading="lazy" decoding="async" src="${userImage}" alt="${escapeHtml(user.NAME || 'User')}" class="reaction-user-avatar" 
+                <img loading="lazy" decoding="async" src="${userImage}" alt="${escapeHtml(user.NAME || "User")}" class="reaction-user-avatar" 
                      style="width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; object-fit: cover; border: 2px solid #f0f0f0;"
                      onerror="this.src='https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg'">
                 <div class="reaction-user-info" style="flex: 1;">
-                    <div class="reaction-user-name" style="font-weight: 600; margin-bottom: 5px; color: #333; font-size: 16px;">${escapeHtml(user.NAME || 'Unknown User')}</div>
+                    <div class="reaction-user-name" style="font-weight: 600; margin-bottom: 5px; color: #333; font-size: 16px;">${escapeHtml(user.NAME || "Unknown User")}</div>
                     <div class="reaction-user-time" style="font-size: 13px; color: #666;">Reacted ${reactionTime}</div>
                 </div>
                 <div class="reaction-user-emoji" style="font-size: 28px; margin-left: 15px; display: flex; flex-direction: column; align-items: center;">
@@ -2097,116 +2248,126 @@ function escapeHtml(value) {
                 </div>
             </div>
         `;
-            });
+  });
 
-            usersList.innerHTML = html;
+  usersList.innerHTML = html;
 
-            // Add hover effects
-            usersList.querySelectorAll('.reaction-user-item').forEach(item => {
-                item.addEventListener('mouseenter', function() {
-                    this.style.backgroundColor = '#f8f9fa';
-                });
-                item.addEventListener('mouseleave', function() {
-                    this.style.backgroundColor = 'transparent';
-                });
-            });
+  // Add hover effects
+  usersList.querySelectorAll(".reaction-user-item").forEach((item) => {
+    item.addEventListener("mouseenter", function () {
+      this.style.backgroundColor = "#f8f9fa";
+    });
+    item.addEventListener("mouseleave", function () {
+      this.style.backgroundColor = "transparent";
+    });
+  });
+}
+
+// Function to initialize mobile comment support
+function initializeMobileCommentSupport() {
+  const containers = document.querySelectorAll(".comment-like-container");
+
+  containers.forEach((container) => {
+    let touchStartTime = 0;
+
+    container.addEventListener(
+      "touchstart",
+      function (e) {
+        touchStartTime = Date.now();
+      },
+      {
+        passive: true,
+      },
+    );
+
+    container.addEventListener("touchend", function (e) {
+      const touchDuration = Date.now() - touchStartTime;
+
+      if (touchDuration < 300) {
+        // Quick tap
+        e.preventDefault();
+        const commentId = this.getAttribute("data-comment-id");
+        if (commentId) {
+          toggleCommentReactions(commentId);
         }
+      }
+    });
+  });
+}
 
-        // Function to initialize mobile comment support
-        function initializeMobileCommentSupport() {
-            const containers = document.querySelectorAll('.comment-like-container');
+// Function to initialize comment reaction handlers
+function initializeCommentReactionHandlers() {
+  console.log("🎭 Initializing comment reaction handlers...");
 
-            containers.forEach(container => {
-                let touchStartTime = 0;
+  // This function is called during initialization
+  // Most handlers are attached dynamically when comments are loaded
+}
 
-                container.addEventListener('touchstart', function(e) {
-                    touchStartTime = Date.now();
-                }, {
-                    passive: true
-                });
+// Function to update comment submit button state
+function updateCommentSubmitButton() {
+  const commentInput = document.getElementById("commentInput");
+  const submitBtn = document.getElementById("commentSubmit");
 
-                container.addEventListener('touchend', function(e) {
-                    const touchDuration = Date.now() - touchStartTime;
+  if (!commentInput || !submitBtn) return;
 
-                    if (touchDuration < 300) { // Quick tap
-                        e.preventDefault();
-                        const commentId = this.getAttribute('data-comment-id');
-                        if (commentId) {
-                            toggleCommentReactions(commentId);
-                        }
-                    }
-                });
-            });
+  const hasText = commentInput.value.trim().length > 0;
+  const isNotTooLong = commentInput.value.length <= 500;
+
+  submitBtn.disabled = !hasText || !isNotTooLong || commentsLoading;
+
+  // Update visual state
+  if (hasText && isNotTooLong) {
+    submitBtn.style.opacity = "1";
+    submitBtn.style.transform = "scale(1)";
+  } else {
+    submitBtn.style.opacity = "0.6";
+    submitBtn.style.transform = "scale(0.95)";
+  }
+}
+
+// Function to update post comment count
+function updatePostCommentCount(postId) {
+  const formData = new FormData();
+  formData.append("action", "get_comment_count");
+  formData.append("post_id", postId);
+
+  fetch("comments.php", {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        const countElement = document.getElementById(`comment-count-${postId}`);
+        if (countElement) {
+          const count = data.count;
+          const text =
+            count === 0
+              ? "0 comments"
+              : count === 1
+                ? "1 comment"
+                : `${count} comments`;
+          countElement.textContent = text;
+
+          // Animate the update
+          countElement.style.transform = "scale(1.1)";
+          setTimeout(() => {
+            countElement.style.transform = "scale(1)";
+          }, 200);
         }
+      }
+    })
+    .catch((error) => {
+      console.error("Error updating comment count:", error);
+    });
+}
 
-        // Function to initialize comment reaction handlers
-        function initializeCommentReactionHandlers() {
-            console.log('🎭 Initializing comment reaction handlers...');
+// Function to show comments error
+function showCommentsError(message) {
+  const commentsBody = document.getElementById("commentsBody");
+  if (!commentsBody) return;
 
-            // This function is called during initialization
-            // Most handlers are attached dynamically when comments are loaded
-        }
-
-        // Function to update comment submit button state  
-        function updateCommentSubmitButton() {
-            const commentInput = document.getElementById('commentInput');
-            const submitBtn = document.getElementById('commentSubmit');
-
-            if (!commentInput || !submitBtn) return;
-
-            const hasText = commentInput.value.trim().length > 0;
-            const isNotTooLong = commentInput.value.length <= 500;
-
-            submitBtn.disabled = !hasText || !isNotTooLong || commentsLoading;
-
-            // Update visual state
-            if (hasText && isNotTooLong) {
-                submitBtn.style.opacity = '1';
-                submitBtn.style.transform = 'scale(1)';
-            } else {
-                submitBtn.style.opacity = '0.6';
-                submitBtn.style.transform = 'scale(0.95)';
-            }
-        }
-
-        // Function to update post comment count
-        function updatePostCommentCount(postId) {
-            const formData = new FormData();
-            formData.append('action', 'get_comment_count');
-            formData.append('post_id', postId);
-
-            fetch('comments.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const countElement = document.getElementById(`comment-count-${postId}`);
-                        if (countElement) {
-                            const count = data.count;
-                            const text = count === 0 ? '0 comments' : count === 1 ? '1 comment' : `${count} comments`;
-                            countElement.textContent = text;
-
-                            // Animate the update
-                            countElement.style.transform = 'scale(1.1)';
-                            setTimeout(() => {
-                                countElement.style.transform = 'scale(1)';
-                            }, 200);
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error updating comment count:', error);
-                });
-        }
-
-        // Function to show comments error
-        function showCommentsError(message) {
-            const commentsBody = document.getElementById('commentsBody');
-            if (!commentsBody) return;
-
-            commentsBody.innerHTML = `
+  commentsBody.innerHTML = `
         <div style="text-align: center; padding: 40px; color: #f44336;">
             <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
             <p style="margin-bottom: 20px;">${message}</p>
@@ -2216,35 +2377,35 @@ function escapeHtml(value) {
             </button>
         </div>
     `;
-        }
+}
 
-        // Utility function to format time
-        function getTimeAgo(dateString) {
-            const now = new Date();
-            const date = new Date(dateString);
-            const diff = Math.floor((now - date) / 1000);
+// Utility function to format time
+function getTimeAgo(dateString) {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diff = Math.floor((now - date) / 1000);
 
-            if (diff < 30) return 'Just now';
-            if (diff < 60) return `${diff}s ago`;
-            if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-            if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-            if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+  if (diff < 30) return "Just now";
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
 
-            return date.toLocaleDateString();
-        }
+  return date.toLocaleDateString();
+}
 
-        // Enhanced toast notification function
-        function showToast(message, type = 'success') {
-            // Remove existing toasts
-            document.querySelectorAll('.toast').forEach(toast => toast.remove());
+// Enhanced toast notification function
+function showToast(message, type = "success") {
+  // Remove existing toasts
+  document.querySelectorAll(".toast").forEach((toast) => toast.remove());
 
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.style.cssText = `
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.style.cssText = `
         position: fixed;
         bottom: 20px;
         right: 20px;
-        background: ${type === 'success' ? '#4CAF50' : '#f44336'};
+        background: ${type === "success" ? "#4CAF50" : "#f44336"};
         color: white;
         padding: 12px 20px;
         border-radius: 25px;
@@ -2259,14 +2420,14 @@ function escapeHtml(value) {
         max-width: 300px;
     `;
 
-            const icon = type === 'success' ? '✅' : '❌';
-            toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+  const icon = type === "success" ? "✅" : "❌";
+  toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
 
-            // Add animation styles if not already present
-            if (!document.getElementById('toast-animations')) {
-                const style = document.createElement('style');
-                style.id = 'toast-animations';
-                style.textContent = `
+  // Add animation styles if not already present
+  if (!document.getElementById("toast-animations")) {
+    const style = document.createElement("style");
+    style.id = "toast-animations";
+    style.textContent = `
             @keyframes slideInUp {
                 from { opacity: 0; transform: translateY(100px); }
                 to { opacity: 1; transform: translateY(0); }
@@ -2276,104 +2437,118 @@ function escapeHtml(value) {
                 to { opacity: 0; transform: translateY(100px); }
             }
         `;
-                document.head.appendChild(style);
-            }
+    document.head.appendChild(style);
+  }
 
-            document.body.appendChild(toast);
+  document.body.appendChild(toast);
 
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.remove();
-                }
-            }, 3000);
-        }
+  setTimeout(() => {
+    if (toast.parentNode) {
+      toast.remove();
+    }
+  }, 3000);
+}
 
-        // Global functions for backward compatibility
-        window.openCommentsModal = openCommentsModal;
-        window.closeCommentsModal = closeCommentsModal;
-        window.loadMoreComments = loadMoreComments;
-        window.toggleCommentReactions = toggleCommentReactions;
-        window.handleCommentReaction = handleCommentReaction;
-        window.addComment = addComment;
-        window.deleteComment = deleteComment;
-        window.showCommentReactionUsers = showCommentReactionUsers;
+// Global functions for backward compatibility
+window.openCommentsModal = openCommentsModal;
+window.closeCommentsModal = closeCommentsModal;
+window.loadMoreComments = loadMoreComments;
+window.toggleCommentReactions = toggleCommentReactions;
+window.handleCommentReaction = handleCommentReaction;
+window.addComment = addComment;
+window.deleteComment = deleteComment;
+window.showCommentReactionUsers = showCommentReactionUsers;
 
-        console.log('✅ Enhanced Comments System JavaScript Loaded Successfully!');
+console.log("✅ Enhanced Comments System JavaScript Loaded Successfully!");
 
+// ========================================
+// ENHANCED STORY UPLOAD SYSTEM - COMPLETE JAVASCRIPT
+// Add this to the <script> section of dashboard.php
+// ========================================
 
-        // ========================================
-        // ENHANCED STORY UPLOAD SYSTEM - COMPLETE JAVASCRIPT
-        // Add this to the <script> section of dashboard.php
-        // ========================================
+// Enhanced Story Upload Handler
+function handleStoryUpload(input) {
+  console.log("📸 Story upload initiated");
 
-        // Enhanced Story Upload Handler
-        function handleStoryUpload(input) {
-            console.log('📸 Story upload initiated');
+  if (!input.files || input.files.length === 0) {
+    console.log("❌ No files selected");
+    return;
+  }
 
-            if (!input.files || input.files.length === 0) {
-                console.log('❌ No files selected');
-                return;
-            }
+  const files = Array.from(input.files);
+  const maxFiles = 10; // Maximum files per upload
+  const maxSize = 50 * 1024 * 1024; // 50MB max per file
+  const allowedTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "video/mp4",
+    "video/quicktime",
+    "video/webm",
+    "video/mov",
+  ];
 
-            const files = Array.from(input.files);
-            const maxFiles = 10; // Maximum files per upload
-            const maxSize = 50 * 1024 * 1024; // 50MB max per file
-            const allowedTypes = [
-                'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
-                'video/mp4', 'video/quicktime', 'video/webm', 'video/mov'
-            ];
+  // Validate file count
+  if (files.length > maxFiles) {
+    showToast(`Maximum ${maxFiles} files allowed at once`, "error");
+    input.value = "";
+    return;
+  }
 
-            // Validate file count
-            if (files.length > maxFiles) {
-                showToast(`Maximum ${maxFiles} files allowed at once`, 'error');
-                input.value = '';
-                return;
-            }
+  // Validate files
+  const invalidFiles = [];
+  const oversizedFiles = [];
 
-            // Validate files
-            const invalidFiles = [];
-            const oversizedFiles = [];
+  files.forEach((file, index) => {
+    console.log(
+      `📋 Validating file ${index + 1}: ${file.name} (${file.type}, ${(file.size / 1024 / 1024).toFixed(2)}MB)`,
+    );
 
-            files.forEach((file, index) => {
-                console.log(`📋 Validating file ${index + 1}: ${file.name} (${file.type}, ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+    // Check file type
+    if (!allowedTypes.includes(file.type)) {
+      invalidFiles.push(file.name);
+    }
 
-                // Check file type
-                if (!allowedTypes.includes(file.type)) {
-                    invalidFiles.push(file.name);
-                }
+    // Check file size
+    if (file.size > maxSize) {
+      oversizedFiles.push(file.name);
+    }
+  });
 
-                // Check file size
-                if (file.size > maxSize) {
-                    oversizedFiles.push(file.name);
-                }
-            });
+  // Show validation errors
+  if (invalidFiles.length > 0) {
+    showToast(
+      `Invalid file types: ${invalidFiles.join(", ")}. Only images and videos allowed.`,
+      "error",
+    );
+    input.value = "";
+    return;
+  }
 
-            // Show validation errors
-            if (invalidFiles.length > 0) {
-                showToast(`Invalid file types: ${invalidFiles.join(', ')}. Only images and videos allowed.`, 'error');
-                input.value = '';
-                return;
-            }
+  if (oversizedFiles.length > 0) {
+    showToast(
+      `Files too large: ${oversizedFiles.join(", ")}. Maximum 50MB per file.`,
+      "error",
+    );
+    input.value = "";
+    return;
+  }
 
-            if (oversizedFiles.length > 0) {
-                showToast(`Files too large: ${oversizedFiles.join(', ')}. Maximum 50MB per file.`, 'error');
-                input.value = '';
-                return;
-            }
+  // Show upload confirmation and preview
+  showStoryUploadPreview(files, input);
+}
 
-            // Show upload confirmation and preview
-            showStoryUploadPreview(files, input);
-        }
+// Enhanced Story Upload Preview Modal
+function showStoryUploadPreview(files, inputElement) {
+  console.log("🖼️ Showing story upload preview for", files.length, "files");
 
-        // Enhanced Story Upload Preview Modal
-        function showStoryUploadPreview(files, inputElement) {
-            console.log('🖼️ Showing story upload preview for', files.length, 'files');
-
-            // Create preview modal
-            const modal = document.createElement('div');
-            modal.id = 'storyUploadModal';
-            modal.className = 'story-upload-modal';
-            modal.style.cssText = `
+  // Create preview modal
+  const modal = document.createElement("div");
+  modal.id = "storyUploadModal";
+  modal.className = "story-upload-modal";
+  modal.style.cssText = `
         position: fixed;
         top: 0;
         left: 0;
@@ -2388,9 +2563,9 @@ function escapeHtml(value) {
         animation: fadeIn 0.3s ease;
     `;
 
-            const modalContent = document.createElement('div');
-            modalContent.className = 'story-upload-content';
-            modalContent.style.cssText = `
+  const modalContent = document.createElement("div");
+  modalContent.className = "story-upload-content";
+  modalContent.style.cssText = `
         background: white;
         border-radius: 20px;
         max-width: 90vw;
@@ -2402,9 +2577,9 @@ function escapeHtml(value) {
         flex-direction: column;
     `;
 
-            // Modal header
-            const header = document.createElement('div');
-            header.style.cssText = `
+  // Modal header
+  const header = document.createElement("div");
+  header.style.cssText = `
         padding: 20px 25px;
         border-bottom: 1px solid #eee;
         display: flex;
@@ -2414,19 +2589,19 @@ function escapeHtml(value) {
         color: white;
     `;
 
-            header.innerHTML = `
+  header.innerHTML = `
         <div>
             <h3 style="margin: 0; font-size: 20px; font-weight: 600;">Upload Stories</h3>
-            <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">${files.length} file${files.length !== 1 ? 's' : ''} selected</p>
+            <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">${files.length} file${files.length !== 1 ? "s" : ""} selected</p>
         </div>
         <button onclick="closeStoryUploadModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: all 0.2s;">
             ×
         </button>
     `;
 
-            // Modal body
-            const body = document.createElement('div');
-            body.style.cssText = `
+  // Modal body
+  const body = document.createElement("div");
+  body.style.cssText = `
         padding: 20px 25px;
         max-height: 60vh;
         overflow-y: auto;
@@ -2435,11 +2610,11 @@ function escapeHtml(value) {
         gap: 15px;
     `;
 
-            // Generate previews
-            files.forEach((file, index) => {
-                const preview = document.createElement('div');
-                preview.className = 'story-preview-item';
-                preview.style.cssText = `
+  // Generate previews
+  files.forEach((file, index) => {
+    const preview = document.createElement("div");
+    preview.className = "story-preview-item";
+    preview.style.cssText = `
             position: relative;
             aspect-ratio: 9 / 16;
             background: #f5f5f5;
@@ -2450,20 +2625,20 @@ function escapeHtml(value) {
             cursor: pointer;
         `;
 
-                preview.addEventListener('mouseenter', function() {
-                    this.style.transform = 'scale(1.05)';
-                    this.style.borderColor = '#ED5A2C';
-                });
+    preview.addEventListener("mouseenter", function () {
+      this.style.transform = "scale(1.05)";
+      this.style.borderColor = "#ED5A2C";
+    });
 
-                preview.addEventListener('mouseleave', function() {
-                    this.style.transform = 'scale(1)';
-                    this.style.borderColor = '#eee';
-                });
+    preview.addEventListener("mouseleave", function () {
+      this.style.transform = "scale(1)";
+      this.style.borderColor = "#eee";
+    });
 
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    if (file.type.startsWith('video/')) {
-                        preview.innerHTML = `
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      if (file.type.startsWith("video/")) {
+        preview.innerHTML = `
                     <video style="width: 100%; height: 100%; object-fit: cover;" muted>
                         <source src="${e.target.result}" type="${file.type}">
                     </video>
@@ -2474,8 +2649,8 @@ function escapeHtml(value) {
                         ${file.name}
                     </div>
                 `;
-                    } else {
-                        preview.innerHTML = `
+      } else {
+        preview.innerHTML = `
                     <img loading="lazy" decoding="async" src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;" alt="Preview">
                     <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
                         IMAGE
@@ -2484,16 +2659,16 @@ function escapeHtml(value) {
                         ${file.name}
                     </div>
                 `;
-                    }
-                };
-                reader.readAsDataURL(file);
+      }
+    };
+    reader.readAsDataURL(file);
 
-                body.appendChild(preview);
-            });
+    body.appendChild(preview);
+  });
 
-            // Modal footer
-            const footer = document.createElement('div');
-            footer.style.cssText = `
+  // Modal footer
+  const footer = document.createElement("div");
+  footer.style.cssText = `
         padding: 20px 25px;
         border-top: 1px solid #eee;
         display: flex;
@@ -2502,7 +2677,7 @@ function escapeHtml(value) {
         background: #fafafa;
     `;
 
-            footer.innerHTML = `
+  footer.innerHTML = `
         <div style="display: flex; align-items: center; gap: 15px;">
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: #666;">
                 <input type="radio" name="storyVisibility" value="public" checked style="margin: 0;">
@@ -2523,34 +2698,34 @@ function escapeHtml(value) {
                     <polyline points="7 10l5-5 5 5"></polyline>
                     <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
-                Upload ${files.length} Stor${files.length !== 1 ? 'ies' : 'y'}
+                Upload ${files.length} Stor${files.length !== 1 ? "ies" : "y"}
             </button>
         </div>
     `;
 
-            modalContent.appendChild(header);
-            modalContent.appendChild(body);
-            modalContent.appendChild(footer);
-            modal.appendChild(modalContent);
+  modalContent.appendChild(header);
+  modalContent.appendChild(body);
+  modalContent.appendChild(footer);
+  modal.appendChild(modalContent);
 
-            // Store files reference for upload
-            modal.storyFiles = files;
-            modal.inputElement = inputElement;
+  // Store files reference for upload
+  modal.storyFiles = files;
+  modal.inputElement = inputElement;
 
-            document.body.appendChild(modal);
+  document.body.appendChild(modal);
 
-            // Close on backdrop click
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    closeStoryUploadModal();
-                }
-            });
+  // Close on backdrop click
+  modal.addEventListener("click", function (e) {
+    if (e.target === modal) {
+      closeStoryUploadModal();
+    }
+  });
 
-            // Add required styles if not present
-            if (!document.getElementById('storyUploadStyles')) {
-                const styles = document.createElement('style');
-                styles.id = 'storyUploadStyles';
-                styles.textContent = `
+  // Add required styles if not present
+  if (!document.getElementById("storyUploadStyles")) {
+    const styles = document.createElement("style");
+    styles.id = "storyUploadStyles";
+    styles.textContent = `
             @keyframes fadeIn {
                 from { opacity: 0; }
                 to { opacity: 1; }
@@ -2593,213 +2768,220 @@ function escapeHtml(value) {
                 }
             }
         `;
-                document.head.appendChild(styles);
-            }
+    document.head.appendChild(styles);
+  }
 
-            console.log('✅ Story upload preview modal created');
-        }
+  console.log("✅ Story upload preview modal created");
+}
 
-        // Close Story Upload Modal
-        function closeStoryUploadModal() {
-            const modal = document.getElementById('storyUploadModal');
-            if (modal) {
-                modal.style.animation = 'fadeOut 0.3s ease forwards';
-                setTimeout(() => {
-                    if (modal.parentNode) {
-                        modal.parentNode.removeChild(modal);
-                    }
-                    // Reset file input
-                    if (modal.inputElement) {
-                        modal.inputElement.value = '';
-                    }
-                }, 300);
-            }
-        }
+// Close Story Upload Modal
+function closeStoryUploadModal() {
+  const modal = document.getElementById("storyUploadModal");
+  if (modal) {
+    modal.style.animation = "fadeOut 0.3s ease forwards";
+    setTimeout(() => {
+      if (modal.parentNode) {
+        modal.parentNode.removeChild(modal);
+      }
+      // Reset file input
+      if (modal.inputElement) {
+        modal.inputElement.value = "";
+      }
+    }, 300);
+  }
+}
 
-        // Enhanced Upload Stories Function
-        async function uploadStories() {
-            const modal = document.getElementById('storyUploadModal');
-            const uploadBtn = document.getElementById('uploadStoriesBtn');
+// Enhanced Upload Stories Function
+async function uploadStories() {
+  const modal = document.getElementById("storyUploadModal");
+  const uploadBtn = document.getElementById("uploadStoriesBtn");
 
-            if (!modal || !modal.storyFiles) {
-                console.error('❌ No files to upload');
-                return;
-            }
+  if (!modal || !modal.storyFiles) {
+    console.error("❌ No files to upload");
+    return;
+  }
 
-            const files = modal.storyFiles;
-            const visibility = modal.querySelector('input[name="storyVisibility"]:checked').value;
+  const files = modal.storyFiles;
+  const visibility = modal.querySelector(
+    'input[name="storyVisibility"]:checked',
+  ).value;
 
-            console.log('📤 Starting upload of', files.length, 'stories with visibility:', visibility);
+  console.log(
+    "📤 Starting upload of",
+    files.length,
+    "stories with visibility:",
+    visibility,
+  );
 
-            // Show loading state
-            uploadBtn.disabled = true;
-            uploadBtn.innerHTML = `
+  // Show loading state
+  uploadBtn.disabled = true;
+  uploadBtn.innerHTML = `
         <div style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite;"></div>
         Uploading...
     `;
 
-            try {
-                const formData = new FormData();
+  try {
+    const formData = new FormData();
 
-                // Add files to form data
-                files.forEach((file, index) => {
-                    formData.append('story_media[]', file);
-                });
+    // Add files to form data
+    files.forEach((file, index) => {
+      formData.append("story_media[]", file);
+    });
 
-                formData.append('visibility', visibility);
+    formData.append("visibility", visibility);
 
-                // Upload with progress tracking
-                const response = await fetch('story.php', {
-                    method: 'POST',
-                    body: formData
-                });
+    // Upload with progress tracking
+    const response = await fetch("story.php", {
+      method: "POST",
+      body: formData,
+    });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-                // Check if response is HTML (redirect) or JSON
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    const result = await response.json();
-                    if (result.success) {
-                        showToast('✨ Stories uploaded successfully!', 'success');
-                    } else {
-                        throw new Error(result.message || 'Upload failed');
-                    }
-                } else {
-                    // Assume success if we get HTML (redirect)
-                    showToast('✨ Stories uploaded successfully!', 'success');
-                }
+    // Check if response is HTML (redirect) or JSON
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      const result = await response.json();
+      if (result.success) {
+        showToast("✨ Stories uploaded successfully!", "success");
+      } else {
+        throw new Error(result.message || "Upload failed");
+      }
+    } else {
+      // Assume success if we get HTML (redirect)
+      showToast("✨ Stories uploaded successfully!", "success");
+    }
 
-                // Close modal and refresh page
-                closeStoryUploadModal();
+    // Close modal and refresh page
+    closeStoryUploadModal();
 
-                // Refresh the page after a short delay to show new stories
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
+    // Refresh the page after a short delay to show new stories
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
+  } catch (error) {
+    console.error("❌ Upload error:", error);
+    showToast("Failed to upload stories. Please try again.", "error");
 
-            } catch (error) {
-                console.error('❌ Upload error:', error);
-                showToast('Failed to upload stories. Please try again.', 'error');
-
-                // Reset button
-                uploadBtn.disabled = false;
-                uploadBtn.innerHTML = `
+    // Reset button
+    uploadBtn.disabled = false;
+    uploadBtn.innerHTML = `
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10l5-5 5 5"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            Upload ${files.length} Stor${files.length !== 1 ? 'ies' : 'y'}
+            Upload ${files.length} Stor${files.length !== 1 ? "ies" : "y"}
         `;
-            }
-        }
+  }
+}
 
-        // Enhanced Story Upload with Drag & Drop Support
-        function initializeStoryUpload() {
-            console.log('🚀 Initializing enhanced story upload system');
+// Enhanced Story Upload with Drag & Drop Support
+function initializeStoryUpload() {
+  console.log("🚀 Initializing enhanced story upload system");
 
-            const storyForm = document.getElementById('storyForm');
-            const storyInput = document.getElementById('storyMedia');
-            const addStoryLabel = document.querySelector('.add-story-label');
+  const storyForm = document.getElementById("storyForm");
+  const storyInput = document.getElementById("storyMedia");
+  const addStoryLabel = document.querySelector(".add-story-label");
 
-            if (!storyForm || !storyInput || !addStoryLabel) {
-                console.warn('⚠️ Story upload elements not found');
-                return;
-            }
+  if (!storyForm || !storyInput || !addStoryLabel) {
+    console.warn("⚠️ Story upload elements not found");
+    return;
+  }
 
-            // Enhanced drag and drop functionality
-            let dragCounter = 0;
+  // Enhanced drag and drop functionality
+  let dragCounter = 0;
 
-            // Drag events for the entire add story area
-            addStoryLabel.addEventListener('dragenter', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                dragCounter++;
-                this.style.transform = 'scale(1.05)';
-                this.style.backgroundColor = 'rgba(237, 90, 44, 0.1)';
-                this.querySelector('.story-add-icon').style.borderColor = '#ED5A2C';
-                this.querySelector('.story-add-icon').style.backgroundColor = 'rgba(237, 90, 44, 0.1)';
-            });
+  // Drag events for the entire add story area
+  addStoryLabel.addEventListener("dragenter", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter++;
+    this.style.transform = "scale(1.05)";
+    this.style.backgroundColor = "rgba(237, 90, 44, 0.1)";
+    this.querySelector(".story-add-icon").style.borderColor = "#ED5A2C";
+    this.querySelector(".story-add-icon").style.backgroundColor =
+      "rgba(237, 90, 44, 0.1)";
+  });
 
-            addStoryLabel.addEventListener('dragleave', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                dragCounter--;
-                if (dragCounter === 0) {
-                    this.style.transform = 'scale(1)';
-                    this.style.backgroundColor = '';
-                    this.querySelector('.story-add-icon').style.borderColor = '';
-                    this.querySelector('.story-add-icon').style.backgroundColor = '';
-                }
-            });
+  addStoryLabel.addEventListener("dragleave", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter--;
+    if (dragCounter === 0) {
+      this.style.transform = "scale(1)";
+      this.style.backgroundColor = "";
+      this.querySelector(".story-add-icon").style.borderColor = "";
+      this.querySelector(".story-add-icon").style.backgroundColor = "";
+    }
+  });
 
-            addStoryLabel.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            });
+  addStoryLabel.addEventListener("dragover", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  });
 
-            addStoryLabel.addEventListener('drop', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                dragCounter = 0;
+  addStoryLabel.addEventListener("drop", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter = 0;
 
-                // Reset styles
-                this.style.transform = 'scale(1)';
-                this.style.backgroundColor = '';
-                this.querySelector('.story-add-icon').style.borderColor = '';
-                this.querySelector('.story-add-icon').style.backgroundColor = '';
+    // Reset styles
+    this.style.transform = "scale(1)";
+    this.style.backgroundColor = "";
+    this.querySelector(".story-add-icon").style.borderColor = "";
+    this.querySelector(".story-add-icon").style.backgroundColor = "";
 
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    // Create a new FileList-like object and assign to input
-                    const dt = new DataTransfer();
-                    Array.from(files).forEach(file => dt.items.add(file));
-                    storyInput.files = dt.files;
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      // Create a new FileList-like object and assign to input
+      const dt = new DataTransfer();
+      Array.from(files).forEach((file) => dt.items.add(file));
+      storyInput.files = dt.files;
 
-                    // Trigger the upload handler
-                    handleStoryUpload(storyInput);
-                }
-            });
+      // Trigger the upload handler
+      handleStoryUpload(storyInput);
+    }
+  });
 
-            // Prevent default drag behaviors on document
-            document.addEventListener('dragover', function(e) {
-                e.preventDefault();
-            });
+  // Prevent default drag behaviors on document
+  document.addEventListener("dragover", function (e) {
+    e.preventDefault();
+  });
 
-            document.addEventListener('drop', function(e) {
-                e.preventDefault();
-            });
+  document.addEventListener("drop", function (e) {
+    e.preventDefault();
+  });
 
-            // Add visual feedback for file input
-            storyInput.addEventListener('change', function() {
-                if (this.files.length > 0) {
-                    const addIcon = addStoryLabel.querySelector('.story-add-icon');
-                    addIcon.style.animation = 'pulse 0.3s ease';
-                    setTimeout(() => {
-                        addIcon.style.animation = '';
-                    }, 300);
-                }
-            });
+  // Add visual feedback for file input
+  storyInput.addEventListener("change", function () {
+    if (this.files.length > 0) {
+      const addIcon = addStoryLabel.querySelector(".story-add-icon");
+      addIcon.style.animation = "pulse 0.3s ease";
+      setTimeout(() => {
+        addIcon.style.animation = "";
+      }, 300);
+    }
+  });
 
-            console.log('✅ Story upload system initialized with drag & drop support');
-        }
+  console.log("✅ Story upload system initialized with drag & drop support");
+}
 
-        // Initialize story upload when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add a small delay to ensure all elements are rendered
-            setTimeout(() => {
-                initializeStoryUpload();
-            }, 500);
-        });
+// Initialize story upload when DOM is loaded
+document.addEventListener("DOMContentLoaded", function () {
+  // Add a small delay to ensure all elements are rendered
+  setTimeout(() => {
+    initializeStoryUpload();
+  }, 500);
+});
 
-        // Add CSS animations for story upload
-        if (!document.getElementById('storyUploadAnimations')) {
-            const animationStyles = document.createElement('style');
-            animationStyles.id = 'storyUploadAnimations';
-            animationStyles.textContent = `
+// Add CSS animations for story upload
+if (!document.getElementById("storyUploadAnimations")) {
+  const animationStyles = document.createElement("style");
+  animationStyles.id = "storyUploadAnimations";
+  animationStyles.textContent = `
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); }
@@ -2833,14 +3015,14 @@ function escapeHtml(value) {
             }
         }
     `;
-            document.head.appendChild(animationStyles);
-        }
+  document.head.appendChild(animationStyles);
+}
 
-        // Global functions for story upload
-        window.handleStoryUpload = handleStoryUpload;
-        window.showStoryUploadPreview = showStoryUploadPreview;
-        window.closeStoryUploadModal = closeStoryUploadModal;
-        window.uploadStories = uploadStories;
-        window.initializeStoryUpload = initializeStoryUpload;
+// Global functions for story upload
+window.handleStoryUpload = handleStoryUpload;
+window.showStoryUploadPreview = showStoryUploadPreview;
+window.closeStoryUploadModal = closeStoryUploadModal;
+window.uploadStories = uploadStories;
+window.initializeStoryUpload = initializeStoryUpload;
 
-        console.log('✅ Enhanced Story Upload System Loaded Successfully!');
+console.log("✅ Enhanced Story Upload System Loaded Successfully!");

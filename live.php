@@ -47,21 +47,7 @@ $profileImage = $_SESSION['profile_image'] ?? 'images/default-avatar.png';
         <div class="circle"></div>
     </div>
     
-    <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-    
-    <!-- Mobile Header -->
-    <div class="mobile-header">
-        <div class="hamburger-menu" id="hamburger-menu">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        <div class="header-title">Live Cooking</div>
-        <div class="header-profile">
-            <img src="<?php echo htmlspecialchars($profileImage); ?>" alt="Profile">
-        </div>
-    </div>
+    <!-- Dashboard Header is included dynamically via header.php inside main-content -->
 
     <!-- Enhanced Animated Background -->
     <div class="animated-bg">
@@ -71,6 +57,7 @@ $profileImage = $_SESSION['profile_image'] ?? 'images/default-avatar.png';
 
     <!-- Main Content -->
     <main class="main-content">
+        <?php include('header.php'); ?>
         <div class="coming-soon-container">
             <div class="glass-card">
                 <div class="coming-soon-text">
