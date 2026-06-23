@@ -212,11 +212,13 @@ if (!$profileImage) {
                                 onchange="handleStoryUpload(this)">
                             <input type="hidden" name="visibility" value="public">
                             <label for="storyMedia" class="add-story-label">
-                                <div class="story-add-icon">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                                    </svg>
+                                <div class="story-add-icon" style="background-image: url('<?php echo htmlspecialchars($profileImage); ?>'); background-size: cover; background-position: center;">
+                                    <div class="plus-icon-container">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                                        </svg>
+                                    </div>
                                 </div>
                                 <span class="story-username">Add Story</span>
                             </label>
@@ -235,6 +237,8 @@ if (!$profileImage) {
                     COUNT(s.STORIES_ID) as story_count,
                     MAX(s.CREATED_AT) as latest_story_time,
                     (SELECT s2.STORIES_ID FROM STORIES s2 WHERE s2.USER_ID = s.USER_ID AND s2.EXPIRES_AT > NOW() ORDER BY s2.CREATED_AT ASC LIMIT 1) as first_story_id,
+                    (SELECT s2.IMAGE_URL FROM STORIES s2 WHERE s2.USER_ID = s.USER_ID AND s2.EXPIRES_AT > NOW() ORDER BY s2.CREATED_AT ASC LIMIT 1) as first_story_image,
+                    (SELECT s2.MEDIA_TYPE FROM STORIES s2 WHERE s2.USER_ID = s.USER_ID AND s2.EXPIRES_AT > NOW() ORDER BY s2.CREATED_AT ASC LIMIT 1) as first_story_type,
                     (SELECT COUNT(*) FROM STORY_VIEWS sv 
                      WHERE sv.STORY_ID IN (SELECT s3.STORIES_ID FROM STORIES s3 WHERE s3.USER_ID = s.USER_ID AND s3.EXPIRES_AT > NOW()) 
                      AND sv.VIEWER_ID = ?) as total_viewed_count,
@@ -270,6 +274,16 @@ if (!$profileImage) {
                             }
 
                             echo '<a href="story.php?user_id=' . $userStory['USER_ID'] . '" class="story-item" data-user-id="' . $userStory['USER_ID'] . '">';
+                            
+                            // Render story backdrop media if exists
+                            if (!empty($userStory['first_story_image'])) {
+                                if ($userStory['first_story_type'] === 'video') {
+                                    echo '<video class="story-card-bg" src="' . htmlspecialchars($userStory['first_story_image']) . '" autoplay loop muted playsinline></video>';
+                                } else {
+                                    echo '<img class="story-card-bg" src="' . htmlspecialchars($userStory['first_story_image']) . '" alt="Story Backdrop" loading="lazy">';
+                                }
+                            }
+                            
                             echo '<div class="story-avatar ' . $storyBorderClass . '">';
                             echo '<img src="' . htmlspecialchars($userImage) . '" alt="' . htmlspecialchars($userStory['NAME']) . '">';
 

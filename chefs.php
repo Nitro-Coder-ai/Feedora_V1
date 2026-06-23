@@ -4,7 +4,7 @@ session_start();
 csrf_verify(); // CSRF: reject forged state-changing POSTs
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: sign-in.php');
     exit;
 }
 

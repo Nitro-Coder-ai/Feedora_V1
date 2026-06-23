@@ -817,7 +817,10 @@ body {
     color: #1a1a1a;
     align-items: center;
     justify-content: center;
-    padding: 8px;
+    padding: 12px;
+    width: 48px;
+    height: 48px;
+    box-sizing: border-box;
   }
   
   /* How It Works Section Styles */
@@ -4564,13 +4567,23 @@ img, svg, video { max-width: 100%; }
   min-height: 48px !important;
   padding-right: 48px !important;
 }
-.search-button, .mobile-search-button {
+.search-button {
   min-height: 48px !important;
   min-width: 48px !important;
   display: flex !important;
   align-items: center;
   justify-content: center;
   right: 2px !important;
+  padding: 0 !important;
+}
+
+.mobile-search-button {
+  min-height: 48px !important;
+  min-width: 48px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  right: 24px !important;
   padding: 0 !important;
 }
 

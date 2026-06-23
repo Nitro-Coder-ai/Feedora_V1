@@ -74,7 +74,7 @@
         background-color: var(--light-background);
         border: 1px solid var(--border-color);
         border-radius: 24px;
-        height: 40px;
+        height: 48px;
         width: 240px;
         transition: all var(--transition-speed) ease;
         position: relative;
@@ -90,12 +90,13 @@
     .search-input {
         border: none;
         background-color: transparent;
-        padding: 8px 12px;
+        padding: 8px 16px;
         width: 100%;
         outline: none;
         font-size: 14px;
         color: var(--text-color);
         min-width: 0;
+        height: 100%;
         /* Allow input to shrink */
     }
 
@@ -109,8 +110,8 @@
         border: none;
         cursor: pointer;
         color: var(--light-text);
-        width: 40px;
-        height: 40px;
+        width: 48px;
+        height: 48px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -467,14 +468,15 @@
         display: none;
         flex-direction: column;
         justify-content: space-between;
-        width: 32px;
-        height: 32px;
+        width: 48px;
+        height: 48px;
         cursor: pointer;
         z-index: 101;
         margin-right: 15px;
-        padding: 8px;
+        padding: 14px 12px;
         border-radius: 8px;
         transition: all 0.3s ease;
+        box-sizing: border-box;
     }
 
     .hamburger-menu span {
@@ -487,7 +489,7 @@
     }
 
     .hamburger-menu.active span:nth-child(1) {
-        transform: translateY(8px) rotate(45deg);
+        transform: translateY(9px) rotate(45deg);
     }
 
     .hamburger-menu.active span:nth-child(2) {
@@ -495,7 +497,7 @@
     }
 
     .hamburger-menu.active span:nth-child(3) {
-        transform: translateY(-8px) rotate(-45deg);
+        transform: translateY(-9px) rotate(-45deg);
     }
 
     /* Mobile Responsive */
@@ -537,13 +539,17 @@
         }
 
         .search-container {
-            width: 40px;
+            position: relative;
+            right: auto;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
             overflow: hidden;
-            transition: width 0.3s ease;
-            position: absolute;
-            right: 180px;
-            /* Position it to not overlap other items */
+            transition: width 0.3s ease, border-radius 0.3s ease;
             z-index: 10;
+            margin-right: 0;
+            display: flex;
+            align-items: center;
         }
 
         .search-container.expanded {
@@ -552,6 +558,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             background-color: white;
             border-color: var(--primary-color);
+            border-radius: 24px;
         }
 
         .search-container .search-input {
@@ -559,6 +566,7 @@
             width: 0;
             padding: 8px 0;
             transition: all 0.3s ease;
+            height: 100%;
         }
 
         .search-container.expanded .search-input {
@@ -622,7 +630,7 @@
         }
 
         .search-container {
-            right: 120px;
+            right: auto;
             /* Adjust position for smaller screens */
         }
 
@@ -650,12 +658,12 @@
     /* FIXED: Additional mobile search improvements */
     @media (max-width: 480px) {
         .search-container {
-            right: 100px;
+            right: auto;
         }
 
         .search-container.expanded {
             width: 160px;
-            right: 80px;
+            right: auto;
         }
     }
 
@@ -725,6 +733,84 @@
     }
 
     .search-button svg {
-        position: absolute;
-        left: 20px;
+        width: 20px;
+        height: 20px;
+        display: block;
+    }
+
+    /* GLOBAL PAGE LAYOUT OVERRIDES - Make header take full width without gaps */
+    .main-content {
+        padding: 0 !important;
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    .dashboard-header {
+        width: 100% !important;
+        align-self: stretch !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+    }
+
+    .dashboard-content, 
+    .recipes-container, 
+    .recipe-container, 
+    .settings-container, 
+    .profile-header, 
+    .profile-content, 
+    .chefs-container, 
+    .notifications-container, 
+    .coming-soon-container, 
+    .content-container, 
+    .back-to-recipes, 
+    .success-message, 
+    .error-message {
+        width: calc(100% - 40px) !important;
+        max-width: 1200px !important;
+        margin: 20px auto !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Responsive Spacing adjustments */
+    @media (max-width: 768px) {
+        .main-content {
+            padding: 0 !important;
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        .dashboard-content, 
+        .recipes-container, 
+        .recipe-container, 
+        .settings-container, 
+        .profile-header, 
+        .profile-content, 
+        .chefs-container, 
+        .notifications-container, 
+        .coming-soon-container, 
+        .content-container, 
+        .back-to-recipes, 
+        .success-message, 
+        .error-message {
+            width: calc(100% - 30px) !important;
+            margin: 15px auto !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .dashboard-content, 
+        .recipes-container, 
+        .recipe-container, 
+        .settings-container, 
+        .profile-header, 
+        .profile-content, 
+        .chefs-container, 
+        .notifications-container, 
+        .coming-soon-container, 
+        .content-container, 
+        .back-to-recipes, 
+        .success-message, 
+        .error-message {
+            width: calc(100% - 20px) !important;
+            margin: 10px auto !important;
+        }
     }

@@ -26,3 +26,10 @@ playwright/.cache/
 
 # Secrets — keep real config out of git (use config.sample.php as template)
 config/config.php
+
+# Playwright responsive screenshots
+scripts/shots/
+
+# Lighthouse audit reports + backups
+scripts/lh/
+*.a11ybak

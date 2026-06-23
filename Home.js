@@ -336,20 +336,12 @@ window.addEventListener('load', function() {
       });
     });
     
-    // Follow button functionality
-    followButtons.forEach(button => {
-      button.addEventListener('click', function(e) {
-        e.preventDefault();
-        const isFollowing = this.classList.contains('following');
-        this.classList.toggle('following', !isFollowing);
-        this.innerHTML = isFollowing ? 
-          '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg> Follow' : 
-          '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg> Following';
-      });
-    });
-    
+    // NOTE: Follow buttons are plain links (href set server-side: sign-in.php for
+    // guests, chefs.php for logged-in users). We intentionally do NOT attach a
+    // click handler here — doing so with preventDefault() blocked the redirect.
+
     // Initialize the slider
-    initializeSlider();
+    (window.requestIdleCallback || function (cb) { return setTimeout(cb, 0); })(initializeSlider);
   })();
   
   /**
@@ -1588,7 +1580,7 @@ window.addEventListener('load', function() {
     }
     
     // Initialize the slider
-    initializeSlider();
+    (window.requestIdleCallback || function (cb) { return setTimeout(cb, 0); })(initializeSlider);
     
     // Handle window resize
     let resizeTimeout;
@@ -1601,7 +1593,7 @@ window.addEventListener('load', function() {
         
         // If the number of visible cards has changed, reinitialize the slider
         if (oldVisibleCards !== visibleCards) {
-          initializeSlider();
+          (window.requestIdleCallback || function (cb) { return setTimeout(cb, 0); })(initializeSlider);
         } else {
           // Otherwise just reposition
           goToSlide(currentIndex);

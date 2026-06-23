@@ -1,8 +1,9 @@
-/* Qurova Font Family */
+/* Qurova Font Family — WOFF2 first (smallest/compressed), WOFF + TTF fallback. */
 @font-face {
   font-family: 'Qurova';
-  src: url('fonts/TTF/Qurova-Light.ttf') format('truetype'),
-       url('fonts/OTF/Qurova-Light.otf') format('opentype');
+  src: url('fonts/Qurova Woff/Qurova-Light.woff2') format('woff2'),
+       url('fonts/Qurova Woff/Qurova-Light.woff') format('woff'),
+       url('fonts/TTF/Qurova-Light.ttf') format('truetype');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -10,8 +11,9 @@
 
 @font-face {
   font-family: 'Qurova';
-  src: url('fonts/TTF/Qurova-Regular.ttf') format('truetype'),
-       url('fonts/OTF/Qurova-Regular.otf') format('opentype');
+  src: url('fonts/Qurova Woff/Qurova-Regular.woff2') format('woff2'),
+       url('fonts/Qurova Woff/Qurova-Regular.woff') format('woff'),
+       url('fonts/TTF/Qurova-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -19,8 +21,9 @@
 
 @font-face {
   font-family: 'Qurova';
-  src: url('fonts/TTF/Qurova-Medium.ttf') format('truetype'),
-       url('fonts/OTF/Qurova-Medium.otf') format('opentype');
+  src: url('fonts/Qurova Woff/Qurova-Medium.woff2') format('woff2'),
+       url('fonts/Qurova Woff/Qurova-Medium.woff') format('woff'),
+       url('fonts/TTF/Qurova-Medium.ttf') format('truetype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -28,8 +31,9 @@
 
 @font-face {
   font-family: 'Qurova';
-  src: url('fonts/TTF/Qurova-SemiBold.ttf') format('truetype'),
-       url('fonts/OTF/Qurova-SemiBold.otf') format('opentype');
+  src: url('fonts/Qurova Woff/Qurova-SemiBold.woff2') format('woff2'),
+       url('fonts/Qurova Woff/Qurova-SemiBold.woff') format('woff'),
+       url('fonts/TTF/Qurova-SemiBold.ttf') format('truetype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
@@ -37,8 +41,9 @@
 
 @font-face {
   font-family: 'Qurova';
-  src: url('fonts/TTF/Qurova-Bold.ttf') format('truetype'),
-       url('fonts/OTF/Qurova-Bold.otf') format('opentype');
+  src: url('fonts/Qurova Woff/Qurova-Bold.woff2') format('woff2'),
+       url('fonts/Qurova Woff/Qurova-Bold.woff') format('woff'),
+       url('fonts/TTF/Qurova-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;

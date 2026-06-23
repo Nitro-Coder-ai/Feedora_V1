@@ -24,7 +24,7 @@
   function build() {
     panel = document.createElement('div');
     panel.className = 'fd-search-panel';
-    panel.setAttribute('role', 'listbox');
+    panel.setAttribute('aria-label', 'Search recipes and chefs');
     panel.innerHTML = '<div class="fd-search-head"><span class="fd-label">Discover</span><span class="fd-count"></span></div><div class="fd-search-body"></div>';
     document.body.appendChild(panel);
     headEl = panel.querySelector('.fd-label');
@@ -61,6 +61,8 @@
   function setLoading() {
     headEl.textContent = 'Searching';
     panel.querySelector('.fd-count').textContent = '';
+    bodyEl.removeAttribute('role');
+    bodyEl.removeAttribute('aria-label');
     bodyEl.innerHTML = '<div class="fd-loading"><div class="fd-spinner"></div>Searching recipes &amp; posts…</div>';
   }
 
@@ -70,6 +72,8 @@
     panel.querySelector('.fd-count').textContent = results.length ? results.length + (data.mode === 'discover' ? '' : ' found') : '';
 
     if (!results.length) {
+      bodyEl.removeAttribute('role');
+      bodyEl.removeAttribute('aria-label');
       bodyEl.innerHTML = '<div class="fd-empty">No matches' + (data.query ? ' for “' + esc(data.query) + '”' : '') + '. Try another keyword.</div>';
       items = []; sel = -1; position(); return;
     }
@@ -89,6 +93,8 @@
         + '<span class="fd-badge">' + esc(it.type) + '</span></a>';
     });
     bodyEl.innerHTML = html;
+    bodyEl.setAttribute('role', 'listbox');
+    bodyEl.setAttribute('aria-label', 'Search results');
     bodyEl.scrollTop = 0;
     items = Array.prototype.slice.call(bodyEl.querySelectorAll('.fd-item'));
     sel = -1;
