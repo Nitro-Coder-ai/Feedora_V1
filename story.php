@@ -152,7 +152,7 @@ if (isset($_GET['id']) || isset($_GET['user_id'])) {
       }
       
     } else {
-      // View first story of a user
+      // View first or last story of a user
       $storyUserId = intval($_GET['user_id']);
       $storyService = StoryFactory::createStoryService($pdo);
       $userStories = $storyService->getUserStories($storyUserId);
@@ -162,8 +162,14 @@ if (isset($_GET['id']) || isset($_GET['user_id'])) {
         exit();
       }
 
-      $currentStory = $userStories[0];
-      $currentIndex = 0;
+      $position = $_GET['position'] ?? 'first';
+      if ($position === 'last') {
+        $currentIndex = count($userStories) - 1;
+      } else {
+        $currentIndex = 0;
+      }
+
+      $currentStory = $userStories[$currentIndex];
 
       // ENHANCED: Get story owner information for profile display
       $ownerStmt = $pdo->prepare("
@@ -179,8 +185,31 @@ if (isset($_GET['id']) || isset($_GET['user_id'])) {
         $currentStory['PROFILE_IMAGE'] = $ownerInfo['PROFILE_IMAGE'];
       }
 
-      // Record view for the first story
+      // Record view for the loaded story
       $storyManager->recordIndividualView($currentStory['STORIES_ID'], $userId);
+    }
+
+    // Get all users who have active stories, ordered by their latest story time (same as dashboard)
+    $nextUserId = null;
+    $prevUserId = null;
+    try {
+        $activeUsersStmt = $pdo->prepare("
+            SELECT s.USER_ID
+            FROM STORIES s
+            WHERE s.EXPIRES_AT > NOW()
+            GROUP BY s.USER_ID
+            ORDER BY MAX(s.CREATED_AT) DESC
+        ");
+        $activeUsersStmt->execute();
+        $activeUsers = $activeUsersStmt->fetchAll(PDO::FETCH_COLUMN);
+
+        $currentIndexInActiveUsers = array_search($currentStory['USER_ID'], $activeUsers);
+        if ($currentIndexInActiveUsers !== false) {
+            $nextUserId = $activeUsers[$currentIndexInActiveUsers + 1] ?? null;
+            $prevUserId = $activeUsers[$currentIndexInActiveUsers - 1] ?? null;
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching active story users: " . $e->getMessage());
     }
 
     // Get viewers and view count for current story
@@ -260,10 +289,13 @@ if (isset($_GET['id']) || isset($_GET['user_id'])) {
       <!-- Story Content -->
       <div class="story-content" id="mediaContainer">
         <?php
+        $isStoryVideo = ($currentStory['MEDIA_TYPE'] ?? '') === 'video';
         $fileExtension = strtolower(pathinfo($currentStory['IMAGE_URL'], PATHINFO_EXTENSION));
-        $videoExtensions = ['mp4', 'mov', 'webm', 'ogg', 'avi'];
+        if (empty($fileExtension) || !in_array($fileExtension, ['mp4', 'mov', 'webm', 'ogg', 'avi'])) {
+            $fileExtension = 'mp4';
+        }
 
-        if (in_array($fileExtension, $videoExtensions)):
+        if ($isStoryVideo):
         ?>
           <video class="story-video" id="storyVideo" controls>
             <source src="<?php echo htmlspecialchars($currentStory['IMAGE_URL']); ?>" type="video/<?php echo $fileExtension; ?>">
@@ -276,11 +308,11 @@ if (isset($_GET['id']) || isset($_GET['user_id'])) {
       </div>
 
       <!-- ENHANCED Navigation -->
-      <?php if ($currentIndex > 0): ?>
+      <?php if ($currentIndex > 0 || !empty($prevUserId)): ?>
         <div class="story-nav story-nav-prev" onclick="previousStory()"></div>
       <?php endif; ?>
 
-      <?php if ($currentIndex < count($userStories) - 1): ?>
+      <?php if ($currentIndex < count($userStories) - 1 || !empty($nextUserId)): ?>
         <div class="story-nav story-nav-next" onclick="nextStory()"></div>
       <?php endif; ?>
 
@@ -327,7 +359,9 @@ if (isset($_GET['id']) || isset($_GET['user_id'])) {
             stories: <?php echo json_encode($userStories); ?>,
             currentIndex: <?php echo json_encode($currentIndex); ?>,
             userId: <?php echo json_encode($userId); ?>,
-            currentStoryId: <?php echo json_encode($currentStory["STORIES_ID"] ?? null); ?>
+            currentStoryId: <?php echo json_encode($currentStory["STORIES_ID"] ?? null); ?>,
+            nextUserId: <?php echo json_encode($nextUserId); ?>,
+            prevUserId: <?php echo json_encode($prevUserId); ?>
         };
     </script>
     <script src="<?php echo asset('assets/js/story.js'); ?>" defer></script>

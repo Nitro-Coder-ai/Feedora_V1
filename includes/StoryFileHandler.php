@@ -77,7 +77,7 @@ class StoryFileHandler {
     }
     
     /**
-     * Upload file to server with unique naming
+     * Upload file to server with unique naming (directly to Cloudinary only)
      */
     public function uploadFile($file, $userId) {
         try {
@@ -87,32 +87,26 @@ class StoryFileHandler {
             $microtime = microtime(true);
             $random = mt_rand(1000, 9999);
             $newFileName = "story_{$userId}_{$timestamp}_{$microtime}_{$random}.{$fileExtension}";
-            $targetFilePath = $this->uploadDir . $newFileName;
 
-            // Upload to Cloudinary first; the secure URL keeps the original
+            // Upload to Cloudinary; the secure URL keeps the original
             // extension so downstream image/video detection still works.
             $cloud = CloudinaryService::upload($file['tmp_name'], 'feedora/stories', "story_{$userId}_{$timestamp}_{$random}");
             if ($cloud['success']) {
+                // Apply on-the-fly compression and optimization (f_auto,q_auto)
+                $optimizedUrl = CloudinaryService::transform($cloud['url']);
                 return [
                     'success' => true,
-                    'file_path' => $cloud['url'],
-                    'filename' => $newFileName
+                    'file_path' => $optimizedUrl,
+                    'filename' => $newFileName,
+                    'public_id' => $cloud['public_id'],
+                    'media_type' => $cloud['resource_type'] ?? 'image'
                 ];
             }
 
-            // Fallback: move uploaded file to local disk.
-            if (move_uploaded_file($file['tmp_name'], $targetFilePath)) {
-                return [
-                    'success' => true,
-                    'file_path' => $targetFilePath,
-                    'filename' => $newFileName
-                ];
-            } else {
-                return [
-                    'success' => false,
-                    'error' => 'Failed to move uploaded file'
-                ];
-            }
+            return [
+                'success' => false,
+                'error' => 'Cloudinary upload failed: ' . ($cloud['error'] ?? 'Unknown error')
+            ];
             
         } catch (Exception $e) {
             error_log("File upload error: " . $e->getMessage());
