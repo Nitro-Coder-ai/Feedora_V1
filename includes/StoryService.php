@@ -114,10 +114,11 @@ class StoryService {
                     'error' => $uploadResult['error']
                 ];
             }
+            $mediaType = $uploadResult['media_type'] ?? 'image';
+            $imagePublicId = $uploadResult['public_id'] ?? null;
             
-            // CRITICAL FIX: Create story in database with individual NOW() timestamp
-            // The repository ensures each story gets its own unique timestamp
-            $story = $this->repository->createStory($userId, $uploadResult['file_path'], $visibility);
+            // CRITICAL FIX: Create story in database with individual NOW() timestamp and metadata
+            $story = $this->repository->createStory($userId, $uploadResult['file_path'], $mediaType, $imagePublicId, $visibility);
             
             if (!$story) {
                 // Cleanup uploaded file if database insert fails

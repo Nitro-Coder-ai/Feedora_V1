@@ -2400,7 +2400,7 @@ function showToast(message, type = "success") {
   document.querySelectorAll(".toast").forEach((toast) => toast.remove());
 
   const toast = document.createElement("div");
-  toast.className = "toast";
+  toast.className = `toast ${type}`;
   toast.style.cssText = `
         position: fixed;
         bottom: 20px;
@@ -2462,11 +2462,14 @@ window.showCommentReactionUsers = showCommentReactionUsers;
 console.log("✅ Enhanced Comments System JavaScript Loaded Successfully!");
 
 // ========================================
-// ENHANCED STORY UPLOAD SYSTEM - COMPLETE JAVASCRIPT
-// Add this to the <script> section of dashboard.php
+// ENHANCED STORY UPLOAD SYSTEM - PREMIUM UI/UX WITH INTERACTIVE BOARD
 // ========================================
 
-// Enhanced Story Upload Handler
+// State management for story files
+let selectedStoryFiles = [];
+let selectedObjectUrls = [];
+
+// Enhanced Story Upload Handler (Entry Point)
 function handleStoryUpload(input) {
   console.log("📸 Story upload initiated");
 
@@ -2476,7 +2479,32 @@ function handleStoryUpload(input) {
   }
 
   const files = Array.from(input.files);
-  const maxFiles = 10; // Maximum files per upload
+  processFiles(files);
+  
+  // Reset the input value so the same files can be selected again if needed
+  input.value = "";
+}
+
+// Helper to asynchronously get video duration using temporary HTML5 video element
+function getVideoDuration(file) {
+  return new Promise((resolve) => {
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.onloadedmetadata = function () {
+      window.URL.revokeObjectURL(video.src);
+      resolve(video.duration);
+    };
+    video.onerror = function () {
+      window.URL.revokeObjectURL(video.src);
+      resolve(0);
+    };
+    video.src = URL.createObjectURL(file);
+  });
+}
+
+// Process and validate files
+async function processFiles(files) {
+  const maxFiles = 10;
   const maxSize = 50 * 1024 * 1024; // 50MB max per file
   const allowedTypes = [
     "image/jpeg",
@@ -2490,420 +2518,418 @@ function handleStoryUpload(input) {
     "video/mov",
   ];
 
-  // Validate file count
-  if (files.length > maxFiles) {
-    showToast(`Maximum ${maxFiles} files allowed at once`, "error");
-    input.value = "";
-    return;
-  }
-
-  // Validate files
   const invalidFiles = [];
   const oversizedFiles = [];
+  const tooLongVideos = [];
+  const newFiles = [];
 
-  files.forEach((file, index) => {
-    console.log(
-      `📋 Validating file ${index + 1}: ${file.name} (${file.type}, ${(file.size / 1024 / 1024).toFixed(2)}MB)`,
+  for (const file of files) {
+    // Check for duplicates (same name and size)
+    const isDuplicate = selectedStoryFiles.some(
+      (existingFile) => existingFile.name === file.name && existingFile.size === file.size
     );
+
+    if (isDuplicate) {
+      console.log(`ℹ️ Skipping duplicate file: ${file.name}`);
+      continue;
+    }
 
     // Check file type
     if (!allowedTypes.includes(file.type)) {
       invalidFiles.push(file.name);
+      continue;
     }
 
     // Check file size
     if (file.size > maxSize) {
       oversizedFiles.push(file.name);
+      continue;
     }
-  });
 
-  // Show validation errors
+    // Check video duration (max 1 minute / 60 seconds)
+    if (file.type.startsWith("video/")) {
+      const duration = await (window.getVideoDuration || getVideoDuration)(file);
+      if (duration > 60) {
+        tooLongVideos.push(file.name);
+        continue;
+      }
+    }
+
+    newFiles.push(file);
+  }
+
+  // Display validation errors if any
   if (invalidFiles.length > 0) {
     showToast(
-      `Invalid file types: ${invalidFiles.join(", ")}. Only images and videos allowed.`,
-      "error",
+      `Unsupported formats: ${invalidFiles.slice(0, 3).join(", ")}${invalidFiles.length > 3 ? "..." : ""}. Only images/videos allowed.`,
+      "error"
     );
-    input.value = "";
     return;
   }
 
   if (oversizedFiles.length > 0) {
     showToast(
-      `Files too large: ${oversizedFiles.join(", ")}. Maximum 50MB per file.`,
-      "error",
+      `Files too large (Max 50MB): ${oversizedFiles.slice(0, 3).join(", ")}${oversizedFiles.length > 3 ? "..." : ""}.`,
+      "error"
     );
-    input.value = "";
     return;
   }
 
-  // Show upload confirmation and preview
-  showStoryUploadPreview(files, input);
-}
-
-// Enhanced Story Upload Preview Modal
-function showStoryUploadPreview(files, inputElement) {
-  console.log("🖼️ Showing story upload preview for", files.length, "files");
-
-  // Create preview modal
-  const modal = document.createElement("div");
-  modal.id = "storyUploadModal";
-  modal.className = "story-upload-modal";
-  modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.8);
-        backdrop-filter: blur(5px);
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        animation: fadeIn 0.3s ease;
-    `;
-
-  const modalContent = document.createElement("div");
-  modalContent.className = "story-upload-content";
-  modalContent.style.cssText = `
-        background: white;
-        border-radius: 20px;
-        max-width: 90vw;
-        max-height: 85vh;
-        overflow: hidden;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        animation: slideUp 0.3s ease;
-        display: flex;
-        flex-direction: column;
-    `;
-
-  // Modal header
-  const header = document.createElement("div");
-  header.style.cssText = `
-        padding: 20px 25px;
-        border-bottom: 1px solid #eee;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: linear-gradient(135deg, #ED5A2C 0%, #ff6b3d 100%);
-        color: white;
-    `;
-
-  header.innerHTML = `
-        <div>
-            <h3 style="margin: 0; font-size: 20px; font-weight: 600;">Upload Stories</h3>
-            <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">${files.length} file${files.length !== 1 ? "s" : ""} selected</p>
-        </div>
-        <button onclick="closeStoryUploadModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: all 0.2s;">
-            ×
-        </button>
-    `;
-
-  // Modal body
-  const body = document.createElement("div");
-  body.style.cssText = `
-        padding: 20px 25px;
-        max-height: 60vh;
-        overflow-y: auto;
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 15px;
-    `;
-
-  // Generate previews
-  files.forEach((file, index) => {
-    const preview = document.createElement("div");
-    preview.className = "story-preview-item";
-    preview.style.cssText = `
-            position: relative;
-            aspect-ratio: 9 / 16;
-            background: #f5f5f5;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 2px solid #eee;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        `;
-
-    preview.addEventListener("mouseenter", function () {
-      this.style.transform = "scale(1.05)";
-      this.style.borderColor = "#ED5A2C";
-    });
-
-    preview.addEventListener("mouseleave", function () {
-      this.style.transform = "scale(1)";
-      this.style.borderColor = "#eee";
-    });
-
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      if (file.type.startsWith("video/")) {
-        preview.innerHTML = `
-                    <video style="width: 100%; height: 100%; object-fit: cover;" muted>
-                        <source src="${e.target.result}" type="${file.type}">
-                    </video>
-                    <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
-                        VIDEO
-                    </div>
-                    <div style="position: absolute; bottom: 8px; left: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 8px; font-size: 10px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        ${file.name}
-                    </div>
-                `;
-      } else {
-        preview.innerHTML = `
-                    <img loading="lazy" decoding="async" src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;" alt="Preview">
-                    <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
-                        IMAGE
-                    </div>
-                    <div style="position: absolute; bottom: 8px; left: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 8px; font-size: 10px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        ${file.name}
-                    </div>
-                `;
-      }
-    };
-    reader.readAsDataURL(file);
-
-    body.appendChild(preview);
-  });
-
-  // Modal footer
-  const footer = document.createElement("div");
-  footer.style.cssText = `
-        padding: 20px 25px;
-        border-top: 1px solid #eee;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #fafafa;
-    `;
-
-  footer.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: #666;">
-                <input type="radio" name="storyVisibility" value="public" checked style="margin: 0;">
-                <span>Public</span>
-            </label>
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: #666;">
-                <input type="radio" name="storyVisibility" value="friends" style="margin: 0;">
-                <span>Friends Only</span>
-            </label>
-        </div>
-        <div style="display: flex; gap: 12px;">
-            <button onclick="closeStoryUploadModal()" style="background: #f5f5f5; color: #666; border: none; padding: 12px 20px; border-radius: 25px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                Cancel
-            </button>
-            <button onclick="uploadStories()" id="uploadStoriesBtn" style="background: linear-gradient(135deg, #ED5A2C 0%, #ff6b3d 100%); color: white; border: none; padding: 12px 24px; border-radius: 25px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(237, 90, 44, 0.3); display: flex; align-items: center; gap: 8px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10l5-5 5 5"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                Upload ${files.length} Stor${files.length !== 1 ? "ies" : "y"}
-            </button>
-        </div>
-    `;
-
-  modalContent.appendChild(header);
-  modalContent.appendChild(body);
-  modalContent.appendChild(footer);
-  modal.appendChild(modalContent);
-
-  // Store files reference for upload
-  modal.storyFiles = files;
-  modal.inputElement = inputElement;
-
-  document.body.appendChild(modal);
-
-  // Close on backdrop click
-  modal.addEventListener("click", function (e) {
-    if (e.target === modal) {
-      closeStoryUploadModal();
-    }
-  });
-
-  // Add required styles if not present
-  if (!document.getElementById("storyUploadStyles")) {
-    const styles = document.createElement("style");
-    styles.id = "storyUploadStyles";
-    styles.textContent = `
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-            @keyframes slideUp {
-                from { opacity: 0; transform: translateY(30px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            .story-upload-content::-webkit-scrollbar {
-                width: 6px;
-            }
-            .story-upload-content::-webkit-scrollbar-track {
-                background: #f1f1f1;
-                border-radius: 3px;
-            }
-            .story-upload-content::-webkit-scrollbar-thumb {
-                background: #ED5A2C;
-                border-radius: 3px;
-            }
-            .story-upload-content::-webkit-scrollbar-thumb:hover {
-                background: #d94e22;
-            }
-            @media (max-width: 768px) {
-                .story-upload-content {
-                    max-width: 95vw !important;
-                    max-height: 90vh !important;
-                }
-                .story-upload-content > div:nth-child(2) {
-                    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
-                    gap: 10px !important;
-                    padding: 15px 20px !important;
-                }
-                .story-upload-content > div:first-child {
-                    padding: 15px 20px !important;
-                }
-                .story-upload-content > div:last-child {
-                    padding: 15px 20px !important;
-                    flex-direction: column !important;
-                    gap: 15px !important;
-                }
-            }
-        `;
-    document.head.appendChild(styles);
+  if (tooLongVideos.length > 0) {
+    showToast(
+      `Videos too long (Max 1 min): ${tooLongVideos.slice(0, 3).join(", ")}${tooLongVideos.length > 3 ? "..." : ""}.`,
+      "error"
+    );
+    return;
   }
 
-  console.log("✅ Story upload preview modal created");
+  // Check overall limit
+  if (selectedStoryFiles.length + newFiles.length > maxFiles) {
+    showToast(`Maximum of ${maxFiles} stories can be uploaded at once.`, "error");
+    return;
+  }
+
+  // Add validated files to list
+  if (newFiles.length > 0) {
+    selectedStoryFiles = [...selectedStoryFiles, ...newFiles];
+    showStoryUploadPreview();
+  }
 }
 
-// Close Story Upload Modal
+// Show/Update Story Upload Preview Modal
+function showStoryUploadPreview() {
+  console.log("🖼️ Updating story upload preview board for", selectedStoryFiles.length, "files");
+
+  if (selectedStoryFiles.length === 0) {
+    closeStoryUploadModal();
+    return;
+  }
+
+  let modal = document.getElementById("storyUploadModal");
+
+  // Create modal markup if it does not exist
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "storyUploadModal";
+    modal.className = "story-upload-modal";
+    document.body.appendChild(modal);
+    
+    // Add backdrop close support
+    modal.addEventListener("click", function (e) {
+      if (e.target === modal) {
+        closeStoryUploadModal();
+      }
+    });
+  }
+
+  // HTML content of the modal
+  modal.innerHTML = `
+    <div class="story-upload-content">
+      <!-- Modal Header -->
+      <div class="story-upload-header">
+        <div>
+          <h3 style="margin: 0; font-size: 20px; font-weight: 700; font-family: 'DM Serif Display', serif;">Upload Stories</h3>
+          <p style="margin: 4px 0 0 0; font-size: 13px; opacity: 0.95; font-weight: 500;">
+            ${selectedStoryFiles.length} file${selectedStoryFiles.length !== 1 ? "s" : ""} selected for upload
+          </p>
+        </div>
+        <button onclick="closeStoryUploadModal()" class="story-modal-close-btn" aria-label="Close modal">
+          ×
+        </button>
+      </div>
+
+      <!-- Preview Grid Board -->
+      <div class="story-preview-grid" id="storyPreviewGrid">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="story-upload-footer">
+        <div class="story-visibility-selector">
+          <label class="visibility-radio-label">
+            <input type="radio" name="storyVisibility" value="public" checked>
+            <span class="custom-radio-btn"></span>
+            <span>Public</span>
+          </label>
+          <label class="visibility-radio-label">
+            <input type="radio" name="storyVisibility" value="friends">
+            <span class="custom-radio-btn"></span>
+            <span>Friends</span>
+          </label>
+        </div>
+        <div class="story-modal-actions">
+          <button onclick="closeStoryUploadModal()" class="story-cancel-btn">
+            Cancel
+          </button>
+          <button onclick="uploadStories()" id="uploadStoriesBtn" class="story-submit-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 4px;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10l5-5 5 5"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Upload ${selectedStoryFiles.length} Stor${selectedStoryFiles.length !== 1 ? "ies" : "y"}
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Hidden input to add more files to the board -->
+    <input type="file" id="storyMediaMore" class="story-media-input"
+           accept="image/*,video/mp4,video/quicktime,video/webm"
+           multiple
+           onchange="handleAddMoreStories(this)">
+  `;
+
+  // Render the preview items inside the grid
+  const gridContainer = document.getElementById("storyPreviewGrid");
+  
+  // Revoke previously created object URLs to prevent leaks
+  selectedObjectUrls.forEach(url => URL.revokeObjectURL(url));
+  selectedObjectUrls = [];
+
+  selectedStoryFiles.forEach((file, index) => {
+    const objectUrl = URL.createObjectURL(file);
+    selectedObjectUrls.push(objectUrl);
+
+    const card = document.createElement("div");
+    card.className = "story-preview-item";
+
+    const isVideo = file.type.startsWith("video/");
+    const badgeText = isVideo ? "video" : "image";
+
+    card.innerHTML = `
+      ${
+        isVideo
+          ? `<video src="${objectUrl}" muted loop autoplay playsinline></video>`
+          : `<img src="${objectUrl}" alt="Preview thumbnail">`
+      }
+      <div class="story-preview-badge">${badgeText}</div>
+      <button onclick="removeStoryFile(${index})" class="story-preview-remove" title="Remove file">
+        ×
+      </button>
+      <div class="story-preview-filename-tooltip">${escapeHtml(file.name)}</div>
+    `;
+
+    gridContainer.appendChild(card);
+  });
+
+  // Append the "+" interactive board/card at the end of the grid
+  const addCard = document.createElement("div");
+  addCard.className = "story-preview-add-card";
+  addCard.onclick = triggerAddMoreStories;
+  addCard.innerHTML = `
+    <div class="preview-add-plus-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    </div>
+    <span>Add More</span>
+  `;
+  gridContainer.appendChild(addCard);
+
+  // Setup modal CSS styles if not already present
+  ensureModalStyles();
+}
+
+// Trigger click on hidden file input to append more files
+function triggerAddMoreStories() {
+  const moreInput = document.getElementById("storyMediaMore");
+  if (moreInput) {
+    moreInput.click();
+  }
+}
+
+// Handle adding more files from inside the modal
+function handleAddMoreStories(input) {
+  if (input.files && input.files.length > 0) {
+    processFiles(Array.from(input.files));
+  }
+  input.value = "";
+}
+
+// Remove specific file from the upload board
+function removeStoryFile(index) {
+  if (index >= 0 && index < selectedStoryFiles.length) {
+    console.log("🗑️ Removing preview item at index:", index);
+    selectedStoryFiles.splice(index, 1);
+    showStoryUploadPreview();
+  }
+}
+
+// Close Story Upload Modal and reset state
 function closeStoryUploadModal() {
   const modal = document.getElementById("storyUploadModal");
   if (modal) {
-    modal.style.animation = "fadeOut 0.3s ease forwards";
+    modal.style.animation = "storyModalFadeOut 0.25s ease-out forwards";
+    const modalContent = modal.querySelector(".story-upload-content");
+    if (modalContent) {
+      modalContent.style.animation = "storyModalSlideDown 0.25s ease-out forwards";
+    }
+
     setTimeout(() => {
       if (modal.parentNode) {
         modal.parentNode.removeChild(modal);
       }
-      // Reset file input
-      if (modal.inputElement) {
-        modal.inputElement.value = "";
-      }
-    }, 300);
+    }, 250);
   }
+
+  // Revoke object URLs to free memory
+  selectedObjectUrls.forEach(url => URL.revokeObjectURL(url));
+  selectedObjectUrls = [];
+  selectedStoryFiles = [];
 }
 
-// Enhanced Upload Stories Function
+// Upload Stories via XMLHttpRequest with Real Upload Progress
 async function uploadStories() {
-  const modal = document.getElementById("storyUploadModal");
   const uploadBtn = document.getElementById("uploadStoriesBtn");
 
-  if (!modal || !modal.storyFiles) {
+  if (selectedStoryFiles.length === 0) {
     console.error("❌ No files to upload");
     return;
   }
 
-  const files = modal.storyFiles;
-  const visibility = modal.querySelector(
-    'input[name="storyVisibility"]:checked',
-  ).value;
+  const visibilityElement = document.querySelector('input[name="storyVisibility"]:checked');
+  const visibility = visibilityElement ? visibilityElement.value : "public";
 
-  console.log(
-    "📤 Starting upload of",
-    files.length,
-    "stories with visibility:",
-    visibility,
-  );
+  console.log(`📤 Uploading ${selectedStoryFiles.length} stories directly to Cloudinary (Visibility: ${visibility})`);
 
-  // Show loading state
+  // Show loading/progress state
   uploadBtn.disabled = true;
   uploadBtn.innerHTML = `
-        <div style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-        Uploading...
-    `;
+    <div class="upload-spinner" style="margin-right: 8px;"></div>
+    <span>Uploading 0%</span>
+  `;
+
+  // Disable cancel buttons inside modal during upload
+  const cancelBtn = document.querySelector(".story-cancel-btn");
+  if (cancelBtn) cancelBtn.disabled = true;
+  const closeBtn = document.querySelector(".story-modal-close-btn");
+  if (closeBtn) closeBtn.style.display = "none";
+  const removeButtons = document.querySelectorAll(".story-preview-remove");
+  removeButtons.forEach(btn => btn.style.display = "none");
+  const addCard = document.querySelector(".story-preview-add-card");
+  if (addCard) addCard.style.pointerEvents = "none";
 
   try {
     const formData = new FormData();
 
-    // Add files to form data
-    files.forEach((file, index) => {
+    // Attach all files to the array
+    selectedStoryFiles.forEach((file) => {
       formData.append("story_media[]", file);
     });
 
     formData.append("visibility", visibility);
 
-    // Upload with progress tracking
-    const response = await fetch("story.php", {
-      method: "POST",
-      body: formData,
-    });
+    // Establish XHR request for upload progress callback
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "story.php", true);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    // Check if response is HTML (redirect) or JSON
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      const result = await response.json();
-      if (result.success) {
-        showToast("✨ Stories uploaded successfully!", "success");
-      } else {
-        throw new Error(result.message || "Upload failed");
+    // Track upload progress
+    xhr.upload.onprogress = function (e) {
+      if (e.lengthComputable) {
+        const percent = Math.round((e.loaded / e.total) * 100);
+        // Map 0-99% progress
+        if (percent < 100) {
+          uploadBtn.innerHTML = `
+            <div class="upload-spinner" style="margin-right: 8px;"></div>
+            <span>Uploading ${percent}%</span>
+          `;
+        } else {
+          // 100% means upload is done; Cloudinary is processing/optimizing the files
+          uploadBtn.innerHTML = `
+            <div class="upload-spinner" style="margin-right: 8px;"></div>
+            <span>Optimizing...</span>
+          `;
+        }
       }
-    } else {
-      // Assume success if we get HTML (redirect)
-      showToast("✨ Stories uploaded successfully!", "success");
-    }
+    };
 
-    // Close modal and refresh page
-    closeStoryUploadModal();
+    // Callback on request complete
+    xhr.onload = function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        showToast("✨ Stories uploaded and compressed successfully!", "success");
+        closeStoryUploadModal();
+        
+        // Refresh page to load stories from database
+        setTimeout(() => {
+          window.location.reload();
+        }, 1200);
+      } else {
+        console.error("❌ Story upload failed with status:", xhr.status);
+        showToast("Failed to upload stories. Please try again.", "error");
+        resetUploadButton();
+      }
+    };
 
-    // Refresh the page after a short delay to show new stories
-    setTimeout(() => {
-      window.location.reload();
-    }, 1500);
+    // Callback on network error
+    xhr.onerror = function () {
+      console.error("❌ Story upload network error");
+      showToast("Network error. Check connection and try again.", "error");
+      resetUploadButton();
+    };
+
+    xhr.send(formData);
+
   } catch (error) {
-    console.error("❌ Upload error:", error);
-    showToast("Failed to upload stories. Please try again.", "error");
-
-    // Reset button
-    uploadBtn.disabled = false;
-    uploadBtn.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10l5-5 5 5"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Upload ${files.length} Stor${files.length !== 1 ? "ies" : "y"}
-        `;
+    console.error("❌ Catch error during story upload:", error);
+    showToast("An unexpected error occurred. Please try again.", "error");
+    resetUploadButton();
   }
 }
 
-// Enhanced Story Upload with Drag & Drop Support
+// Reset upload button UI state
+function resetUploadButton() {
+  const uploadBtn = document.getElementById("uploadStoriesBtn");
+  if (!uploadBtn) return;
+
+  const cancelBtn = document.querySelector(".story-cancel-btn");
+  if (cancelBtn) cancelBtn.disabled = false;
+  const closeBtn = document.querySelector(".story-modal-close-btn");
+  if (closeBtn) closeBtn.style.display = "flex";
+  const removeButtons = document.querySelectorAll(".story-preview-remove");
+  removeButtons.forEach(btn => btn.style.display = "flex");
+  const addCard = document.querySelector(".story-preview-add-card");
+  if (addCard) addCard.style.pointerEvents = "auto";
+
+  uploadBtn.disabled = false;
+  uploadBtn.innerHTML = `
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 4px;">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+      <polyline points="7 10l5-5 5 5"></polyline>
+      <line x1="12" y1="15" x2="12" y2="3"></line>
+    </svg>
+    Upload ${selectedStoryFiles.length} Stor${selectedStoryFiles.length !== 1 ? "ies" : "y"}
+  `;
+}
+
+// Drag & drop handlers on dashboard story upload circle
 function initializeStoryUpload() {
-  console.log("🚀 Initializing enhanced story upload system");
+  console.log("🚀 Initializing premium story upload drag & drop handlers");
 
   const storyForm = document.getElementById("storyForm");
   const storyInput = document.getElementById("storyMedia");
   const addStoryLabel = document.querySelector(".add-story-label");
 
   if (!storyForm || !storyInput || !addStoryLabel) {
-    console.warn("⚠️ Story upload elements not found");
+    console.warn("⚠️ Story upload elements not found in dashboard");
     return;
   }
 
-  // Enhanced drag and drop functionality
   let dragCounter = 0;
 
-  // Drag events for the entire add story area
+  // Drag and drop event listeners
   addStoryLabel.addEventListener("dragenter", function (e) {
     e.preventDefault();
     e.stopPropagation();
     dragCounter++;
-    this.style.transform = "scale(1.05)";
-    this.style.backgroundColor = "rgba(237, 90, 44, 0.1)";
-    this.querySelector(".story-add-icon").style.borderColor = "#ED5A2C";
-    this.querySelector(".story-add-icon").style.backgroundColor =
-      "rgba(237, 90, 44, 0.1)";
+    this.style.transform = "scale(1.04)";
+    this.style.backgroundColor = "rgba(237, 90, 44, 0.05)";
+    const addIcon = this.querySelector(".story-add-icon");
+    if (addIcon) {
+      addIcon.style.borderColor = "#ED5A2C";
+      addIcon.style.backgroundColor = "rgba(237, 90, 44, 0.08)";
+    }
   });
 
   addStoryLabel.addEventListener("dragleave", function (e) {
@@ -2911,10 +2937,13 @@ function initializeStoryUpload() {
     e.stopPropagation();
     dragCounter--;
     if (dragCounter === 0) {
-      this.style.transform = "scale(1)";
+      this.style.transform = "";
       this.style.backgroundColor = "";
-      this.querySelector(".story-add-icon").style.borderColor = "";
-      this.querySelector(".story-add-icon").style.backgroundColor = "";
+      const addIcon = this.querySelector(".story-add-icon");
+      if (addIcon) {
+        addIcon.style.borderColor = "";
+        addIcon.style.backgroundColor = "";
+      }
     }
   });
 
@@ -2928,101 +2957,486 @@ function initializeStoryUpload() {
     e.stopPropagation();
     dragCounter = 0;
 
-    // Reset styles
-    this.style.transform = "scale(1)";
+    // Reset circle hover states
+    this.style.transform = "";
     this.style.backgroundColor = "";
-    this.querySelector(".story-add-icon").style.borderColor = "";
-    this.querySelector(".story-add-icon").style.backgroundColor = "";
+    const addIcon = this.querySelector(".story-add-icon");
+    if (addIcon) {
+      addIcon.style.borderColor = "";
+      addIcon.style.backgroundColor = "";
+    }
 
     const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      // Create a new FileList-like object and assign to input
-      const dt = new DataTransfer();
-      Array.from(files).forEach((file) => dt.items.add(file));
-      storyInput.files = dt.files;
-
-      // Trigger the upload handler
-      handleStoryUpload(storyInput);
+    if (files && files.length > 0) {
+      processFiles(Array.from(files));
     }
   });
-
-  // Prevent default drag behaviors on document
-  document.addEventListener("dragover", function (e) {
-    e.preventDefault();
-  });
-
-  document.addEventListener("drop", function (e) {
-    e.preventDefault();
-  });
-
-  // Add visual feedback for file input
-  storyInput.addEventListener("change", function () {
-    if (this.files.length > 0) {
-      const addIcon = addStoryLabel.querySelector(".story-add-icon");
-      addIcon.style.animation = "pulse 0.3s ease";
-      setTimeout(() => {
-        addIcon.style.animation = "";
-      }, 300);
-    }
-  });
-
-  console.log("✅ Story upload system initialized with drag & drop support");
 }
 
-// Initialize story upload when DOM is loaded
+// Add CSS styles for the preview modal board dynamically
+function ensureModalStyles() {
+  if (document.getElementById("storyUploadBoardStyles")) return;
+
+  const styleTag = document.createElement("style");
+  styleTag.id = "storyUploadBoardStyles";
+  styleTag.textContent = `
+    /* Modal Backdrop */
+    .story-upload-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(10px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* Modal Content Box */
+    .story-upload-content {
+      background: white;
+      border-radius: 24px;
+      width: 620px;
+      max-width: 100%;
+      max-height: 85vh;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(0,0,0,0.05);
+      animation: storyModalSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Modal Header */
+    .story-upload-header {
+      background: linear-gradient(135deg, #ED5A2C 0%, #ff6b3d 100%);
+      color: white;
+      padding: 20px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .story-modal-close-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 300;
+      transition: all 0.2s ease;
+    }
+
+    .story-modal-close-btn:hover {
+      background: rgba(255, 255, 255, 0.35);
+      transform: scale(1.05) rotate(90deg);
+    }
+
+    /* Grid layout */
+    .story-preview-grid {
+      padding: 25px;
+      overflow-y: auto;
+      max-height: 52vh;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 15px;
+      background-color: #fafafa;
+    }
+
+    /* Preview Item Card */
+    .story-preview-item {
+      position: relative;
+      aspect-ratio: 9 / 16;
+      background: #eee;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      border: 2px solid white;
+      transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .story-preview-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 20px rgba(237, 90, 44, 0.15);
+      border-color: rgba(237, 90, 44, 0.3);
+    }
+
+    .story-preview-item img, 
+    .story-preview-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Close Button on Card */
+    .story-preview-remove {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      z-index: 5;
+    }
+
+    .story-preview-remove:hover {
+      background: #f44336;
+      border-color: #f44336;
+      transform: scale(1.15) rotate(90deg);
+    }
+
+    /* Media badge label */
+    .story-preview-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 2px 7px;
+      border-radius: 12px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      backdrop-filter: blur(3px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      z-index: 4;
+    }
+
+    /* Tooltip tooltip on hover showing actual filename */
+    .story-preview-filename-tooltip {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 4px 6px;
+      font-size: 9px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .story-preview-item:hover .story-preview-filename-tooltip {
+      opacity: 1;
+    }
+
+    /* Add Card (+) */
+    .story-preview-add-card {
+      aspect-ratio: 9 / 16;
+      border-radius: 16px;
+      border: 2px dashed rgba(237, 90, 44, 0.35);
+      background: rgba(237, 90, 44, 0.02);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #ED5A2C;
+      font-weight: 700;
+      font-size: 12px;
+      gap: 10px;
+      transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .story-preview-add-card:hover {
+      background: rgba(237, 90, 44, 0.08);
+      border-color: #ED5A2C;
+      transform: translateY(-4px);
+      box-shadow: 0 10px 20px rgba(237, 90, 44, 0.1);
+    }
+
+    .preview-add-plus-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ED5A2C 0%, #ff6b3d 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(237, 90, 44, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .story-preview-add-card:hover .preview-add-plus-icon {
+      transform: scale(1.1) rotate(90deg);
+      box-shadow: 0 6px 14px rgba(237, 90, 44, 0.4);
+    }
+
+    /* Footer */
+    .story-upload-footer {
+      padding: 20px 25px;
+      background: white;
+      border-top: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Radio buttons visibility style */
+    .story-visibility-selector {
+      display: flex;
+      gap: 15px;
+    }
+
+    .visibility-radio-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: #666;
+      position: relative;
+      user-select: none;
+    }
+
+    .visibility-radio-label input {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .custom-radio-btn {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ccc;
+      border-radius: 50%;
+      display: inline-block;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .visibility-radio-label:hover input ~ .custom-radio-btn {
+      border-color: #ED5A2C;
+    }
+
+    .visibility-radio-label input:checked ~ .custom-radio-btn {
+      border-color: #ED5A2C;
+      background-color: #ED5A2C;
+    }
+
+    .custom-radio-btn::after {
+      content: "";
+      position: absolute;
+      display: none;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: white;
+    }
+
+    .visibility-radio-label input:checked ~ .custom-radio-btn::after {
+      display: block;
+    }
+
+    .visibility-radio-label input:checked ~ span:not(.custom-radio-btn) {
+      color: #ED5A2C;
+    }
+
+    /* Button actions */
+    .story-modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .story-cancel-btn {
+      background: #f5f5f5;
+      color: #666;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .story-cancel-btn:hover:not(:disabled) {
+      background: #e5e5e5;
+      color: #333;
+    }
+
+    .story-submit-btn {
+      background: linear-gradient(135deg, #ED5A2C 0%, #ff6b3d 100%);
+      color: white;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(237, 90, 44, 0.25);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+    }
+
+    .story-submit-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(237, 90, 44, 0.35);
+      filter: brightness(1.05);
+    }
+
+    .story-submit-btn:disabled,
+    .story-cancel-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* Scrollbar styles for the preview grid */
+    .story-preview-grid::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .story-preview-grid::-webkit-scrollbar-track {
+      background: #f0f0f0;
+      border-radius: 3px;
+    }
+
+    .story-preview-grid::-webkit-scrollbar-thumb {
+      background: #ED5A2C;
+      border-radius: 3px;
+    }
+
+    .story-preview-grid::-webkit-scrollbar-thumb:hover {
+      background: #d94e22;
+    }
+
+    /* Keyframes animations */
+    @keyframes storyModalSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes storyModalSlideDown {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+    }
+
+    @keyframes storyModalFadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes storyModalFadeOut {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+
+    /* Mobile media responsiveness overrides */
+    @media (max-width: 576px) {
+      .story-upload-content {
+        max-height: 90vh;
+        width: 100%;
+        border-radius: 20px;
+      }
+
+      .story-preview-grid {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+        gap: 10px;
+        padding: 15px;
+        max-height: 58vh;
+      }
+
+      .story-upload-header {
+        padding: 15px;
+      }
+
+      .story-upload-footer {
+        padding: 15px;
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+      }
+
+      .story-visibility-selector {
+        justify-content: center;
+      }
+
+      .story-modal-actions {
+        justify-content: space-between;
+      }
+
+      .story-submit-btn,
+      .story-cancel-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 12px;
+      }
+    }
+  `;
+  document.head.appendChild(styleTag);
+}
+
+// Initialise story upload systems
 document.addEventListener("DOMContentLoaded", function () {
-  // Add a small delay to ensure all elements are rendered
   setTimeout(() => {
     initializeStoryUpload();
   }, 500);
 });
 
-// Add CSS animations for story upload
-if (!document.getElementById("storyUploadAnimations")) {
-  const animationStyles = document.createElement("style");
-  animationStyles.id = "storyUploadAnimations";
-  animationStyles.textContent = `
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-        
-        /* Enhanced hover effects for story upload */
-        .add-story-label:hover .story-add-icon::before {
-            left: 100%;
-        }
-        
-        .add-story-label:hover .story-username {
-            color: #ED5A2C;
-            font-weight: 600;
-        }
-        
-        /* Mobile responsiveness for story upload */
-        @media (max-width: 768px) {
-            .story-upload-modal {
-                padding: 10px;
-            }
-        }
-    `;
-  document.head.appendChild(animationStyles);
-}
-
-// Global functions for story upload
+// Export handlers to window object for HTML inline attribute hooks
 window.handleStoryUpload = handleStoryUpload;
 window.showStoryUploadPreview = showStoryUploadPreview;
+window.triggerAddMoreStories = triggerAddMoreStories;
+window.handleAddMoreStories = handleAddMoreStories;
+window.removeStoryFile = removeStoryFile;
 window.closeStoryUploadModal = closeStoryUploadModal;
 window.uploadStories = uploadStories;
 window.initializeStoryUpload = initializeStoryUpload;
 
-console.log("✅ Enhanced Story Upload System Loaded Successfully!");
+console.log("✅ Enhanced Story Upload System Board Loaded Successfully!");

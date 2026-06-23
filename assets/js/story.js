@@ -162,7 +162,7 @@
         }
 
         let progress = 0;
-        const duration = 5000; // 5 seconds for images
+        const duration = window.StoryImageDuration || 5000; // 5 seconds default for images
         const interval = 50; // Update every 50ms
         const increment = (interval / duration) * 100;
 
@@ -194,8 +194,12 @@
           showLoading(true);
           currentIndex++;
           navigateToStory(stories[currentIndex].STORIES_ID);
+        } else if (window.StoryConfig.nextUserId) {
+          console.log('➡️ Moving to next user\'s stories:', window.StoryConfig.nextUserId);
+          showLoading(true);
+          window.location.href = `story.php?user_id=${window.StoryConfig.nextUserId}`;
         } else {
-          console.log('🏁 Reached end of stories');
+          console.log('🏁 Reached end of all stories');
           closeStory();
         }
       }
@@ -206,6 +210,10 @@
           showLoading(true);
           currentIndex--;
           navigateToStory(stories[currentIndex].STORIES_ID);
+        } else if (window.StoryConfig.prevUserId) {
+          console.log('⬅️ Moving to previous user\'s stories:', window.StoryConfig.prevUserId);
+          showLoading(true);
+          window.location.href = `story.php?user_id=${window.StoryConfig.prevUserId}&position=last`;
         }
       }
 

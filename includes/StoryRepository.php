@@ -11,19 +11,16 @@ class StoryRepository {
     }
     
     /**
-     * FIXED: Create a new story with individual timestamp
-     * Each story gets its own unique timestamp using NOW()
+     * Create a new story with individual timestamp and metadata
      */
-    public function createStory($userId, $imageUrl, $visibility = 'public') {
+    public function createStory($userId, $imageUrl, $mediaType = 'image', $imagePublicId = null, $visibility = 'public') {
         try {
-            // CRITICAL FIX: Use NOW() in SQL to ensure each story gets its own timestamp
-            // This prevents timestamp overwriting when multiple stories are uploaded
             $stmt = $this->pdo->prepare("
-                INSERT INTO STORIES (USER_ID, IMAGE_URL, VISIBILITY, CREATED_AT, EXPIRES_AT) 
-                VALUES (?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 24 HOUR))
+                INSERT INTO STORIES (USER_ID, IMAGE_URL, MEDIA_TYPE, IMAGE_PUBLIC_ID, VISIBILITY, CREATED_AT, EXPIRES_AT) 
+                VALUES (?, ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 24 HOUR))
             ");
             
-            $result = $stmt->execute([$userId, $imageUrl, $visibility]);
+            $result = $stmt->execute([$userId, $imageUrl, $mediaType, $imagePublicId, $visibility]);
             
             if ($result) {
                 $storyId = $this->pdo->lastInsertId();
