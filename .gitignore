@@ -24,8 +24,9 @@ blob-report/
 .auth/
 playwright/.cache/
 
-# Secrets — keep real config out of git (use config.sample.php as template)
+# Secrets — keep real config out of git (use *.sample.php as templates)
 config/config.php
+config/secrets.php
 
 # Playwright responsive screenshots
 scripts/shots/

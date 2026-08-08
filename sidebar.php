@@ -14,8 +14,15 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </svg>
     </div>
     
-    <div class="sidebar-logo">
-        <img src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782089976/feedora/assets/Feedora-svg.svg" alt="Feedora Logo">
+    <div class="sidebar-brand">
+        <a href="dashboard.php" class="sidebar-logo" aria-label="Feedora home" title="Feedora">
+            <img src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto,w_160/v1782090013/feedora/assets/Frame-1171277973-svg.svg" alt="Feedora">
+        </a>
+        <button class="sidebar-collapse-toggle" id="sidebar-collapse-toggle" type="button" aria-label="Collapse menu" title="Collapse menu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
     </div>
     <nav class="sidebar-menu">
         <!-- Main Navigation Items -->

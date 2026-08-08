@@ -58,16 +58,31 @@ class StoryFileHandler {
             ];
         }
         
-        // Additional security checks
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $file['tmp_name']);
-        finfo_close($finfo);
-        
-        if (!in_array($mimeType, $this->allowedTypes)) {
-            return [
-                'valid' => false,
-                'error' => 'File type mismatch detected.'
-            ];
+        // Additional security check: sniff the real MIME from file contents.
+        // Guarded with function_exists so a server without the `fileinfo`
+        // extension degrades gracefully (relying on the client MIME + size checks
+        // above) instead of throwing a fatal "undefined function" that silently
+        // kills the whole upload request.
+        if (function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo ? finfo_file($finfo, $file['tmp_name']) : false;
+            if ($finfo) {
+                finfo_close($finfo);
+            }
+
+            // Accept the explicit allow-list OR any image/* or video/* family. Video
+            // containers (mov/mp4/webm) are routinely sniffed as variants that are NOT
+            // in the static list (e.g. video/x-m4v, application/mp4); rejecting those
+            // is why legitimate video stories never reached Cloudinary or the database.
+            $isAllowedFamily = is_string($mimeType)
+                && (strncmp($mimeType, 'image/', 6) === 0 || strncmp($mimeType, 'video/', 6) === 0);
+
+            if ($mimeType !== false && !in_array($mimeType, $this->allowedTypes, true) && !$isAllowedFamily) {
+                return [
+                    'valid' => false,
+                    'error' => 'File type mismatch detected.'
+                ];
+            }
         }
         
         return [
@@ -92,14 +107,29 @@ class StoryFileHandler {
             // extension so downstream image/video detection still works.
             $cloud = CloudinaryService::upload($file['tmp_name'], 'feedora/stories', "story_{$userId}_{$timestamp}_{$random}");
             if ($cloud['success']) {
-                // Apply on-the-fly compression and optimization (f_auto,q_auto)
-                $optimizedUrl = CloudinaryService::transform($cloud['url']);
+                // Resolve the media type from Cloudinary's authoritative
+                // resource_type, falling back to the URL extension if absent.
+                $resourceType = $cloud['resource_type'] ?? '';
+                $mediaType = ($resourceType === 'video' || $resourceType === 'image')
+                    ? $resourceType
+                    : $this->getFileType($cloud['url']);
+
+                // Compress BOTH images and videos with Cloudinary on-the-fly
+                // delivery transforms (verified to return HTTP 200 for video):
+                //   f_auto        → best format per browser (webp/avif images;
+                //                   mp4 for Safari, webm/vp9 for Chrome on video)
+                //   q_auto        → automatic quality-based compression (~70% off)
+                //   c_limit,w_…   → cap only very large media; c_limit NEVER upscales
+                //                   and preserves the original aspect ratio, so
+                //                   nothing is cropped/zoomed in or out.
+                $deliveryUrl = CloudinaryService::transform($cloud['url'], 1080);
+
                 return [
                     'success' => true,
-                    'file_path' => $optimizedUrl,
+                    'file_path' => $deliveryUrl,
                     'filename' => $newFileName,
                     'public_id' => $cloud['public_id'],
-                    'media_type' => $cloud['resource_type'] ?? 'image'
+                    'media_type' => $mediaType
                 ];
             }
 

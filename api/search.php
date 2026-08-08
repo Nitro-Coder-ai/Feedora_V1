@@ -18,6 +18,7 @@ header('Cache-Control: no-store');
 $q      = trim($_GET['q'] ?? '');
 $LIMIT  = 8;
 $out    = ['query' => $q, 'mode' => 'discover', 'results' => [], 'tags' => []];
+$AVATAR = 'https://res.cloudinary.com/dio1bvxbv/image/upload/f_webp,q_auto/v1782090088/feedora/assets/default-profile-png.svg';
 
 // Return the real DB image URL, or '' when there is none (client shows a
 // shimmer skeleton instead of an icon). Videos are treated as "no image".
@@ -34,8 +35,23 @@ $snippet = function (?string $s, int $n = 70): string {
 try {
     if (mb_strlen($q) < 2) {
         // ---- Discover mode -------------------------------------------------
+        // Suggested people first (Facebook-style), then the latest recipes.
+        $u = $pdo->query(
+            "SELECT USER_ID, NAME, PROFILE_IMAGE FROM USERS
+             WHERE NAME IS NOT NULL AND NAME <> '' ORDER BY USER_ID DESC LIMIT 4"
+        );
+        foreach ($u as $row) {
+            $out['results'][] = [
+                'type'     => 'person',
+                'id'       => (int)$row['USER_ID'],
+                'title'    => $row['NAME'],
+                'subtitle' => 'View profile',
+                'image'    => $row['PROFILE_IMAGE'] ?: $AVATAR,
+                'url'      => 'profile_details.php?id=' . (int)$row['USER_ID'],
+            ];
+        }
         $r = $pdo->query(
-            "SELECT RECIPES_ID, TITLE, PHOTO_URL FROM RECIPES ORDER BY RECIPES_ID DESC LIMIT 8"
+            "SELECT RECIPES_ID, TITLE, PHOTO_URL FROM RECIPES ORDER BY RECIPES_ID DESC LIMIT 6"
         );
         foreach ($r as $row) {
             $out['results'][] = [
@@ -56,6 +72,32 @@ try {
     $terms   = preg_split('/\s+/', $q, -1, PREG_SPLIT_NO_EMPTY);
     $boolean = implode(' ', array_map(fn($t) => '+' . $t . '*', $terms)); // require each, prefix match
     $like    = '%' . $q . '%';
+    $likePre = $q . '%';
+
+    // People first (Facebook-style). USERS has no FULLTEXT index, so match the
+    // display name with LIKE and rank prefix matches ("jan" -> "Jane") highest.
+    // Distinct placeholders because config runs with emulated prepares OFF.
+    $us = $pdo->prepare(
+        "SELECT USER_ID, NAME, PROFILE_IMAGE
+         FROM USERS
+         WHERE NAME LIKE :l1
+         ORDER BY (NAME LIKE :l2) DESC, NAME ASC
+         LIMIT :lim"
+    );
+    $us->bindValue(':l1', $like);
+    $us->bindValue(':l2', $likePre);
+    $us->bindValue(':lim', $LIMIT, PDO::PARAM_INT);
+    $us->execute();
+    foreach ($us as $row) {
+        $out['results'][] = [
+            'type'     => 'person',
+            'id'       => (int)$row['USER_ID'],
+            'title'    => $row['NAME'] ?: 'Feedora user',
+            'subtitle' => 'View profile',
+            'image'    => $row['PROFILE_IMAGE'] ?: $AVATAR,
+            'url'      => 'profile_details.php?id=' . (int)$row['USER_ID'],
+        ];
+    }
 
     // Recipes (distinct placeholders — config runs with emulated prepares OFF)
     $rs = $pdo->prepare(

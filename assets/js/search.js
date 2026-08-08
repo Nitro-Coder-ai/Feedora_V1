@@ -86,7 +86,7 @@
         ? '<span class="fd-thumb fd-skeleton"><img src="' + esc(it.image) + '" alt="" loading="lazy"'
           + ' onload="this.parentNode.classList.remove(\'fd-skeleton\')" onerror="this.remove()"></span>'
         : '<span class="fd-thumb fd-skeleton"></span>';
-      html += '<a class="fd-item" role="option" href="' + esc(it.url) + '" style="--d:' + (i * 40) + 'ms">'
+      html += '<a class="fd-item fd-type-' + esc(it.type) + '" role="option" href="' + esc(it.url) + '" style="--d:' + (i * 40) + 'ms">'
         + thumb
         + '<span class="fd-meta"><span class="fd-title">' + esc(it.title) + '</span>'
         + '<span class="fd-sub">' + esc(it.subtitle) + '</span></span>'

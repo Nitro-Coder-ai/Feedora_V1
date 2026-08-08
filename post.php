@@ -5,6 +5,42 @@ require_once 'config/config.php';
 require_once 'notification_utils.php';
 // Cloudinary uploader (with graceful local-disk fallback)
 require_once 'includes/CloudinaryService.php';
+
+/**
+ * Validate one uploaded post file by its REAL bytes and push it to Cloudinary.
+ * Accepts images (≤10MB), videos (≤50MB) and audio (≤15MB). Every media type
+ * goes to Cloudinary — never local disk.
+ * @return array{ok:bool,url:?string,public_id:?string,type:?string,error:?string}
+ */
+function feedora_post_upload(array $f, bool $audioOnly = false): array
+{
+    $fail = fn($m) => ['ok' => false, 'url' => null, 'public_id' => null, 'type' => null, 'error' => $m];
+    if (($f['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) return $fail('');
+    $tmp = $f['tmp_name'];
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = $finfo ? (finfo_file($finfo, $tmp) ?: '') : '';
+    if ($finfo) finfo_close($finfo);
+    $size = (int) ($f['size'] ?? 0);
+
+    if (strncmp($mime, 'audio/', 6) === 0 || $mime === 'application/ogg') {
+        if ($size > 15 * 1024 * 1024) return $fail('Audio too large (max 15MB).');
+        $type = 'audio';
+    } elseif (!$audioOnly && strncmp($mime, 'video/', 6) === 0) {
+        if ($size > 50 * 1024 * 1024) return $fail('Video too large (max 50MB).');
+        $type = 'video';
+    } elseif (!$audioOnly && strncmp($mime, 'image/', 6) === 0) {
+        if (safe_image_ext($tmp) === null) return $fail('Invalid image file.');
+        if ($size > 10 * 1024 * 1024) return $fail('Image too large (max 10MB).');
+        $type = 'image';
+    } else {
+        return $fail($audioOnly ? 'Please choose an audio file.' : 'Unsupported file type.');
+    }
+
+    $cloud = CloudinaryService::upload($tmp, 'feedora/posts');
+    if (!$cloud['success']) return $fail('Upload failed. Please try again.');
+    return ['ok' => true, 'url' => $cloud['url'], 'public_id' => $cloud['public_id'], 'type' => $type, 'error' => null];
+}
+
 // Start the session to manage user data
 session_start();
 csrf_verify(); // CSRF: reject forged state-changing POSTs
@@ -53,132 +89,77 @@ $postSuccess = false;
 // Handle post submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = trim($_POST['description'] ?? '');
-    $imageUrl = null;
-    
-    // Handle image upload if present
-    if (isset($_FILES['post_image']) && $_FILES['post_image']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = 'uploads/posts/';
-        
-        // Create directory if it doesn't exist
-        if (!file_exists($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
-        
-        // Check if file is an image or video
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4'];
-        $fileType = $_FILES['post_image']['type'];
-        $fileSize = $_FILES['post_image']['size'];
+    $mediaItems = [];   // carousel media: [ [url,public_id,type], ... ]
+    $audio = null;      // attached music/sound: [url,public_id,type]
+    $imageUrl = null;   // cover (first media) — kept for feed back-compat
 
-        // Derive a SAFE extension from the file's ACTUAL content — never the
-        // client-supplied filename/MIME. This blocks evil.php uploads and shell
-        // metacharacters reaching the ffmpeg exec() below.
-        if ($fileType === 'video/mp4') {
-            $finfo    = finfo_open(FILEINFO_MIME_TYPE);
-            $realMime = $finfo ? finfo_file($finfo, $_FILES['post_image']['tmp_name']) : '';
-            if ($finfo) { finfo_close($finfo); }
-            $safeExt = ($realMime === 'video/mp4') ? 'mp4' : null;
-        } else {
-            $safeExt = safe_image_ext($_FILES['post_image']['tmp_name']);
-        }
-        if ($safeExt === null) {
-            $message  = "Invalid or unsupported file.";
-            $fileType = 'invalid'; // force the allow-list check below to reject
-        }
-
-        // Generate unique filename using the validated extension only.
-        $newFileName    = uniqid('post_') . '.' . ($safeExt ?? 'bin');
-        $targetFilePath = $uploadDir . $newFileName;
-        
-        // Set size limits based on file type
-        $maxImageSize = 5 * 1024 * 1024; // 5MB for images
-        $maxVideoSize = 10 * 1024 * 1024; // 10MB for videos
-        
-        if (in_array($fileType, $allowedTypes)) {
-            // Check file size based on type
-            $isVideo = ($fileType === 'video/mp4');
-            $maxSize = $isVideo ? $maxVideoSize : $maxImageSize;
-            
-            if ($fileSize > $maxSize) {
-                $sizeInMB = $maxSize / (1024 * 1024);
-                $message = $isVideo ? "Video files must be less than {$sizeInMB}MB." : "Image files must be less than {$sizeInMB}MB.";
-            } else {
-                // For videos, check if we can compress them
-                if ($isVideo) {
-                    // First check if ffmpeg is available
-                    exec('where ffmpeg', $ffmpegOutput, $ffmpegReturnCode);
-                    $ffmpegAvailable = ($ffmpegReturnCode === 0);
-                    
-                    if ($ffmpegAvailable) {
-                        // Temporary path for compressed video
-                        $tempPath = $uploadDir . 'temp_' . $newFileName;
-                        
-                        // Try to compress the video
-                        if (move_uploaded_file($_FILES['post_image']['tmp_name'], $tempPath)) {
-                            // Command to compress video (adjust quality as needed)
-                            $cmd = "ffmpeg -i \"$tempPath\" -c:v libx264 -crf 28 -preset faster -c:a aac -b:a 128k \"$targetFilePath\"";
-                            exec($cmd, $output, $returnCode);
-                            
-                            if ($returnCode === 0 && file_exists($targetFilePath)) {
-                                // Compression successful
-                                unlink($tempPath); // Remove temporary file
-                                $imageUrl = $targetFilePath;
-                            } else {
-                                // If compression fails, just use the original file
-                                rename($tempPath, $targetFilePath);
-                                $imageUrl = $targetFilePath;
-                            }
-                        } else {
-                            $message = "Sorry, there was an error uploading your file.";
-                        }
-                    } else { // if ffmpeg is not available
-                        // Just move the file without compression
-                        if (move_uploaded_file($_FILES['post_image']['tmp_name'], $targetFilePath)) {
-                            $imageUrl = $targetFilePath;
-                        } else {
-                            $message = "Sorry, there was an error uploading your file.";
-                        }
-                    }
-                } else { // if not a video
-                    // Try Cloudinary first (direct from the temp file, no local write).
-                    $cloud = CloudinaryService::upload($_FILES['post_image']['tmp_name'], 'feedora/posts');
-                    if ($cloud['success']) {
-                        $imageUrl = $cloud['url'];
-                    } elseif (move_uploaded_file($_FILES['post_image']['tmp_name'], $targetFilePath)) {
-                        // Fallback: keep the legacy local-disk behaviour.
-                        $imageUrl = $targetFilePath;
-                    } else {
-                        $message = "Sorry, there was an error uploading your file.";
-                    }
-                }
-
-                // If a video was processed to local disk, push it to Cloudinary too.
-                if ($isVideo && $imageUrl !== null && strpos($imageUrl, 'uploads/') === 0 && is_file($imageUrl)) {
-                    $cloudV = CloudinaryService::upload($imageUrl, 'feedora/posts');
-                    if ($cloudV['success']) {
-                        @unlink($imageUrl);
-                        $imageUrl = $cloudV['url'];
-                    }
-                }
-            }
-        } else {
-            $message = "Only JPG, PNG, GIF, WEBP, and MP4 files are allowed.";
+    // Gather media files from the new multi-file field `post_media[]` plus the
+    // legacy single `post_image` (back-compat). Everything → Cloudinary.
+    $files = [];
+    if (isset($_FILES['post_media']) && is_array($_FILES['post_media']['name'] ?? null)) {
+        $n = count($_FILES['post_media']['name']);
+        for ($i = 0; $i < $n; $i++) {
+            if (($_FILES['post_media']['error'][$i] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) continue;
+            $files[] = [
+                'name'     => $_FILES['post_media']['name'][$i],
+                'type'     => $_FILES['post_media']['type'][$i],
+                'tmp_name' => $_FILES['post_media']['tmp_name'][$i],
+                'size'     => $_FILES['post_media']['size'][$i],
+                'error'    => $_FILES['post_media']['error'][$i],
+            ];
         }
     }
-    
+    if (isset($_FILES['post_image']) && ($_FILES['post_image']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+        $files[] = $_FILES['post_image'];
+    }
+
+    // Cap the carousel at 10 items; upload each to Cloudinary.
+    foreach (array_slice($files, 0, 10) as $f) {
+        $r = feedora_post_upload($f);
+        if ($r['ok']) $mediaItems[] = $r;
+        elseif ($r['error']) $message = $r['error'];
+    }
+    if ($mediaItems) $imageUrl = $mediaItems[0]['url'];
+
+    // Optional attached music / sound track.
+    if (isset($_FILES['post_audio']) && ($_FILES['post_audio']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+        $ar = feedora_post_upload($_FILES['post_audio'], true);
+        if ($ar['ok']) $audio = $ar;
+        elseif ($ar['error']) $message = $ar['error'];
+    }
+    $audioTitle = trim($_POST['audio_title'] ?? '');
+
     // ENHANCED: Insert post into database and send professional notifications
-    if (!empty($description) || $imageUrl !== null) {
+    if ($description !== '' || $mediaItems || $audio) {
         try {
             // Begin transaction to ensure post and notifications are created together
             $pdo->beginTransaction();
             
             error_log("🚀 Creating post for user ID: {$userId} with name: " . $_SESSION['user_name']);
             
-            // Insert the post
-            $stmt = $pdo->prepare("INSERT INTO POSTS (USER_ID, IMAGE_URL, DESCRIPTION, CREATED_AT) VALUES (?, ?, ?, NOW())");
-            $stmt->execute([$userId, $imageUrl, $description]);
-            
+            // Insert the post (cover = first media; carousel rows added below).
+            $firstType = $mediaItems ? $mediaItems[0]['type'] : 'image';
+            $stmt = $pdo->prepare(
+                "INSERT INTO POSTS (USER_ID, IMAGE_URL, IMAGE_PUBLIC_ID, MEDIA_TYPE, DESCRIPTION, AUDIO_URL, AUDIO_PUBLIC_ID, AUDIO_TITLE, CREATED_AT)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())"
+            );
+            $stmt->execute([
+                $userId, $imageUrl, ($mediaItems[0]['public_id'] ?? null), $firstType, $description,
+                ($audio['url'] ?? null), ($audio['public_id'] ?? null), ($audio ? ($audioTitle !== '' ? $audioTitle : 'Audio') : null),
+            ]);
+
             // Get the new post ID
             $postId = $pdo->lastInsertId();
+
+            // Store every media item for the carousel.
+            if ($mediaItems) {
+                $mStmt = $pdo->prepare(
+                    "INSERT INTO POST_MEDIA (POSTS_ID, MEDIA_URL, MEDIA_PUBLIC_ID, MEDIA_TYPE, POSITION) VALUES (?, ?, ?, ?, ?)"
+                );
+                foreach ($mediaItems as $pos => $m) {
+                    $mStmt->execute([$postId, $m['url'], $m['public_id'], $m['type'], $pos]);
+                }
+            }
             
             error_log("✅ Post created with ID: {$postId}");
             

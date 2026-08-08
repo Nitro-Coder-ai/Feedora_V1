@@ -109,16 +109,17 @@ body {
   width: 110px;
   height: 170px;
   min-width: 110px;
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
   text-decoration: none;
   color: inherit;
-  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  transition: transform 0.35s cubic-bezier(0.165, 0.84, 0.44, 1),
+              box-shadow 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
   cursor: pointer;
   position: relative;
-  background: linear-gradient(135deg, #ffe8e1 0%, #fff2ee 100%);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  background: linear-gradient(160deg, #c0392b 0%, #e74c3c 40%, #f39c12 100%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  border: none;
 }
 
 .story-item:not(.add-story)::after {
@@ -127,11 +128,11 @@ body {
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 65%;
+  height: 72%;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.75) 0%,
-    rgba(0, 0, 0, 0.3) 40%,
+    rgba(0, 0, 0, 0.82) 0%,
+    rgba(0, 0, 0, 0.45) 45%,
     rgba(0, 0, 0, 0) 100%
   );
   z-index: 1;
@@ -139,21 +140,24 @@ body {
   transition: opacity 0.3s ease;
 }
 
-/* Nth-child backgrounds for beautiful story cards since they are dynamically populated without individual background media */
+/* Nth-child fallback gradients — only visible when no backdrop media is present */
 .story-item:not(.add-story):nth-child(2n) {
-  background: linear-gradient(135deg, #ff512f 0%, #f09819 100%);
+  background: linear-gradient(160deg, #b92b27 0%, #1565c0 100%);
 }
 .story-item:not(.add-story):nth-child(3n) {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+  background: linear-gradient(160deg, #f7971e 0%, #e53935 100%);
 }
 .story-item:not(.add-story):nth-child(4n) {
-  background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
+  background: linear-gradient(160deg, #6a3093 0%, #a044ff 50%, #e65c00 100%);
 }
 .story-item:not(.add-story):nth-child(5n) {
-  background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+  background: linear-gradient(160deg, #11998e 0%, #38ef7d 100%);
 }
 .story-item:not(.add-story):nth-child(6n) {
-  background: linear-gradient(135deg, #e65c00 0%, #f9d423 100%);
+  background: linear-gradient(160deg, #f953c6 0%, #b91d73 100%);
+}
+.story-item:not(.add-story):nth-child(7n) {
+  background: linear-gradient(160deg, #4776e6 0%, #8e54e9 100%);
 }
 
 /* Story Backdrop Media */
@@ -169,12 +173,12 @@ body {
 }
 
 .story-item:hover .story-card-bg {
-  transform: scale(1.08);
+  transform: scale(1.1);
 }
 
 .story-item:hover {
-  transform: translateY(-5px) scale(1.03);
-  box-shadow: 0 12px 25px rgba(237, 90, 44, 0.25);
+  transform: translateY(-6px) scale(1.04);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22), 0 0 0 2px rgba(237, 90, 44, 0.35);
 }
 
 .story-avatar {
@@ -2519,5 +2523,194 @@ body {
   .comment-food-reactions,
   .comment-submit {
     display: none;
+  }
+}
+
+/* ============================================================
+   DENSITY: match 80% browser-zoom appearance at 100% zoom
+   All spacing, type, and component sizes reduced ~20%.
+   ============================================================ */
+
+.main-content {
+  padding: 16px;
+}
+
+.dashboard-content {
+  padding: 16px;
+}
+
+.dashboard-title {
+  font-size: 1.44rem;
+  margin-bottom: 16px;
+}
+
+/* Stories */
+.stories-container {
+  padding: 19px;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 16px;
+  margin-bottom: 14px;
+}
+
+.stories-list {
+  gap: 14px;
+}
+
+.story-item {
+  width: 88px;
+  height: 136px;
+  min-width: 88px;
+}
+
+.story-avatar {
+  width: 32px;
+  height: 32px;
+  top: 10px;
+  left: 10px;
+}
+
+.plus-icon-container svg {
+  width: 29px;
+  height: 29px;
+  padding: 6px;
+}
+
+/* Post creation */
+.post-creation-container {
+  margin-bottom: 24px;
+}
+
+.post-tabs {
+  padding: 13px 16px 0;
+  gap: 8px;
+}
+
+.post-tab {
+  padding: 8px 16px;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.post-content {
+  padding: 19px;
+}
+
+.user-info-container {
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.user-profile-pic {
+  width: 40px;
+  height: 40px;
+}
+
+.post-form {
+  gap: 16px;
+}
+
+.post-textarea {
+  min-height: 80px;
+  padding: 12px;
+  font-size: 14px;
+}
+
+.post-button {
+  padding: 8px 16px;
+}
+
+/* Posts feed */
+.posts-feed {
+  margin-top: 24px;
+}
+
+.post-card {
+  margin-bottom: 20px;
+}
+
+.post-header {
+  padding: 13px 16px;
+}
+
+.post-user-pic {
+  width: 38px;
+  height: 38px;
+}
+
+.post-user-name {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.post-meta-row {
+  font-size: 12px;
+}
+
+.post-description {
+  padding: 13px 16px 16px;
+  font-size: 14px;
+}
+
+.post-stats {
+  padding: 4px 13px !important;
+}
+
+.post-likes-container,
+.post-comments {
+  padding: 8px !important;
+  font-size: 12px !important;
+}
+
+.post-likes {
+  font-size: 12px !important;
+}
+
+.reaction-icon {
+  font-size: 16px;
+  min-width: 32px;
+  height: 32px;
+  padding: 6px;
+}
+
+.food-reactions {
+  min-width: 224px !important;
+  padding: 6px 10px !important;
+  bottom: 38px !important;
+}
+
+.reaction-icon span {
+  font-size: 15px;
+}
+
+/* ── Wide-screen scaling: use the space on big monitors (no browser zoom) ──
+   The feed column grows with the viewport instead of staying pinned at 700px,
+   so 1440p/4K users don't need to zoom in to read. All three feed blocks
+   (stories, composer, posts) share the width so they stay aligned. */
+@media (min-width: 1440px) {
+  .dashboard-content {
+    max-width: 1320px;
+  }
+  .stories-container,
+  .post-creation-container,
+  .posts-feed {
+    max-width: 820px;
+  }
+  .posts-feed .post-card {
+    font-size: 15px;
+  }
+}
+@media (min-width: 1800px) {
+  .dashboard-content {
+    max-width: 1480px;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+  .stories-container,
+  .post-creation-container,
+  .posts-feed {
+    max-width: 920px;
   }
 }

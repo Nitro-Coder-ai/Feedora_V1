@@ -75,7 +75,9 @@ class CloudinaryService
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => $postFields,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 60,
+            // Videos are larger and slower to ingest/transcode than images; a
+            // 60s cap was aborting legitimate video uploads before they finished.
+            CURLOPT_TIMEOUT        => 180,
             CURLOPT_CONNECTTIMEOUT => 15,
         ]);
 

@@ -4,10 +4,10 @@ require_once 'config/config.php';
 // Start the session to manage user data
 session_start();
 
-// Check if the user is logged in
+// Logged-out visitors get an attractive public preview of Live Sessions
+// (instead of a bare redirect to sign-in).
 if (!isset($_SESSION['user_id'])) {
-    // Redirect to the login page if not logged in
-    header("Location: sign-in.php");
+    include __DIR__ . '/includes/preview_live.php';
     exit();
 }
 

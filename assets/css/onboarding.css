@@ -1,0 +1,250 @@
+/* Feedora onboarding — taste survey + follow recommendations. */
+
+:root {
+  --primary: #ed5a2c;
+  --primary-dark: #d24a20;
+  --ink: #1c1e21;
+  --muted: #6b7280;
+  --line: #ececec;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Qurova', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(160deg, #fff6f2 0%, #fff 45%, #fef0ea 100%);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+.ob-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 28px 20px 64px;
+}
+
+/* Header + step indicator */
+.ob-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.ob-logo { height: 34px; }
+
+.ob-steps {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ob-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  background: #fff;
+  color: var(--muted);
+  border: 2px solid var(--line);
+}
+
+.ob-dot.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.ob-dot.done { background: #e9f8ee; color: #2e9e54; border-color: #bfe9cd; }
+.ob-line { width: 40px; height: 2px; background: var(--line); }
+
+/* Card */
+.ob-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 36px 34px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.06);
+}
+
+.ob-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 30px;
+  margin: 0 0 8px;
+}
+
+.ob-subtitle {
+  margin: 0 0 26px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.ob-section { margin-bottom: 26px; }
+
+.ob-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 14px;
+  color: var(--ink);
+}
+
+/* Interest chips (pure-CSS selected state) */
+.ob-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ob-chip { position: relative; cursor: pointer; user-select: none; }
+
+.ob-chip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ob-chip span {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: #f6f6f7;
+  border: 1.5px solid transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: #444;
+  transition: all 0.18s ease;
+}
+
+.ob-chip:hover span { background: #efeff0; }
+
+.ob-chip input:checked + span {
+  background: rgba(237, 90, 44, 0.12);
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+.ob-chip input:focus-visible + span {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Actions */
+.ob-actions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ob-actions-split {
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.ob-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 13px 26px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.ob-btn-primary {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(237, 90, 44, 0.28);
+}
+
+.ob-btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+.ob-btn-ghost {
+  background: transparent;
+  color: var(--muted);
+}
+
+.ob-btn-ghost:hover { color: var(--ink); }
+
+/* People grid */
+.ob-people {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.ob-person {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px 14px;
+  text-align: center;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.ob-person:hover {
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.ob-person-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 2px rgba(237, 90, 44, 0.25);
+  margin-bottom: 10px;
+}
+
+.ob-person-name {
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ob-person-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 2px 0 12px;
+}
+
+.ob-follow-btn {
+  width: 100%;
+  border: 1.5px solid var(--primary);
+  background: var(--primary);
+  color: #fff;
+  border-radius: 10px;
+  padding: 9px 0;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.ob-follow-btn:hover { background: var(--primary-dark); }
+
+.ob-follow-btn.is-following {
+  background: #fff;
+  color: var(--primary);
+}
+
+.ob-follow-btn:disabled { opacity: 0.6; cursor: default; }
+
+.ob-empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 30px 0;
+  font-size: 15px;
+}
+
+@media (max-width: 560px) {
+  .ob-card { padding: 26px 20px; }
+  .ob-title { font-size: 24px; }
+  .ob-actions-split { flex-direction: column-reverse; align-items: stretch; }
+  .ob-actions-split .ob-btn { justify-content: center; }
+}

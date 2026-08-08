@@ -239,7 +239,10 @@
             width: 100%;
             height: 100vh; /* Full height */
             overflow: hidden; /* Prevent scrolling */            background-color: var(--background-color);
-            will-change: transform;
+            /* NOTE: do NOT add `will-change: transform` here — it makes
+               .chat-container a containing block + stacking context, which
+               traps the mobile drawer's z-index below the dim overlay
+               (drawer becomes visible-but-untappable). */
             transition: all 0.3s ease;
             -webkit-overflow-scrolling: touch;
             user-select: none;
@@ -1952,3 +1955,156 @@
             }
         }
     
+
+/* ── Refactor: FB/IG-style conversation header, category tabs, badges ──────── */
+.conversations-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 6px;
+}
+.conversations-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  margin: 0;
+  color: #1c1e21;
+}
+.new-message-btn-round {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: #f0f2f5;
+  color: #ed5a2c;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+.new-message-btn-round:hover { background: #ffe6dd; transform: scale(1.05); }
+
+/* Category tabs (Primary / Requests) */
+.conversation-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 6px 16px 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.conv-tab {
+  flex: 1;
+  border: none;
+  background: #f0f2f5;
+  color: #65676b;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 8px 0;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.18s ease;
+}
+.conv-tab.active { background: rgba(237, 90, 44, 0.12); color: #ed5a2c; }
+.conv-tab-badge {
+  background: #ed5a2c;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 11px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.conversation-items { overflow-y: auto; flex: 1; }
+
+.conv-empty {
+  text-align: center;
+  color: #8a8d91;
+  padding: 40px 20px;
+  font-size: 14px;
+}
+
+/* Unread conversation emphasis + count pill */
+.conversation-item.is-unread .conversation-name { font-weight: 800; }
+.conversation-item.is-unread .conversation-last-message { color: #1c1e21; font-weight: 600; }
+.conv-unread {
+  margin-left: auto;
+  align-self: center;
+  background: #ed5a2c;
+  color: #fff;
+  border-radius: 999px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Online presence dot on the avatar */
+.conversation-avatar { position: relative; }
+.conv-online {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  background: #31a24c;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+/* Search icon sits before the input now */
+.search-conversation { display: flex; align-items: center; gap: 8px; }
+
+/* ── Refactor v2: more interactive chat-container + video messages ────────── */
+.conversation-item {
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+.conversation-item:hover { background: #f5f6f7; }
+.conversation-item:active { transform: scale(0.99); }
+.conversation-item.active { background: rgba(237, 90, 44, 0.10); }
+
+/* Message bubbles: subtle entrance + hover lift */
+.message { animation: msgIn 0.18s ease both; }
+@keyframes msgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.message-bubble { transition: box-shadow 0.15s ease; }
+.message:hover .message-bubble { box-shadow: 0 4px 14px rgba(0,0,0,0.10); }
+
+/* Video messages + previews */
+.message-image.is-video video,
+.message-image video {
+  max-width: 260px;
+  max-height: 320px;
+  width: 100%;
+  border-radius: 14px;
+  display: block;
+  background: #000;
+}
+.message-image img { transition: transform 0.2s ease; }
+.message-image img:hover { transform: scale(1.02); }
+
+.image-preview .preview-video {
+  max-width: 120px;
+  max-height: 120px;
+  border-radius: 10px;
+  display: block;
+}
+
+/* Online/offline status colors in the active header */
+.conversation-status .status-online { color: #31a24c; }
+.conversation-status .status-offline { color: #b0b3b8; }
+.conversation-status.online .status-text { color: #31a24c; font-weight: 600; }
+
+/* Smooth send button + input focus */
+.send-message-btn { transition: transform 0.15s ease, background 0.15s ease; }
+.send-message-btn:hover { transform: scale(1.08); }
+.message-input-wrapper textarea:focus { outline: none; }

@@ -195,11 +195,29 @@ function getNotificationLink($notification)
     return $link;
 }
 
+// Unread direct-message count for the header Messages badge (DMs only —
+// group messages are excluded). Independent try/catch so a schema hiccup here
+// never blocks the header from rendering.
+$unreadMessages = 0;
+try {
+    $mStmt = $pdo->prepare(
+        "SELECT COUNT(*) AS c FROM MESSAGES
+         WHERE RECEIVER_ID = ? AND IS_READ = 0 AND GROUP_ID IS NULL"
+    );
+    $mStmt->execute([$userId]);
+    $unreadMessages = (int) ($mStmt->fetch(PDO::FETCH_ASSOC)['c'] ?? 0);
+} catch (Throwable $e) {
+    $unreadMessages = 0;
+}
+
 // ENHANCED: Add debugging information to logs
 error_log("🔍 Header loaded for user: {$userName} (ID: {$userId}) with {$notificationCount} notifications");
 ?>
 
     <link rel="stylesheet" href="<?php echo asset('assets/css/header.css'); ?>">
+    <!-- Global live search (recipes + posts + people) — powered by api/search.php -->
+    <link rel="stylesheet" href="<?php echo asset('assets/css/search.css'); ?>">
+    <script src="<?php echo asset('assets/js/search.js'); ?>" defer></script>
 <!-- Header -->
 <header class="dashboard-header">
     <!-- Hamburger Menu for Mobile -->
@@ -209,10 +227,10 @@ error_log("🔍 Header loaded for user: {$userName} (ID: {$userId}) with {$notif
         <span></span>
     </div>
 
-    <div class="header-logo">
-        <a href="Home.php" aria-label="Go to Feedora home" class="logo-link"><img src="https://res.cloudinary.com/dio1bvxbv/image/upload/f_auto,q_auto/v1782090019/feedora/assets/Muslim-Woman-Cooking-Illustration_Muslim-Woman-Cooking-Illustration-01-svg.svg" alt="Feedora Icon"></a>
+    <!-- Page title (branding lives in the sidebar now) -->
+    <div class="header-title">
+        <span id="current-category">Dashboard</span>
     </div>
-
 
     <!-- Header Actions -->
     <div class="header-actions">
@@ -226,6 +244,24 @@ error_log("🔍 Header loaded for user: {$userName} (ID: {$userId}) with {$notif
                 </svg>
             </button>
         </div>
+
+        <!-- Quick create (new post) — opens the dashboard composer, never the bare POST handler -->
+        <a href="dashboard.php#create-post" class="header-action-item header-quick" id="create-post-btn" title="Create a post" aria-label="Create a post">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </a>
+
+        <!-- Messages with live unread badge (backend: MESSAGES.IS_READ) -->
+        <a href="chat.php" class="header-action-item header-quick messages-icon" id="messages-icon" title="Messages" aria-label="Messages">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <?php if ($unreadMessages > 0): ?>
+                <span class="header-badge" id="messages-badge"><?php echo $unreadMessages > 99 ? '99+' : $unreadMessages; ?></span>
+            <?php endif; ?>
+        </a>
 
         <!-- FIXED: Enhanced Notification with Error Handling -->
         <div class="header-action-item notification-icon" id="notification-icon">
@@ -347,6 +383,10 @@ $userName = $notification['SENDER_NAME'] ?? 'Unknown User';
 
 <!-- Sidebar Overlay -->
 <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<!-- Floating mini-messenger (Facebook-style) — every app page EXCEPT the chat
+     page, which is itself the full messenger. -->
+<?php if (basename($_SERVER['PHP_SELF']) !== 'chat.php') { include __DIR__ . '/includes/messenger.php'; } ?>
 
     <script src="<?php echo asset('assets/js/header.js'); ?>" defer></script>
 <!-- Feedora client-side WebP image compressor (auto-attaches to image file inputs) -->

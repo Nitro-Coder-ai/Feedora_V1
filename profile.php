@@ -219,8 +219,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_image'])) {
             <li><a href="Home.php" class="footer-link">Home</a></li>
             <li><a href="#" class="footer-link">Recipes</a></li>
             <li><a href="#" class="footer-link">Live Sessions</a></li>
-            <li><a href="#" class="footer-link">Contact</a></li>
-            <li><a href="#" class="footer-link">Terms & Privacy</a></li>
+            <li><a href="contact.php" class="footer-link">Contact</a></li>
+            <li><a href="terms.php" class="footer-link">Terms & Privacy</a></li>
           </ul>
         </div>
         
