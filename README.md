@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/images/hero-banner.png" alt="Feedora — Discover, Cook & Share" width="100%" />
+  <img src="https://res.cloudinary.com/dio1bvxbv/image/upload/v1782089976/feedora/assets/Feedora-svg.svg" alt="Feedora" width="280" />
 </p>
 
-<h1 align="center">🍽️ Feedora</h1>
+<h1 align="center">Feedora</h1>
 
 <p align="center">
   <strong>A social platform where food lovers discover, cook, and share recipes together.</strong>
@@ -48,10 +48,6 @@
 
 ## 🚀 Features
 
-<p align="center">
-  <img src="docs/images/features-showcase.png" alt="Feedora Features Showcase" width="90%" />
-</p>
-
 ### Core Platform
 
 | Feature | Description |
@@ -93,39 +89,151 @@
 
 ## 🏗️ Architecture
 
-<p align="center">
-  <img src="docs/images/tech-architecture.png" alt="Feedora Technical Architecture" width="90%" />
-</p>
-
-### System Overview
+### High-Level Overview
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                      CLIENT LAYER                       │
-│  HTML5 · CSS3 · Vanilla JS · Responsive Design          │
-│  Custom Qurova + DM Serif Display typography            │
-├─────────────────────────────────────────────────────────┤
-│                      SERVER LAYER                       │
-│  PHP 8.x · PDO · Session Management · CSRF Protection   │
-│                                                         │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │
-│  │   Auth   │ │ Recipes  │ │  Social  │ │   Chat   │   │
-│  │ Service  │ │ Service  │ │  Feed    │ │ Service  │   │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘   │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │
-│  │ Stories  │ │  Notif.  │ │  Media   │ │  Mailer  │   │
-│  │ Service  │ │ Service  │ │ Service  │ │ Service  │   │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘   │
-├─────────────────────────────────────────────────────────┤
-│                     DATA LAYER                          │
-│  MySQL 5.7+ · InnoDB · utf8mb4 · Full-Text Search       │
-├─────────────────────────────────────────────────────────┤
-│                   CLOUD SERVICES                        │
-│  Cloudinary (CDN/Media) · SMTP (Email) · OAuth (G/FB)   │
-└─────────────────────────────────────────────────────────┘
+                            ┌──────────────────────────┐
+                            │        BROWSER           │
+                            │  HTML5 / CSS3 / ES6+ JS  │
+                            └────────────┬─────────────┘
+                                         │  HTTP / AJAX (JSON)
+                                         ▼
+┌────────────────────────────────────────────────────────────────────┐
+│                         APACHE + .htaccess                        │
+│              URL rewriting · GZIP · Security headers              │
+└────────────────────────────────┬───────────────────────────────────┘
+                                 │
+                                 ▼
+┌────────────────────────────────────────────────────────────────────┐
+│                        PHP APPLICATION LAYER                      │
+│                                                                   │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐               │
+│  │  Routing &  │  │   Session   │  │    CSRF     │               │
+│  │  Entry Pts  │  │  Management │  │  Middleware  │               │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘               │
+│         └────────────────┼────────────────┘                      │
+│                          ▼                                        │
+│  ┌────────────────────────────────────────────────────────────┐   │
+│  │                    SERVICE MODULES                         │   │
+│  │                                                            │   │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │   │
+│  │  │     Auth     │  │   Recipes    │  │  Social Feed │     │   │
+│  │  │   Service    │  │   Service    │  │   Service    │     │   │
+│  │  │              │  │              │  │              │     │   │
+│  │  │ • Login/     │  │ • CRUD ops   │  │ • Post CRUD │     │   │
+│  │  │   Register   │  │ • Categories │  │ • Reactions  │     │   │
+│  │  │ • OAuth 2.0  │  │ • Difficulty │  │ • Comments  │     │   │
+│  │  │   (G + FB)   │  │   filters    │  │ • Feed algo │     │   │
+│  │  │ • Email      │  │ • Full-text  │  │ • Media     │     │   │
+│  │  │   verify     │  │   search     │  │   uploads   │     │   │
+│  │  │ • Password   │  │ • Save/      │  │             │     │   │
+│  │  │   hashing    │  │   bookmark   │  │             │     │   │
+│  │  └──────────────┘  └──────────────┘  └──────────────┘     │   │
+│  │                                                            │   │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │   │
+│  │  │    Chat &    │  │   Stories    │  │ Notification │     │   │
+│  │  │  Messenger   │  │   Service    │  │   Service    │     │   │
+│  │  │              │  │              │  │              │     │   │
+│  │  │ • 1-on-1 DMs │  │ • Create /  │  │ • Event-     │     │   │
+│  │  │ • Group chat │  │   view      │  │   driven     │     │   │
+│  │  │ • Media      │  │ • 24h auto- │  │   alerts     │     │   │
+│  │  │   sharing    │  │   expiry    │  │ • Follows,   │     │   │
+│  │  │ • Reactions  │  │ • View      │  │   reactions, │     │   │
+│  │  │ • Read       │  │   tracking  │  │   comments,  │     │   │
+│  │  │   receipts   │  │ • Reactions │  │   stories    │     │   │
+│  │  │ • Presence   │  │   & replies │  │ • Read/      │     │   │
+│  │  │   (online/   │  │ • Visibility│  │   unread     │     │   │
+│  │  │   last seen) │  │   controls  │  │   state      │     │   │
+│  │  │ • Calls      │  │ • Cleanup   │  │              │     │   │
+│  │  │   (V&V)      │  │   cron      │  │              │     │   │
+│  │  └──────────────┘  └──────────────┘  └──────────────┘     │   │
+│  │                                                            │   │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │   │
+│  │  │   Profile    │  │    Media     │  │    Mailer    │     │   │
+│  │  │   Service    │  │   Service    │  │   Service    │     │   │
+│  │  │              │  │              │  │              │     │   │
+│  │  │ • Profile    │  │ • Cloudinary │  │ • Raw SMTP  │     │   │
+│  │  │   CRUD       │  │   upload     │  │   client    │     │   │
+│  │  │ • Avatar &   │  │ • Auto-      │  │ • Verify    │     │   │
+│  │  │   banner     │  │   format     │  │   emails    │     │   │
+│  │  │ • Followers  │  │ • Responsive │  │ • Template  │     │   │
+│  │  │ • Onboarding │  │   transforms │  │   rendering │     │   │
+│  │  │ • Settings   │  │ • Video      │  │ • Multi-    │     │   │
+│  │  │              │  │   compress   │  │   provider  │     │   │
+│  │  └──────────────┘  └──────────────┘  └──────────────┘     │   │
+│  └────────────────────────────────────────────────────────────┘   │
+│                          │                                        │
+│  ┌───────────────────────┼────────────────────────────────────┐   │
+│  │              DATA ACCESS LAYER (PDO)                       │   │
+│  │                                                            │   │
+│  │  • StoryRepository    • MessageRepository                  │   │
+│  │  • CallRepository     • Prepared statements only           │   │
+│  │  • Query builders     • Transaction support                │   │
+│  └───────────────────────┬────────────────────────────────────┘   │
+└──────────────────────────┼────────────────────────────────────────┘
+                           │  PDO (mysql)
+                           ▼
+┌────────────────────────────────────────────────────────────────────┐
+│                     MySQL 5.7+  (InnoDB)                          │
+│                                                                   │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐             │
+│  │  USERS   │ │  POSTS   │ │ RECIPES  │ │ STORIES  │             │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘             │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐             │
+│  │ MESSAGES │ │ COMMENTS │ │FOLLOWERS │ │NOTIFIC.  │             │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘             │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐             │
+│  │  CALLS   │ │ GRP_CHAT │ │REACTIONS │ │  SAVES   │             │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘             │
+│                                                                   │
+│  utf8mb4 · Full-Text indexes · Foreign keys · Triggers            │
+└────────────────────────────────────────────────────────────────────┘
+
+                           │
+              ┌────────────┼────────────────┐
+              ▼            ▼                ▼
+   ┌──────────────┐ ┌────────────┐ ┌──────────────┐
+   │  Cloudinary  │ │   SMTP     │ │   OAuth 2.0  │
+   │  (Media CDN) │ │  (Email)   │ │  (Google/FB) │
+   │              │ │            │ │              │
+   │ • f_auto     │ │ • Gmail    │ │ • Auth code  │
+   │ • q_auto     │ │ • Outlook  │ │   flow       │
+   │ • w_{size}   │ │ • Brevo    │ │ • Token      │
+   │ • destroy()  │ │ • SendGrid │ │   exchange   │
+   └──────────────┘ └────────────┘ └──────────────┘
 ```
 
-### 🛠️ Tech Stack
+### Request Lifecycle
+
+```
+ User clicks "Create Post"
+        │
+        ▼
+ ┌─ Browser ─────────────────────────────────────────────────────┐
+ │  1. JS validates form (client-side)                           │
+ │  2. Builds FormData with CSRF token + media                   │
+ │  3. fetch() POST → /dashboard.php?action=create_post          │
+ └───────────────────────────────┬───────────────────────────────┘
+                                 │
+                                 ▼
+ ┌─ Server ──────────────────────────────────────────────────────┐
+ │  4. Apache routes through .htaccess                           │
+ │  5. PHP loads session → verifies CSRF token                   │
+ │  6. Validates input (size limits, MIME check, XSS sanitize)   │
+ │  7. CloudinaryService::upload() → CDN URL returned            │
+ │  8. PDO prepared INSERT into POSTS table                      │
+ │  9. notification_utils → fan-out alerts to followers          │
+ │ 10. JSON response { success: true, post_id: 42 }             │
+ └───────────────────────────────┬───────────────────────────────┘
+                                 │
+                                 ▼
+ ┌─ Browser ─────────────────────────────────────────────────────┐
+ │ 11. JS receives response → injects post card into DOM         │
+ │ 12. Smooth scroll-reveal animation plays                      │
+ └───────────────────────────────────────────────────────────────┘
+```
+
+### Tech Stack
 
 | Layer | Technologies |
 |-------|-------------|
@@ -234,8 +342,7 @@ Feedora_Project_Full/
 │   └── fixtures.ts                # Shared test fixtures
 │
 ├── 📁 docs/
-│   ├── AUTH_SETUP.md              # OAuth & email setup guide
-│   └── images/                    # README images
+│   └── AUTH_SETUP.md              # OAuth & email setup guide
 │
 ├── 📁 fonts/                      # Custom Qurova font family
 ├── 📄 Feedora.sql                 # Full database schema
@@ -351,8 +458,6 @@ erDiagram
 
 ### Migration Scripts
 
-Database schema evolves through incremental migration scripts in `scripts/`:
-
 | Script | Purpose |
 |--------|---------|
 | `2026_schema_optimize.sql` | Core schema optimization (indexes, types) |
@@ -366,8 +471,6 @@ Database schema evolves through incremental migration scripts in `scripts/`:
 | `2026_story_visibility_and_onboarding.sql` | Story privacy & onboarding |
 
 ---
-
-</details>
 
 ## 🔌 API Reference
 
@@ -423,10 +526,6 @@ Returns a filtered list of users for starting new conversations.
 ---
 
 ## 🚀 Quick Start
-
-<p align="center">
-  <img src="docs/images/getting-started.png" alt="Getting Started" width="90%" />
-</p>
 
 ### Prerequisites
 
@@ -596,9 +695,7 @@ php scripts/replace_image_refs.php
 
 ---
 
-## 🔒 Security Features
-
-Feedora implements multiple layers of security:
+## 🔒 Security
 
 | Feature | Implementation |
 |---------|---------------|
@@ -640,8 +737,6 @@ Built-in SMTP client (no external library) supports:
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how to get started:
-
 1. **Fork** the repository
 2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
 3. **Commit** your changes: `git commit -m 'feat: add amazing feature'`
@@ -649,8 +744,6 @@ We welcome contributions! Here's how to get started:
 5. **Open** a Pull Request
 
 ### Commit Convention
-
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 | Prefix | Purpose |
 |--------|---------|
@@ -661,12 +754,6 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 | `refactor:` | Code refactoring |
 | `test:` | Adding/updating tests |
 | `chore:` | Build tools, dependencies, etc. |
-
-### Code Style
-
-- **PHP**: PSR-12 compatible, PDO for all queries, `htmlspecialchars()` on output
-- **CSS**: BEM-inspired naming, modular file structure
-- **JS**: ES6+, no framework dependencies, event delegation where possible
 
 ---
 
