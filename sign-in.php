@@ -34,12 +34,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // Prepare an SQL statement to find the user by email
-        $stmt = $pdo->prepare("SELECT USER_ID, NAME, EMAIL, PASSWORD_HASH FROM USERS WHERE EMAIL = ?");
+        $stmt = $pdo->prepare("SELECT USER_ID, NAME, EMAIL, PASSWORD_HASH, ONBOARDED, EMAIL_VERIFIED FROM USERS WHERE EMAIL = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         // Check if user exists and verify password
-        if ($user && password_verify($password, $user['PASSWORD_HASH'])) {
+        if ($user && $user['PASSWORD_HASH'] !== null && password_verify($password, $user['PASSWORD_HASH'])) {
+            // Gate: unverified email → don't grant access. Reissue a fresh token,
+            // resend the email, and send them to the "check your inbox" page.
+            if ((int) ($user['EMAIL_VERIFIED'] ?? 0) === 0) {
+                $token = make_verification_token();
+                $pdo->prepare("UPDATE USERS SET VERIFICATION_TOKEN = ?, VERIFICATION_EXPIRES = ? WHERE USER_ID = ?")
+                    ->execute([hash_verification_token($token), date('Y-m-d H:i:s', time() + 86400), $user['USER_ID']]);
+                send_verification_email($user['EMAIL'], $user['NAME'], $token);
+                $_SESSION['pending_verify_email'] = $user['EMAIL'];
+                $_SESSION['pending_verify_uid']   = (int) $user['USER_ID'];
+                if (!mailer_configured()) $_SESSION['pending_verify_link'] = verification_link($token);
+                header('Location: verify-notice.php');
+                exit;
+            }
+
             // Prevent session fixation: issue a fresh session ID on privilege change.
             session_regenerate_id(true);
 
@@ -51,6 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Update last login timestamp
             $updateStmt = $pdo->prepare("UPDATE USERS SET LAST_LOGIN_AT = CURRENT_TIMESTAMP WHERE USER_ID = ?");
             $updateStmt->execute([$user['USER_ID']]);
+
+            // First-time users complete the taste survey + follow suggestions
+            // before landing on their profile.
+            if ((int) ($user['ONBOARDED'] ?? 0) === 0) {
+                header('Location: onboarding.php');
+                exit;
+            }
 
             // Redirect to profile page after successful login
             header('Location: profile.php');
@@ -218,7 +239,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           
           <button type="submit" class="login-button">Login</button>
         </form>
-        
+
+        <?php include __DIR__ . '/includes/social_login.php'; ?>
+
         <div class="signup-link">
           <p>Don't have an account? <a href="sign-up.php">Sign up</a></p>
         </div>
@@ -257,8 +280,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <li><a href="home.php" class="footer-link">Home</a></li>
             <li><a href="recipes.php" class="footer-link">Recipes</a></li>
             <li><a href="live-sessions.php" class="footer-link">Live Sessions</a></li>
-            <li><a href="#" class="footer-link">Contact</a></li>
-            <li><a href="#" class="footer-link">Terms & Privacy</a></li>
+            <li><a href="contact.php" class="footer-link">Contact</a></li>
+            <li><a href="terms.php" class="footer-link">Terms & Privacy</a></li>
           </ul>
         </div>
         

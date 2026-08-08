@@ -14,27 +14,35 @@
         --sidebar-width: 250px;
     }
 
-    /* Header Styles */
+    /* Header Styles — simple, sticky at the top, no motion */
     .dashboard-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 20px;
-        background-color: white;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        position: relative;
-        z-index: 90;
-        height: 70px;
+        padding: 12px 24px;
+        background-color: #fff;
+        border-bottom: 1px solid #eef0f3;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        position: sticky;
+        top: 0;
+        z-index: 95;
+        height: 68px;
         width: 100%;
         box-sizing: border-box;
         overflow: visible;
-        /* Changed from hidden to prevent clipping */
     }
 
-    .header-logo img {
-        height: 36px;
-        max-width: 140px;
-        object-fit: contain;
+    /* Simple page title where the redundant logo used to be */
+    .header-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-color);
+        letter-spacing: -0.2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+        flex-shrink: 0;
     }
 
 
@@ -58,14 +66,10 @@
         align-items: center;
         justify-content: center;
         height: 40px;
-        transition: transform var(--transition-speed);
         flex-shrink: 0;
         /* Prevent individual items from shrinking */
     }
-
-    .header-action-item:hover {
-        transform: translateY(-2px);
-    }
+    /* No hover lift — keep the header calm and simple. */
 
     /* Search Container */
     .search-container {
@@ -139,11 +143,12 @@
         cursor: pointer;
     }
 
+    /* No hover highlight boxes on the header — keep it flat & clean. */
     .notification-icon:hover,
     .settings-icon:hover {
-        background-color: rgba(237, 90, 44, 0.1);
+        background-color: transparent;
         color: var(--primary-color);
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+        box-shadow: none;
     }
 
     .notification-badge {
@@ -396,7 +401,7 @@
     }
 
     .user-profile:hover {
-        background-color: rgba(237, 90, 44, 0.05);
+        background-color: transparent;
     }
 
     .user-info {
@@ -526,6 +531,11 @@
 
         .header-logo {
             display: none;
+        }
+
+        /* Page title stays as the mobile heading, just a touch smaller. */
+        .header-title {
+            font-size: 17px;
         }
 
         /* FIXED: Better responsive header actions */
@@ -664,6 +674,11 @@
         .search-container.expanded {
             width: 160px;
             right: auto;
+        }
+
+        /* Free up room on tiny screens — the hamburger + actions are enough. */
+        .header-title {
+            display: none;
         }
     }
 
@@ -814,3 +829,62 @@
             margin: 10px auto !important;
         }
     }
+
+/* ── New header quick actions (Create, Messages) + live badge ───────────── */
+.header-quick {
+    color: var(--light-text);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+/* No hover box on the icons — only a color shift. The .active state (messenger
+   open) keeps its subtle highlight so you can see it's toggled on. */
+.header-quick:hover {
+    background-color: transparent;
+    color: var(--primary-color);
+}
+.header-quick.messages-icon.active {
+    background-color: rgba(237, 90, 44, 0.12);
+    color: var(--primary-color);
+}
+/* The "create" plus reads as the primary action — give it a filled look */
+#create-post-btn {
+    background: var(--primary-color);
+    color: #fff;
+}
+#create-post-btn:hover {
+    background: #d24a20;
+    color: #fff;
+}
+
+/* Count badge for messages (matches the notification badge language) */
+.header-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    background-color: var(--primary-color);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(237, 90, 44, 0.35);
+    animation: pulse 2s infinite;
+}
+
+@media (max-width: 768px) {
+    /* Keep the header uncluttered on phones — search + create + notifications
+       are the essentials; messages lives in the sidebar there. */
+    .header-quick.messages-icon { display: none; }
+}

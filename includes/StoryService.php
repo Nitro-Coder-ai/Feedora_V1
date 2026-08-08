@@ -149,6 +149,21 @@ class StoryService {
     public function getUserStories($userId) {
         return $this->repository->getUserStories($userId);
     }
+
+    /**
+     * Visibility-aware variants used by the story viewer / dashboard tray.
+     */
+    public function getActiveStoryUserIds($viewerId) {
+        return $this->repository->getActiveStoryUserIds($viewerId);
+    }
+
+    public function getVisibleUserStories($authorId, $viewerId) {
+        return $this->repository->getVisibleUserStories($authorId, $viewerId);
+    }
+
+    public function isFollowing($authorId, $viewerId) {
+        return $this->repository->isFollowing($authorId, $viewerId);
+    }
     
     /**
      * Get all active stories grouped by user
@@ -281,17 +296,16 @@ class StoryService {
             return true;
         }
         
-        // Check visibility settings
+        // Public stories are visible to everyone (recommendation feed).
         if ($story['VISIBILITY'] === 'public') {
             return true;
         }
-        
-        // Add friends-only logic here if needed
+
+        // Friends-only stories are visible only to the author's followers.
         if ($story['VISIBILITY'] === 'friends') {
-            // For now, allow all users - implement friend checking logic as needed
-            return true;
+            return $this->repository->isFollowing($story['USER_ID'], $userId);
         }
-        
+
         return false;
     }
 }

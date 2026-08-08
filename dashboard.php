@@ -12,10 +12,10 @@ require_once 'notification_utils.php';
 session_start();
 csrf_verify(); // CSRF: reject forged state-changing POSTs
 
-// Check if the user is logged in
+// Logged-out visitors get an attractive public preview of the Community
+// (instead of a bare redirect to sign-in).
 if (!isset($_SESSION['user_id'])) {
-    // Redirect to the login page if not logged in
-    header("Location: sign-in.php");
+    include __DIR__ . '/includes/preview_community.php';
     exit();
 }
 
@@ -229,27 +229,39 @@ if (!$profileImage) {
                     // Get active stories from the database (less than 24 hours old)
                     // Enhanced Stories Query - Get all active stories grouped by user with counts
                     try {
+                        // Visibility algorithm enforced in SQL: a user appears in the
+                        // tray only if they have >=1 story this viewer may see —
+                        // own stories, any 'public' story, or 'friends' stories when
+                        // the viewer follows the author. First-story fields use
+                        // GROUP_CONCAT (newline separator avoids Cloudinary commas)
+                        // so the whole tray is a single optimized query.
                         $storyStmt = $pdo->prepare(
-                            "SELECT 
+                            "SELECT
                     s.USER_ID,
-                    u.NAME, 
+                    u.NAME,
                     u.PROFILE_IMAGE,
-                    COUNT(s.STORIES_ID) as story_count,
+                    COUNT(DISTINCT s.STORIES_ID) as story_count,
                     MAX(s.CREATED_AT) as latest_story_time,
-                    (SELECT s2.STORIES_ID FROM STORIES s2 WHERE s2.USER_ID = s.USER_ID AND s2.EXPIRES_AT > NOW() ORDER BY s2.CREATED_AT ASC LIMIT 1) as first_story_id,
-                    (SELECT s2.IMAGE_URL FROM STORIES s2 WHERE s2.USER_ID = s.USER_ID AND s2.EXPIRES_AT > NOW() ORDER BY s2.CREATED_AT ASC LIMIT 1) as first_story_image,
-                    (SELECT s2.MEDIA_TYPE FROM STORIES s2 WHERE s2.USER_ID = s.USER_ID AND s2.EXPIRES_AT > NOW() ORDER BY s2.CREATED_AT ASC LIMIT 1) as first_story_type,
-                    (SELECT COUNT(*) FROM STORY_VIEWS sv 
-                     WHERE sv.STORY_ID IN (SELECT s3.STORIES_ID FROM STORIES s3 WHERE s3.USER_ID = s.USER_ID AND s3.EXPIRES_AT > NOW()) 
-                     AND sv.VIEWER_ID = ?) as total_viewed_count,
-                    (SELECT COUNT(*) FROM STORIES s4 WHERE s4.USER_ID = s.USER_ID AND s4.EXPIRES_AT > NOW()) as total_stories_count
-                FROM STORIES s 
-                JOIN USERS u ON s.USER_ID = u.USER_ID 
-                WHERE s.EXPIRES_AT > NOW() 
+                    SUBSTRING_INDEX(GROUP_CONCAT(s.STORIES_ID ORDER BY s.CREATED_AT ASC), ',', 1) as first_story_id,
+                    SUBSTRING_INDEX(GROUP_CONCAT(s.IMAGE_URL ORDER BY s.CREATED_AT ASC SEPARATOR 0x0A), 0x0A, 1) as first_story_image,
+                    SUBSTRING_INDEX(GROUP_CONCAT(s.MEDIA_TYPE ORDER BY s.CREATED_AT ASC), ',', 1) as first_story_type,
+                    COUNT(DISTINCT sv.STORY_ID) as total_viewed_count,
+                    COUNT(DISTINCT s.STORIES_ID) as total_stories_count
+                FROM STORIES s
+                JOIN USERS u ON s.USER_ID = u.USER_ID
+                LEFT JOIN STORY_VIEWS sv ON sv.STORY_ID = s.STORIES_ID AND sv.VIEWER_ID = ?
+                WHERE s.EXPIRES_AT > NOW()
+                  AND (
+                        s.USER_ID = ?
+                     OR s.VISIBILITY = 'public'
+                     OR (s.VISIBILITY = 'friends' AND EXISTS (
+                            SELECT 1 FROM FOLLOWERS f
+                            WHERE f.USER_ID = s.USER_ID AND f.FOLLOWER_ID = ?))
+                  )
                 GROUP BY s.USER_ID, u.NAME, u.PROFILE_IMAGE
                 ORDER BY latest_story_time DESC"
                         );
-                        $storyStmt->execute([$userId]);
+                        $storyStmt->execute([$userId, $userId, $userId]);
                         $userStories = $storyStmt->fetchAll(PDO::FETCH_ASSOC);
 
                         // Display each user's story with enhanced UI
@@ -312,7 +324,7 @@ if (!$profileImage) {
             </div>
 
             <!-- Post Creation Section -->
-            <div class="post-creation-container">
+            <div class="post-creation-container" id="create-post" style="scroll-margin-top:88px;">
                 <div class="post-tabs">
                     <div class="post-tab active">Make Post</div>
                     <div class="post-tab">Make Recipe</div>

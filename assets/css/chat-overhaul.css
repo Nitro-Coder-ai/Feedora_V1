@@ -1,0 +1,2960 @@
+/* ============================================================================
+ * Feedora chat — clean & simple dark theme (Discord-inspired, Feedora Orange).
+ * Loaded AFTER chat.css so these win over the legacy light theme.
+ * ==========================================================================*/
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  --fd-orange: #ed5a2c;
+  --fd-orange-dark: #d24a20;
+  --fd-green: #2ecc71;
+  --fd-red: #e74c3c;
+  /* Clean white / light theme */
+  --bg-main: #ffffff; /* main chat area */
+  --bg-panel: #f6f7f9; /* sidebars (rail, chat list, info) */
+  --bg-input: #eef0f3; /* inputs, search */
+  --bg-card: #f0f2f5; /* received bubbles, chips, buttons */
+  --tx-white: #0f1115; /* headers + names (primary text) */
+  --tx-body: #1c1e21; /* message/body text */
+  --tx-muted: #65676b; /* timestamps / secondary */
+  --line: rgba(0, 0, 0, 0.08);
+  --line-2: rgba(0, 0, 0, 0.12);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  --hover: rgba(0, 0, 0, 0.05);
+  --ease: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  background: var(--bg-main);
+}
+.main-content {
+  background: var(--bg-main);
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  max-height: 100vh;
+  background: var(--bg-main);
+  overflow: hidden;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  color: var(--tx-body);
+}
+
+/* ── Column 1: group rail ─────────────────────────────────────────────────── */
+.group-rail {
+  width: 76px;
+  min-width: 76px;
+  background: var(--bg-panel);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+  gap: 14px;
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.group-rail::-webkit-scrollbar {
+  display: none;
+}
+.rail-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: var(--ease);
+}
+.rail-logo:hover {
+  transform: scale(1.05);
+}
+.rail-logo img {
+  width: 30px;
+  height: 30px;
+}
+.rail-sep {
+  width: 36px;
+  height: 2px;
+  background: var(--line-2);
+  border-radius: 2px;
+}
+.rail-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  flex: 1;
+  width: 100%;
+}
+.rail-item,
+.rail-add,
+.rail-group {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: #4b4d52;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 600;
+  position: relative;
+  overflow: visible;
+  transition: var(--ease);
+}
+.rail-item:hover,
+.rail-add:hover,
+.rail-group:hover {
+  border-radius: 16px;
+  background: var(--fd-orange);
+  color: #fff;
+  transform: scale(1.02);
+}
+.rail-item:active,
+.rail-add:active,
+.rail-group:active {
+  transform: scale(0.97);
+}
+.rail-item.active,
+.rail-group.active {
+  border-radius: 16px;
+  background: var(--fd-orange);
+  color: #fff;
+}
+/* active left-edge accent pill */
+.rail-item.active::before,
+.rail-group.active::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 26px;
+  background: var(--fd-orange);
+  border-radius: 0 4px 4px 0;
+}
+.rail-group img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+.rail-add {
+  background: rgba(46, 204, 113, 0.14);
+  color: var(--fd-green);
+}
+.rail-add:hover {
+  background: var(--fd-green);
+  color: #fff;
+}
+.rail-group .rail-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background: var(--fd-red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  border: 2px solid var(--bg-panel);
+}
+
+/* ── Column 2: conversations ──────────────────────────────────────────────── */
+.conversations-list {
+  width: 300px;
+  min-width: 300px;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: static;
+}
+.conversations-top {
+  padding: 20px 18px 10px;
+}
+.conversations-title {
+  color: var(--tx-white);
+  font-weight: 700;
+  font-size: 22px;
+  margin: 0;
+}
+.search-conversation {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 16px 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 14px;
+  transition: var(--ease);
+}
+.search-conversation:focus-within {
+  border-color: rgba(237, 90, 44, 0.5);
+}
+.search-conversation .search-icon {
+  color: var(--tx-muted);
+  font-size: 13px;
+}
+.search-conversation input {
+  background: transparent;
+  color: var(--tx-body);
+  border: none;
+  width: 100%;
+  font-size: 14px;
+}
+.search-conversation input::placeholder {
+  color: var(--tx-muted);
+}
+.conversation-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 6px 16px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.conv-tab {
+  flex: 1;
+  background: var(--bg-card);
+  color: var(--tx-muted);
+  border: none;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 9px 0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: var(--ease);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.conv-tab.active {
+  background: rgba(237, 90, 44, 0.15);
+  color: var(--fd-orange);
+}
+.conv-tab-badge {
+  background: var(--fd-red);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 11px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.conversation-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+.conv-section-label {
+  color: var(--tx-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 12px 10px 6px;
+}
+.conversation-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  position: relative;
+  transition: var(--ease);
+}
+.conversation-item:hover {
+  background: var(--hover);
+}
+.conversation-item.active {
+  background: rgba(237, 90, 44, 0.12);
+}
+.conversation-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background: var(--fd-orange);
+  border-radius: 0 3px 3px 0;
+}
+.conversation-avatar {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+}
+.conversation-avatar img {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.conv-online {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  background: var(--fd-green);
+  border: 2px solid var(--bg-panel);
+  border-radius: 50%;
+}
+.conversation-info {
+  flex: 1;
+  min-width: 0;
+}
+.conversation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.conversation-name {
+  color: var(--tx-body);
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.conversation-last-message {
+  color: var(--tx-muted);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.conversation-time {
+  color: var(--tx-muted);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.conversation-item.is-unread .conversation-name {
+  color: var(--tx-white);
+  font-weight: 700;
+}
+.conversation-item.is-unread .conversation-last-message {
+  color: var(--tx-body);
+}
+.conv-unread {
+  margin-left: auto;
+  align-self: center;
+  background: var(--fd-orange);
+  color: #fff;
+  border-radius: 999px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.conv-empty {
+  color: var(--tx-muted);
+  text-align: center;
+  padding: 30px 16px;
+  font-size: 13px;
+}
+
+/* ── Column 3: main chat ──────────────────────────────────────────────────── */
+.chat-container > .message-content {
+  flex: 1;
+  background: var(--bg-main);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-width: 0;
+}
+.message-header {
+  background: var(--bg-main);
+  border-bottom: 1px solid var(--line);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.message-header-title {
+  color: var(--tx-white);
+  font-weight: 700;
+  margin: 0;
+  font-size: 18px;
+}
+.message-area {
+  background: var(--bg-main);
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.no-message-selected {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--tx-muted);
+  text-align: center;
+  gap: 8px;
+  padding: 24px;
+}
+.no-message-selected .icon-container {
+  font-size: 44px;
+  color: var(--fd-orange);
+  margin-bottom: 8px;
+}
+.no-message-selected h3 {
+  color: var(--tx-white);
+  margin: 0;
+  font-weight: 600;
+}
+
+.active-conversation {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.conversation-header-active {
+  background: var(--bg-main);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.conversation-header-avatar img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.conversation-header-info {
+  flex: 1;
+  min-width: 0;
+}
+#active-conversation-name {
+  color: var(--tx-white);
+  font-weight: 700;
+  font-size: 16px;
+}
+.conversation-status {
+  color: var(--tx-muted);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.conversation-status .status-online {
+  color: var(--fd-green);
+}
+.conversation-status .status-offline {
+  color: var(--tx-muted);
+}
+.conversation-status.online .status-text {
+  color: var(--fd-green);
+}
+.conversation-header-actions {
+  display: flex;
+  gap: 8px;
+}
+.header-action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  color: var(--tx-body);
+  cursor: pointer;
+  transition: var(--ease);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.header-action-btn:hover {
+  background: #e4e6eb;
+  transform: scale(1.02);
+}
+.header-action-btn:active {
+  transform: scale(0.97);
+}
+.header-action-btn.call-btn:hover {
+  background: var(--fd-orange);
+  color: #fff;
+  border-color: transparent;
+}
+
+.messages-container {
+  background: var(--bg-main);
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Message rows */
+.message {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: 76%;
+}
+.message-received {
+  align-self: flex-start;
+}
+.message-sent {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+.message-avatar img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.message-sent .message-avatar {
+  display: none;
+}
+/* Per-message content wrapper — kill legacy light bg/box so only the bubble shows */
+.messages-container .message .message-content {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0;
+  margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  border: none;
+  display: block;
+}
+/* High specificity to beat the legacy light-theme .message-bubble rules */
+.messages-container .message-bubble {
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: var(--bg-card);
+  color: var(--tx-body);
+  line-height: 1.45;
+  word-break: break-word;
+  box-shadow: none;
+  border: none;
+}
+.messages-container .message-image {
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+.messages-container .message-received .message-bubble {
+  background: var(--bg-card);
+  color: var(--tx-body);
+  border-bottom-left-radius: 6px;
+}
+.messages-container .message-sent .message-bubble {
+  background: var(--fd-orange);
+  color: #fff;
+  border-bottom-right-radius: 6px;
+}
+.messages-container .message-bubble .message-text {
+  color: inherit;
+}
+.msg-sender-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--fd-orange);
+  margin-bottom: 3px;
+}
+.message-image img,
+.message-image video {
+  max-width: 280px;
+  max-height: 340px;
+  border-radius: 12px;
+  display: block;
+}
+.message-audio {
+  padding: 2px 0;
+}
+.message-audio audio {
+  width: 240px;
+  max-width: 60vw;
+  height: 40px;
+}
+
+/* Composer */
+.message-input-container {
+  background: var(--bg-main);
+  border-top: 1px solid var(--line);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.message-attachments {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.attachment-btn,
+.emoji-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: var(--tx-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--ease);
+  font-size: 16px;
+}
+.attachment-btn:hover,
+.emoji-btn:hover {
+  background: var(--bg-card);
+  color: var(--fd-orange);
+}
+.message-input-wrapper {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  transition: var(--ease);
+}
+.message-input-wrapper:focus-within {
+  border-color: rgba(237, 90, 44, 0.5);
+}
+.message-input-wrapper textarea {
+  background: transparent;
+  color: var(--tx-body);
+  border: none;
+  width: 100%;
+  resize: none;
+  max-height: 120px;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 6px 0;
+}
+.message-input-wrapper textarea::placeholder {
+  color: var(--tx-muted);
+}
+.send-message-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: var(--fd-orange);
+  color: #fff;
+  cursor: pointer;
+  transition: var(--ease);
+  flex-shrink: 0;
+}
+.send-message-btn:hover {
+  background: var(--fd-orange-dark);
+  transform: scale(1.05);
+}
+.send-message-btn:active {
+  transform: scale(0.97);
+}
+
+/* Inline system / call events */
+.msg-system {
+  align-self: center;
+  text-align: center;
+  color: var(--tx-muted);
+  font-size: 13px;
+  margin: 10px 0;
+}
+.msg-callevent {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 16px;
+  margin: 8px auto;
+  max-width: 70%;
+  color: var(--tx-body);
+}
+.msg-callevent .join-call-btn {
+  margin-left: auto;
+  background: var(--fd-green);
+  color: #fff;
+  border: none;
+  padding: 7px 18px;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--ease);
+}
+.msg-callevent .join-call-btn:hover {
+  transform: scale(1.03);
+}
+
+/* ── Column 4: info sidebar ───────────────────────────────────────────────── */
+.info-sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--line);
+  height: 100vh;
+  overflow-y: auto;
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.info-section {
+}
+.info-title {
+  color: var(--tx-white);
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 14px;
+}
+.info-empty {
+  color: var(--tx-muted);
+  font-size: 13px;
+}
+.info-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+.info-member img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.info-member .nm {
+  color: var(--tx-body);
+  font-size: 14px;
+  flex: 1;
+}
+.info-member .role {
+  color: var(--fd-orange);
+  font-size: 11px;
+  font-weight: 700;
+}
+.info-member .mdot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #c4c7cc;
+}
+.info-member .mdot.on {
+  background: var(--fd-green);
+}
+.info-invite-btn {
+  margin-top: 12px;
+  width: 100%;
+  background: var(--bg-card);
+  color: var(--fd-orange);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--ease);
+}
+.info-invite-btn:hover {
+  background: rgba(237, 90, 44, 0.12);
+}
+.info-file-row {
+  color: var(--tx-body);
+  font-size: 13px;
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.info-file-thumbs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+.info-file-thumbs img,
+.info-file-thumbs video {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* ── Call window overlay ──────────────────────────────────────────────────── */
+.call-window {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  background: rgba(9, 9, 11, 0.85);
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+}
+.call-stage {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 18px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: var(--shadow);
+}
+.call-remote {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+}
+.call-remote-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: radial-gradient(circle at center, #1a1a1d, #0a0a0b);
+}
+.call-remote-placeholder img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--fd-orange);
+  box-shadow: 0 0 0 6px rgba(237, 90, 44, 0.15);
+}
+.call-status-text {
+  color: var(--tx-body);
+  font-size: 16px;
+  font-weight: 500;
+}
+.call-local {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: 190px;
+  height: 128px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 2px solid var(--line-2);
+  background: #000;
+  z-index: 2;
+  box-shadow: var(--shadow);
+}
+.call-tray {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 18px;
+}
+.call-ctrl {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg-card);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  transition: var(--ease);
+}
+.call-ctrl:hover {
+  transform: scale(1.08);
+}
+.call-ctrl:active {
+  transform: scale(0.95);
+}
+.call-ctrl.off {
+  background: #3f3f46;
+  color: var(--tx-muted);
+}
+.call-hangup {
+  background: var(--fd-red);
+}
+.call-hangup:hover {
+  background: #c0392b;
+}
+
+/* ── Incoming call modal ──────────────────────────────────────────────────── */
+.call-incoming-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(9, 9, 11, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.call-incoming-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 34px 42px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  animation: callPulse 1.4s ease-in-out infinite;
+}
+@keyframes callPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(237, 90, 44, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 18px rgba(237, 90, 44, 0);
+  }
+}
+.call-incoming-avatar {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--fd-orange);
+}
+.call-incoming-name {
+  color: var(--tx-white);
+  font-size: 20px;
+  font-weight: 700;
+  margin-top: 14px;
+}
+.call-incoming-type {
+  color: var(--tx-muted);
+  margin: 4px 0 22px;
+}
+.call-incoming-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+.call-accept,
+.call-reject {
+  border: none;
+  border-radius: 999px;
+  padding: 12px 26px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  transition: var(--ease);
+}
+.call-accept {
+  background: var(--fd-green);
+}
+.call-reject {
+  background: var(--fd-red);
+}
+.call-accept:hover,
+.call-reject:hover {
+  transform: scale(1.04);
+}
+
+/* ── Create-group modal ───────────────────────────────────────────────────── */
+#create-group-modal .modal-content {
+  background: var(--bg-panel);
+  color: var(--tx-body);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+.cg-avatar-label {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  cursor: pointer;
+  color: var(--tx-muted);
+  overflow: hidden;
+  transition: var(--ease);
+}
+.cg-avatar-label:hover {
+  color: var(--fd-orange);
+}
+.cg-avatar-label img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cg-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: var(--tx-body);
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.cg-input:focus {
+  outline: none;
+  border-color: rgba(237, 90, 44, 0.5);
+}
+.cg-members {
+  max-height: 240px;
+  overflow-y: auto;
+  margin-bottom: 14px;
+}
+.cg-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: var(--ease);
+}
+.cg-member:hover {
+  background: var(--hover);
+}
+.cg-member img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.cg-member .nm {
+  color: var(--tx-body);
+  flex: 1;
+}
+.cg-member .chk {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #c4c7cc;
+  transition: var(--ease);
+}
+.cg-member.selected .chk {
+  background: var(--fd-orange);
+  border-color: var(--fd-orange);
+}
+.cg-create-btn {
+  width: 100%;
+  background: var(--fd-orange);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--ease);
+}
+.cg-create-btn:hover {
+  background: var(--fd-orange-dark);
+}
+.cg-create-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ── Voice recorder bar ───────────────────────────────────────────────────── */
+.voice-record-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-input);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 8px 14px;
+}
+.vr-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--fd-red);
+  animation: vrPulse 1s infinite;
+  flex-shrink: 0;
+}
+@keyframes vrPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+.vr-time {
+  color: var(--tx-white);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  min-width: 42px;
+}
+.vr-hint {
+  color: var(--tx-muted);
+  font-size: 13px;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vr-cancel,
+.vr-send {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  flex-shrink: 0;
+  transition: var(--ease);
+}
+.vr-cancel {
+  background: #3f3f46;
+}
+.vr-send {
+  background: var(--fd-orange);
+}
+.vr-send:hover,
+.vr-cancel:hover {
+  transform: scale(1.05);
+}
+#voice-record-btn:hover {
+  color: var(--fd-orange);
+}
+
+/* ── Subtle scrollbars ────────────────────────────────────────────────────── */
+.messages-container::-webkit-scrollbar,
+.conversation-items::-webkit-scrollbar,
+.info-sidebar::-webkit-scrollbar,
+.cg-members::-webkit-scrollbar {
+  width: 8px;
+}
+.messages-container::-webkit-scrollbar-thumb,
+.conversation-items::-webkit-scrollbar-thumb,
+.info-sidebar::-webkit-scrollbar-thumb,
+.cg-members::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.28);
+}
+
+/* Floating mobile drawer button (chat icon) — desktop hidden, mobile shown */
+.mobile-conversations-toggle {
+  display: none;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+/* Tablet: collapse info sidebar to a slide-in overlay */
+@media (max-width: 1199px) {
+  .info-sidebar {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 90;
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow);
+  }
+  .info-sidebar.info-open {
+    transform: translateX(0);
+  }
+}
+@media (max-width: 991px) {
+  .conversations-list {
+    width: 260px;
+    min-width: 260px;
+  }
+}
+/* Mobile: hide rail + chat list; hamburger opens them as a drawer */
+@media (max-width: 767px) {
+  .group-rail,
+  .conversations-list {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    z-index: 100;
+    left: 0;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .conversations-list {
+    width: calc(100vw - 76px);
+    max-width: 340px;
+  }
+  .chat-container.drawer-open .group-rail {
+    transform: translateX(0);
+    box-shadow: var(--shadow);
+  }
+  .chat-container.drawer-open .conversations-list {
+    transform: translateX(0);
+    left: 76px;
+    box-shadow: var(--shadow);
+  }
+  .mobile-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 95;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .mobile-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .chat-container > .message-content {
+    width: 100vw;
+  }
+  .mobile-conversations-toggle {
+    display: flex !important;
+    position: fixed;
+    left: 16px;
+    bottom: 18px;
+    z-index: 92;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--fd-orange);
+    color: #fff;
+    border: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+  }
+  .message {
+    max-width: 88%;
+  }
+  .message-image img,
+  .message-image video {
+    max-width: 70vw;
+  }
+  .message-input-container {
+    padding: 10px 12px;
+  }
+  .call-local {
+    width: 120px;
+    height: 84px;
+    right: 12px;
+    bottom: 12px;
+  }
+}
+
+/* ============================================================================
+ * Message category — conversation-list UX refinement (2026-06-23)
+ * Segmented Primary/Requests control, new-chat affordance, keyboard a11y,
+ * reduced-motion + larger mobile tap targets. Appended last so it wins.
+ * ==========================================================================*/
+
+/* List header: title + new-chat affordance on one row */
+.conversations-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.conv-new-chat {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg-card);
+  color: var(--fd-orange);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  transition: var(--ease);
+}
+.conv-new-chat:hover {
+  background: var(--fd-orange);
+  color: #fff;
+  transform: scale(1.05);
+}
+.conv-new-chat:active {
+  transform: scale(0.96);
+}
+
+/* Segmented control: one track, one sliding thumb (signature element) */
+#conversation-tabs.conversation-tabs {
+  position: relative;
+  gap: 0;
+  padding: 5px;
+  margin: 4px 16px 12px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border-bottom: none;
+}
+#conversation-tabs::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  width: calc((100% - 10px) / 2);
+  background: #fff;
+  border-radius: 9px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  /* gentle spring overshoot — the one place we let motion be expressive */
+  transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 0;
+}
+#conversation-tabs:has(.conv-tab[data-category="requests"].active)::before {
+  transform: translateX(100%);
+}
+#conversation-tabs .conv-tab {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  background: transparent;
+  border-radius: 9px;
+  color: var(--tx-muted);
+  padding: 8px 0;
+  font-weight: 600;
+}
+#conversation-tabs .conv-tab.active {
+  background: transparent;
+  color: var(--fd-orange);
+}
+
+/* Conversation rows: calmer rhythm + press feedback */
+.conversation-item:active {
+  transform: scale(0.99);
+}
+
+/* Friendlier empty state (icon emitted by chat.js) */
+.conv-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 44px 20px;
+}
+.conv-empty .conv-empty-ico {
+  font-size: 30px;
+  color: var(--line-2);
+}
+
+/* Quality floor: visible keyboard focus */
+#conversation-tabs .conv-tab:focus-visible,
+.conversation-item:focus-visible,
+#search-conversations:focus-visible,
+.conv-new-chat:focus-visible {
+  outline: 2px solid var(--fd-orange);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* Quality floor: respect reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  #conversation-tabs::before,
+  .conversation-item,
+  .conv-new-chat,
+  .rail-item,
+  .rail-add,
+  .rail-group,
+  .header-action-btn,
+  .send-message-btn {
+    transition: none;
+  }
+}
+
+/* Mobile: meet 44px tap targets in the drawer */
+@media (max-width: 767px) {
+  #conversation-tabs .conv-tab {
+    padding: 11px 0;
+    font-size: 14px;
+  }
+  .conv-new-chat {
+    width: 42px;
+    height: 42px;
+    font-size: 16px;
+  }
+  .conversation-item {
+    padding: 11px 12px;
+  }
+}
+
+/* ============================================================================
+ * Messaging enhancements P1–P4 (2026-06-23)
+ * Pinned panel, per-message actions menu, inline edit, edited/tombstone markers,
+ * typing indicator, seen receipt, in-message search results. Brand tokens only.
+ * ==========================================================================*/
+
+/* ── P1: Pinned messages panel (in-flow, slides under the header) ──────────── */
+.pinned-panel {
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+  flex: 0 0 auto;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+.pinned-panel[hidden] {
+  display: none;
+}
+.pinned-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  position: sticky;
+  top: 0;
+  background: var(--bg-panel);
+  z-index: 1;
+}
+.pinned-panel-title {
+  font-weight: 700;
+  color: var(--tx-white);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pinned-panel-title i {
+  color: var(--fd-orange);
+}
+.pinned-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg-card);
+  color: var(--tx-body);
+  cursor: pointer;
+  transition: var(--ease);
+}
+.pinned-close:hover {
+  background: #e4e6eb;
+}
+.pinned-list {
+  padding: 0 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pinned-empty {
+  color: var(--tx-muted);
+  font-size: 13px;
+  padding: 8px 6px 14px;
+}
+.pinned-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--bg-main);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: var(--ease);
+}
+.pinned-item:hover {
+  border-color: var(--line-2);
+  background: #fff;
+}
+.pinned-item img.pin-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+.pinned-item .pin-body {
+  flex: 1;
+  min-width: 0;
+}
+.pinned-item .pin-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--tx-white);
+}
+.pinned-item .pin-snippet {
+  font-size: 13px;
+  color: var(--tx-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pinned-item .pin-time {
+  font-size: 11px;
+  color: var(--tx-muted);
+  margin-top: 2px;
+}
+.pinned-item .pin-unpin {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--tx-muted);
+  cursor: pointer;
+  transition: var(--ease);
+}
+.pinned-item .pin-unpin:hover {
+  background: var(--bg-card);
+  color: var(--fd-red);
+}
+
+/* ── P2: per-message actions (kebab) + floating menu ───────────────────────── */
+.msg-actions {
+  align-self: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--tx-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: var(--ease);
+}
+.message:hover .msg-actions,
+.msg-actions:focus-visible,
+.msg-actions.open {
+  opacity: 1;
+  background: var(--bg-card);
+}
+.msg-menu {
+  position: fixed;
+  z-index: 1200;
+  min-width: 168px;
+  background: var(--bg-main);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+}
+.msg-menu.open {
+  display: flex;
+}
+.msg-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--tx-body);
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: var(--ease);
+}
+.msg-menu button:hover {
+  background: var(--hover);
+}
+.msg-menu button i {
+  width: 16px;
+  text-align: center;
+  color: var(--tx-muted);
+}
+.msg-menu button.danger {
+  color: var(--fd-red);
+}
+.msg-menu button.danger i {
+  color: var(--fd-red);
+}
+
+/* ── P2: inline editor ─────────────────────────────────────────────────────── */
+.msg-inline-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.msg-inline-editor textarea {
+  width: 100%;
+  min-width: 180px;
+  resize: vertical;
+  min-height: 38px;
+  max-height: 160px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font: inherit;
+  color: var(--tx-body);
+  background: var(--bg-main);
+}
+.msg-inline-editor textarea:focus-visible {
+  outline: 2px solid var(--fd-orange);
+  outline-offset: 1px;
+}
+.msg-inline-editor .edit-row {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.msg-inline-editor button {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--ease);
+}
+.msg-inline-editor .edit-cancel {
+  background: var(--bg-card);
+  color: var(--tx-body);
+}
+.msg-inline-editor .edit-save {
+  background: var(--fd-orange);
+  color: #fff;
+}
+.msg-inline-editor .edit-save:hover {
+  background: var(--fd-orange-dark);
+}
+
+/* ── P2: edited marker + deleted tombstone ─────────────────────────────────── */
+.edited-marker {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  font-style: italic;
+  opacity: 0.7;
+}
+.message-tombstone {
+  font-style: italic;
+  color: var(--tx-muted);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.message-tombstone i {
+  font-size: 12px;
+}
+.message.is-deleted .msg-actions,
+.message.is-deleted .reaction-hover-btn,
+.message.is-deleted .message-reactions {
+  display: none !important;
+}
+
+/* ── P3: typing indicator (animated dots) ──────────────────────────────────── */
+.conversation-header-info.is-typing .conversation-status {
+  display: none;
+}
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--fd-orange);
+  font-size: 12px;
+  font-weight: 600;
+}
+.typing-indicator[hidden] {
+  display: none;
+}
+.typing-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+.typing-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--fd-orange);
+  display: inline-block;
+  animation: fd-typing 1.2s infinite ease-in-out;
+}
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.18s;
+}
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.36s;
+}
+@keyframes fd-typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+/* ── P3: seen receipt ──────────────────────────────────────────────────────── */
+.seen-label {
+  align-self: flex-end;
+  font-size: 11px;
+  color: var(--tx-muted);
+  margin: 2px 2px 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.seen-label i {
+  color: var(--fd-green);
+  font-size: 11px;
+}
+
+/* ── P4: in-message search results ─────────────────────────────────────────── */
+.message-search-results {
+  margin: 4px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.message-search-results[hidden] {
+  display: none;
+}
+.msr-head {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tx-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 6px 4px 2px;
+}
+.msr-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: var(--ease);
+}
+.msr-item:hover {
+  background: var(--hover);
+}
+.msr-item img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+.msr-item .msr-body {
+  flex: 1;
+  min-width: 0;
+}
+.msr-item .msr-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.msr-item .msr-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--tx-white);
+}
+.msr-item .msr-time {
+  font-size: 11px;
+  color: var(--tx-muted);
+  flex: 0 0 auto;
+}
+.msr-item .msr-snippet {
+  font-size: 13px;
+  color: var(--tx-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.msr-item .msr-snippet mark {
+  background: rgba(237, 90, 44, 0.18);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 1px;
+}
+.msr-empty {
+  color: var(--tx-muted);
+  font-size: 13px;
+  padding: 8px 6px;
+}
+
+/* ── Jump-to-message flash highlight ───────────────────────────────────────── */
+.message.msg-highlight .message-bubble {
+  animation: fd-msg-flash 1.6s ease;
+}
+@keyframes fd-msg-flash {
+  0%, 30% {
+    box-shadow: 0 0 0 3px rgba(237, 90, 44, 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(237, 90, 44, 0);
+  }
+}
+
+/* ── Quality floor: focus-visible rings on new controls ────────────────────── */
+.pinned-close:focus-visible,
+.pinned-item:focus-visible,
+.pinned-item .pin-unpin:focus-visible,
+.msg-actions:focus-visible,
+.msg-menu button:focus-visible,
+.msr-item:focus-visible {
+  outline: 2px solid var(--fd-orange);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* ── Quality floor: reduced motion ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .typing-dots span {
+    animation: none;
+  }
+  .message.msg-highlight .message-bubble {
+    animation: none;
+    box-shadow: 0 0 0 2px var(--fd-orange);
+  }
+  .pinned-panel,
+  .pinned-item,
+  .msg-actions,
+  .msg-menu button,
+  .msr-item,
+  .pinned-close {
+    transition: none;
+  }
+}
+
+/* ── Mobile: ≥44px tap targets + always-visible message actions ────────────── */
+@media (max-width: 767px) {
+  .msg-actions {
+    opacity: 1;
+    width: 44px;
+    height: 44px;
+  }
+  .msg-menu {
+    min-width: 200px;
+  }
+  .msg-menu button {
+    padding: 13px 14px;
+  }
+  .pinned-close {
+    width: 40px;
+    height: 40px;
+  }
+  .pinned-item .pin-unpin {
+    width: 40px;
+    height: 40px;
+  }
+  .pinned-panel {
+    max-height: 50vh;
+  }
+  .msr-item {
+    padding: 12px 10px;
+  }
+}
+
+/* ============================================================================
+ * Chat-container global UI & button polish (2026-06-23)
+ * Unifies the button system across the whole chat: keyboard focus on every
+ * control, consistent springy press, cleaner header/composer icon buttons,
+ * elevated send + empty state, subtle bubble depth. Appended last — wins.
+ * Brand tokens only.
+ * ==========================================================================*/
+
+/* Unified keyboard focus across EVERY interactive control in the chat surface */
+.rail-logo:focus-visible,
+.rail-item:focus-visible,
+.rail-add:focus-visible,
+.rail-group:focus-visible,
+.header-action-btn:focus-visible,
+.attachment-btn:focus-visible,
+.emoji-btn:focus-visible,
+.send-message-btn:focus-visible,
+.vr-send:focus-visible,
+.vr-cancel:focus-visible,
+.call-ctrl:focus-visible,
+.cg-create-btn:focus-visible,
+.cg-member:focus-visible,
+.cg-avatar-label:focus-within,
+.info-invite-btn:focus-visible,
+.back-to-messages-btn:focus-visible,
+.new-message-btn:focus-visible,
+.close-emoji-btn:focus-visible,
+.emoji-category:focus-visible,
+.emoji:focus-visible,
+.reaction-item:focus-visible,
+.call-accept:focus-visible,
+.call-reject:focus-visible,
+.mobile-conversations-toggle:focus-visible {
+  outline: 2px solid var(--fd-orange);
+  outline-offset: 2px;
+}
+
+/* Consistent springy press feedback on icon buttons that lacked it */
+.header-action-btn:active,
+.attachment-btn:active,
+.emoji-btn:active,
+.back-to-messages-btn:active,
+.close-emoji-btn:active,
+.pinned-close:active {
+  transform: scale(0.94);
+}
+
+/* Header action buttons → cleaner ghost-icon look (drop the heavy border/fill) */
+.header-action-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--tx-muted);
+}
+.header-action-btn:hover {
+  background: var(--bg-card);
+  color: var(--tx-white);
+}
+.header-action-btn.call-btn:hover {
+  background: var(--fd-orange);
+  color: #fff;
+  border-color: transparent;
+}
+/* The pinned/info toggles read as "on" when their panel is open */
+.header-action-btn.is-active {
+  background: rgba(237, 90, 44, 0.14);
+  color: var(--fd-orange);
+}
+
+/* Composer icon buttons: warm-tinted hover, consistent with the brand */
+.attachment-btn:hover,
+.emoji-btn:hover {
+  background: rgba(237, 90, 44, 0.1);
+  color: var(--fd-orange);
+}
+
+/* Send button: branded depth so the primary action reads as elevated */
+.send-message-btn {
+  box-shadow: 0 4px 12px rgba(237, 90, 44, 0.32);
+}
+.send-message-btn:hover {
+  box-shadow: 0 6px 16px rgba(237, 90, 44, 0.42);
+}
+
+/* Empty state: orange medallion behind the icon + lifted CTA */
+.no-message-selected .icon-container {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(237, 90, 44, 0.1);
+  margin-bottom: 14px;
+}
+.new-message-btn {
+  box-shadow: 0 4px 12px rgba(237, 90, 44, 0.3);
+  transition: var(--ease);
+}
+.new-message-btn:hover {
+  box-shadow: 0 6px 16px rgba(237, 90, 44, 0.42);
+  transform: translateY(-1px);
+}
+
+/* Received bubbles: a hair of depth so they lift off the white canvas */
+.messages-container .message-received .message-bubble {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Modal primary/secondary buttons: press feedback */
+.cg-create-btn:active,
+.info-invite-btn:active {
+  transform: scale(0.98);
+}
+
+/* Mobile: keep the now-ghost header/composer buttons at ≥42px targets */
+@media (max-width: 767px) {
+  .header-action-btn {
+    width: 42px;
+    height: 42px;
+  }
+  .attachment-btn,
+  .emoji-btn {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+/* Reduced motion: no press scaling / hover lift */
+@media (prefers-reduced-motion: reduce) {
+  .header-action-btn:active,
+  .attachment-btn:active,
+  .emoji-btn:active,
+  .back-to-messages-btn:active,
+  .close-emoji-btn:active,
+  .pinned-close:active,
+  .cg-create-btn:active,
+  .info-invite-btn:active,
+  .new-message-btn:hover {
+    transform: none;
+  }
+}
+
+/* ============================================================================
+ * Layout refactor — give the conversation room + fix media overflow (2026-06-23)
+ * The 4th column (info sidebar) starved the message column on laptop widths
+ * (≤~400px for messages at 1280px). Make the info panel a toggle-only slide-in
+ * at ALL widths (Messenger/Discord pattern), opened by the members button.
+ * ==========================================================================*/
+
+/* Info sidebar: out of the flow, slide-in overlay, closed by default everywhere */
+.info-sidebar {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 90;
+  width: 320px;
+  min-width: 320px;
+  max-width: 86vw;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow);
+  will-change: transform;
+}
+.info-sidebar.info-open {
+  transform: translateX(0);
+}
+/* Dim the conversation behind the open info panel (desktop + tablet) */
+.info-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 89;
+  background: rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.info-scrim.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Composer: let the input flex/shrink cleanly so it always fills the row */
+.message-input-container {
+  width: 100%;
+}
+.message-input-wrapper {
+  min-width: 0;
+}
+.message-input-wrapper textarea {
+  min-width: 0;
+  width: 100%;
+}
+
+/* Voice notes: fixed player width so the bubble sizes to it (a % collapses against
+   the shrink-wrap bubble). Was 300px in a 264px bubble → overflow. */
+.messages-container .message-image.is-audio {
+  width: auto;
+  max-width: 100%;
+}
+.messages-container .message-image.is-audio audio {
+  width: 260px;
+  max-width: 62vw;
+  height: 40px;
+  display: block;
+}
+/* Belt-and-braces: nothing in the thread may force horizontal scroll */
+.messages-container {
+  overflow-x: hidden;
+}
+/* Anchor short threads to the bottom (newest just above composer) like real chat
+   apps — margin-top:auto keeps full scrollability for long threads. */
+.messages-container > :first-child {
+  margin-top: auto;
+}
+
+/* Roomier bubbles now that the column is wider, but not full-bleed on desktop */
+.messages-container .message {
+  max-width: 72%;
+}
+@media (min-width: 1200px) {
+  .messages-container .message {
+    max-width: 620px;
+  }
+}
+
+/* Reduced motion: no slide on the info panel */
+@media (prefers-reduced-motion: reduce) {
+  .info-sidebar {
+    transition: none;
+  }
+}
+
+/* Mobile: info panel becomes a near-full-width sheet */
+@media (max-width: 767px) {
+  .info-sidebar {
+    width: 86vw;
+    min-width: 0;
+  }
+  .messages-container .message {
+    max-width: 86%;
+  }
+}
+
+/* ============================================================================
+ * Interactive message polish (2026-06-23) — grouping, hover affordances,
+ * calmer bubble hover. Grouping rules are sender-agnostic on purpose so they
+ * stay correct in group chats (no avatar hiding that would mislabel senders).
+ * ==========================================================================*/
+
+/* Group consecutive same-direction messages: tighter stack + flattened inner
+   corner so a burst reads as one unit (like iMessage/Messenger). */
+.messages-container .message-sent + .message-sent,
+.messages-container .message-received + .message-received {
+  margin-top: -2px;
+}
+.messages-container .message-sent + .message-sent .message-bubble {
+  border-top-right-radius: 7px;
+}
+.messages-container .message-received + .message-received .message-bubble {
+  border-top-left-radius: 7px;
+}
+
+/* Timestamp only under the LAST message of a consecutive run — declutters the
+   thread while keeping a time anchor at the end of each burst. */
+.messages-container .message-sent:has(+ .message-sent) .message-time,
+.messages-container .message-received:has(+ .message-received) .message-time {
+  display: none;
+}
+.messages-container .message-time {
+  color: var(--tx-muted);
+}
+
+/* Hover reaction smile: float at the bubble's top-outer corner. Legacy put it at
+   ±40px to the side, which is now clipped by overflow-x:hidden (audio fix). */
+.messages-container .message-bubble {
+  position: relative;
+}
+.messages-container .message-bubble .reaction-hover-btn {
+  top: -12px;
+  bottom: auto;
+  transform: none;
+  width: 30px;
+  height: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+}
+.messages-container .message-sent .message-bubble .reaction-hover-btn {
+  right: -6px;
+  left: auto;
+}
+.messages-container .message-received .message-bubble .reaction-hover-btn {
+  left: -6px;
+  right: auto;
+}
+.messages-container .message-bubble .reaction-hover-btn:hover {
+  transform: scale(1.12);
+}
+
+/* Calmer bubble hover — legacy lifted every bubble 2px with a heavy shadow,
+   which felt jumpy in a fast thread. Keep it subtle. */
+.messages-container .message-bubble:hover {
+  transform: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .messages-container .message-bubble .reaction-hover-btn:hover {
+    transform: none;
+  }
+}
+
+/* ============================================================================
+ * 3-COLUMN DENSE REDESIGN + MULTI-PARTY (MESH) CALL GRID  (2026-06-24)
+ * Collapses the old 4-column layout (group-rail | list | chat | info) into a
+ * clean 3-column messenger: ONE left sidebar (Direct Messages + Channels) |
+ * center chat | right info. Tighter paddings / smaller avatars / smaller fonts
+ * so it reads well at 100% zoom. Appended last → wins. Brand tokens only.
+ * ==========================================================================*/
+
+/* The separate left icon-rail is gone — its groups now live in the left list. */
+.group-rail { display: none !important; }
+
+/* ── Left sidebar shell (denser) ───────────────────────────────────────────── */
+.chat-container > .conversations-list {
+  width: 286px;
+  min-width: 286px;
+}
+.conversations-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px 8px;
+}
+.conv-brand {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  transition: var(--ease);
+}
+.conv-brand img { width: 24px; height: 24px; }
+.conv-brand:hover { transform: scale(1.06); }
+.conversations-title {
+  font-size: 18px;
+  font-weight: 700;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.conv-new-chat { width: 34px; height: 34px; font-size: 14px; }
+
+.search-conversation {
+  margin: 4px 12px 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+.search-conversation input { font-size: 13px; }
+
+#conversation-tabs.conversation-tabs { margin: 2px 12px 8px; padding: 4px; }
+#conversation-tabs .conv-tab { padding: 6px 0; font-size: 12.5px; }
+
+/* One scroller holds both sections; the inner lists size to content. */
+.conv-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 2px 0 16px;
+  min-height: 0;
+}
+.conversation-items {
+  flex: 0 0 auto;
+  overflow: visible;
+  padding: 0 8px;
+}
+.conv-section-label {
+  padding: 12px 12px 4px;
+  font-size: 10.5px;
+}
+.channels-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 8px;
+}
+.channels-add {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg-card);
+  color: var(--fd-orange);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex: 0 0 auto;
+  transition: var(--ease);
+}
+.channels-add:hover { background: var(--fd-orange); color: #fff; transform: scale(1.06); }
+.channels-add:active { transform: scale(0.94); }
+.channels-list { padding: 0 8px; }
+.channels-empty { color: var(--tx-muted); font-size: 12.5px; padding: 6px 12px 4px; }
+
+/* ── Conversation + channel rows (denser, smaller avatars) ─────────────────── */
+.conversation-item { gap: 10px; padding: 7px 10px; border-radius: 10px; }
+.conversation-avatar { width: 40px; height: 40px; }
+.conversation-avatar img { width: 40px; height: 40px; }
+.conversation-name { font-size: 13.5px; }
+.conversation-last-message { font-size: 12.5px; }
+.conversation-time { font-size: 10.5px; }
+.conv-online { width: 11px; height: 11px; }
+
+/* Channel rows reuse the conversation-row rhythm */
+.channel-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  padding: 7px 10px;
+  margin-bottom: 1px;
+  cursor: pointer;
+  text-align: left;
+  position: relative;
+  color: var(--tx-body);
+  transition: var(--ease);
+}
+.channel-item:hover { background: var(--hover); }
+.channel-item.active { background: rgba(237, 90, 44, 0.12); }
+.channel-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background: var(--fd-orange);
+  border-radius: 0 3px 3px 0;
+}
+.channel-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  color: #4b4d52;
+  font-weight: 700;
+  font-size: 14px;
+}
+.channel-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.channel-item.active .channel-avatar { background: var(--fd-orange); color: #fff; }
+.channel-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.channel-badge {
+  margin-left: auto;
+  flex: 0 0 auto;
+  background: var(--fd-red);
+  color: #fff;
+  border-radius: 999px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.channel-item:focus-visible,
+.channels-add:focus-visible,
+.conv-brand:focus-visible {
+  outline: 2px solid var(--fd-orange);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* ── Right info sidebar: real 3rd column on desktop, overlay below 1200px ───── */
+@media (min-width: 1200px) {
+  .info-sidebar {
+    position: static;
+    transform: none;
+    width: 300px;
+    min-width: 300px;
+    max-width: 300px;
+    box-shadow: none;
+    border-left: 1px solid var(--line);
+    z-index: auto;
+  }
+  .info-scrim { display: none !important; }
+  /* The panel is always visible at this width — the members toggle isn't needed. */
+  #toggle-info-btn { display: none; }
+}
+
+/* ── Multi-party call window: Discord-style responsive tile grid ────────────── */
+.call-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 22px 6px;
+  color: #fff;
+}
+.call-title { font-weight: 700; font-size: 16px; color: #fff; }
+.call-count { font-size: 13px; color: rgba(255, 255, 255, 0.7); }
+.call-grid {
+  flex: 1;
+  display: grid;
+  gap: 12px;
+  padding: 12px 18px;
+  align-content: center;
+  justify-items: stretch;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  overflow: auto;
+  min-height: 0;
+}
+.call-tile {
+  position: relative;
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+}
+.call-tile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+  background: #000;
+}
+.call-tile.has-video video { display: block; }
+.call-tile.is-local.has-video video { transform: scaleX(-1); } /* mirror self-view */
+.call-tile-av {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #1a1a1d, #0a0a0b);
+}
+.call-tile.has-video .call-tile-av { display: none; }
+.call-tile-av img {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--fd-orange);
+  box-shadow: 0 0 0 6px rgba(237, 90, 44, 0.15);
+}
+.call-tile-name {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  max-width: calc(100% - 20px);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Responsive: rebuild the mobile drawer without the old group-rail ───────── */
+@media (max-width: 767px) {
+  .chat-container > .conversations-list {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    width: min(86vw, 360px);
+    min-width: 0;
+    max-width: 360px;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .chat-container.drawer-open > .conversations-list {
+    transform: translateX(0);
+    left: 0;
+    box-shadow: var(--shadow);
+  }
+  /* Mobile tap targets ≥44px in the denser list */
+  .conversation-item,
+  .channel-item { padding: 10px 12px; }
+  .channels-add { width: 34px; height: 34px; }
+  .call-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conv-brand,
+  .channel-item,
+  .channels-add,
+  .chat-container > .conversations-list { transition: none; }
+}
+
+/* ── Optimization pass: cancel legacy chat.css bloat that survives into the 3-col design ─ */
+
+/* Conversation list shell — kill the heavy shadow (border handles separation) */
+.conversations-list {
+  box-shadow: none;
+}
+
+/* Items — remove horizontal dividers (cards + spacing is the rhythm now) */
+.conversation-item {
+  border-bottom: none;
+}
+/* Cancel the slide-right on hover and the avatar scale — flat card design, no movement */
+.conversation-item:hover {
+  transform: none;
+  box-shadow: none;
+}
+.conversation-item:hover .conversation-avatar {
+  transform: none;
+  border-color: transparent;
+  box-shadow: none;
+}
+/* Remove the border-left active indicator from chat.css — ::before handles it */
+.conversation-item.active {
+  border-left: none;
+  box-shadow: none;
+}
+/* Clean avatar — no border, no outer box-shadow */
+.conversation-avatar {
+  border: none;
+  box-shadow: none;
+}
+
+/* Message header — remove the gradient + heavy shadow, cancel the 70px floor */
+.message-header {
+  background: var(--bg-main);
+  box-shadow: none;
+  min-height: unset;
+}
+/* Pulse dot on the "Messages" title is noisy — hide it */
+.message-header-title::before {
+  display: none;
+}
+
+/* Active conversation header — remove the drop-shadow, rely on border */
+.conversation-header-active {
+  box-shadow: none;
+}
+/* Avatar in the header — no outer border ring */
+.conversation-header-avatar {
+  border: none;
+  box-shadow: none;
+}
+
+/* Search bar — flat input, no position-sticky padding bloat */
+.search-conversation {
+  box-shadow: none;
+  border-bottom: none;
+}
+.search-conversation input {
+  padding: 8px 12px 8px 38px;
+  border-radius: 10px;
+  border-width: 1px;
+  font-size: 13px;
+}
+.search-conversation input:focus {
+  transform: none;
+}
+
+/* Info sidebar — match the border/bg to the panel token */
+.info-sidebar {
+  background: var(--bg-panel);
+  box-shadow: none;
+}
+
+/* Messages — ensure font-size is compact regardless of chat.css specificity */
+.messages-container {
+  padding: 12px 16px;
+}
+.messages-container .message-bubble {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Composer — cancel extra padding from chat.css variants */
+.message-input-container {
+  padding: 10px 14px;
+}
+
+/* #message-input: ID selector in chat.css wins over .class — need ID specificity here */
+#message-input {
+  padding: 6px 4px;
+  font-size: 14px;
+  border-radius: 0;
+  overflow-y: hidden; /* auto-resize JS handles height; hides scroll arrows */
+}
+
+/* Hide the redundant "Messages" title bar in the center when a conversation is open.
+   The active conversation header already shows the user name + status. */
+.message-content:has(#active-conversation:not([style*="display: none"])) .message-header {
+  display: none;
+}
+
+/* ── Info panel: window-style header with close button ─────────────────── */
+.info-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--line);
+}
+.info-header-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--tx-white);
+}
+.info-close-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--tx-muted);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--ease);
+}
+.info-close-btn:hover {
+  background: var(--hover);
+  color: var(--tx-white);
+}
+/* Toggle button reflects open state */
+.header-action-btn.is-active {
+  background: rgba(237, 90, 44, 0.12);
+  color: var(--fd-orange);
+}
+
+/* ── Category tabs: richer hover / press / badge feedback ──────────────── */
+#conversation-tabs .conv-tab {
+  cursor: pointer;
+  transition: color 0.18s ease, transform 0.12s ease;
+}
+#conversation-tabs .conv-tab:hover:not(.active) {
+  color: var(--tx-body);
+}
+#conversation-tabs .conv-tab:active {
+  transform: scale(0.97);
+}
+.conv-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 4px;
+  border-radius: 9px;
+  background: var(--fd-orange);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.conv-tab-badge:empty,
+.conv-tab-badge[data-zero="1"] {
+  display: none;
+}
+@keyframes badge-pop {
+  0% { transform: scale(0.4); }
+  60% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+.conv-tab-badge.pop {
+  animation: badge-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Conversation rows: hover reveals an accent bar — clearer affordance */
+.conversation-item {
+  position: relative;
+}
+.conversation-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--fd-orange);
+  transform: scaleY(0);
+  transition: transform 0.18s ease;
+}
+.conversation-item:hover::before,
+.conversation-item.active::before {
+  transform: scaleY(1);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Single-input composer (2026-07-05) — one text field + one trailing button
+   (mic when empty / send when typing). Recording overlays the row so there is
+   never a second parallel input.
+   ══════════════════════════════════════════════════════════════════════════ */
+.message-input-container {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--bg-main);
+  border-top: 1px solid var(--line);
+}
+.composer-icon-btn {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: var(--tx-muted);
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--ease);
+}
+.composer-icon-btn:hover {
+  background: var(--bg-card);
+  color: var(--fd-orange);
+}
+.message-input-container .message-input-wrapper {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-input);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 3px 16px;
+  display: flex;
+  align-items: center;
+  transition: border-color 0.18s ease;
+}
+.message-input-container .message-input-wrapper:focus-within {
+  border-color: rgba(237, 90, 44, 0.5);
+}
+.message-input-container .message-input-wrapper textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  resize: none;
+  color: var(--tx-body);
+  font-family: inherit;
+  font-size: 14.5px;
+  line-height: 1.4;
+  max-height: 120px;
+  padding: 9px 0;
+  outline: none;
+}
+.message-input-container .message-input-wrapper textarea::placeholder {
+  color: var(--tx-muted);
+}
+.composer-send {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--ease);
+}
+.composer-send.mic {
+  background: var(--bg-card);
+  color: var(--tx-muted);
+}
+.composer-send.mic:hover {
+  background: var(--bg-input);
+  color: var(--fd-orange);
+}
+.composer-send.send {
+  background: var(--fd-orange);
+  color: #fff;
+}
+.composer-send.send:hover {
+  background: var(--fd-orange-dark);
+  transform: scale(1.05);
+}
+.composer-send:active {
+  transform: scale(0.95);
+}
+
+/* Recording bar overlays the entire composer row (one input, not two). */
+.message-input-container .voice-record-bar {
+  position: absolute;
+  inset: 8px 14px;
+  z-index: 3;
+  background: var(--bg-main);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px 0 14px;
+  flex: none;
+}
+
+/* Chat header bars match the app's standard 68px top bar (visual consistency
+   with dashboard/recipes/etc.). */
+.message-content > .message-area .message-header,
+.message-header,
+.conversation-header-active {
+  min-height: 68px;
+  box-sizing: border-box;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-items: center;
+}
+.message-header-title {
+  font-size: 19px;
+  color: var(--tx-body);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Full app header integrated on chat (2026-07-05) — the chat now sits UNDER
+   the standard Feedora top bar, like every other page.
+   ══════════════════════════════════════════════════════════════════════════ */
+:root { --fd-hh: 68px; }
+
+/* main-content is a flex column: [app header 68px][chat fills the rest] */
+.main-content {
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+}
+.chat-container {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+}
+.conversations-list,
+.chat-container > .message-content {
+  height: 100%;
+  min-height: 0;
+}
+
+/* The old in-chat "Messages" title bar is redundant — the app header is the top
+   bar now. (The per-conversation header with avatar/call buttons stays.) */
+.message-header {
+  display: none !important;
+}
+
+/* Slide-in info panel + mobile drawers open BELOW the header, not over it. */
+.info-sidebar {
+  top: var(--fd-hh);
+}
+@media (max-width: 768px) {
+  :root { --fd-hh: 60px; }
+  .group-rail,
+  .conversations-list {
+    top: var(--fd-hh);
+    bottom: 0;
+  }
+}
+@media (max-width: 576px) {
+  :root { --fd-hh: 55px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Redesign polish (2026-07-05)
+   ══════════════════════════════════════════════════════════════════════════ */
+/* Conversation-list column header lines up with the app top bar height and
+   drops the redundant brand logo (the app sidebar already shows branding). */
+.conversations-top {
+  height: var(--fd-hh);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px 0 16px;
+  border-bottom: 1px solid var(--line);
+}
+.conv-brand { display: none; }
+.conversations-title { font-size: 19px; flex: 1; min-width: 0; }
+
+/* Search bar a touch tighter under the aligned header. */
+.search-conversation { margin-top: 10px; }
+
+/* Friendlier, more professional empty state. */
+.no-message-selected .icon-container {
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(237, 90, 44, 0.1);
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+.no-message-selected h3 {
+  font-size: 20px;
+}
+.no-message-selected p {
+  max-width: 320px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Per-conversation header sits flush at the app-header height for a clean line. */
+.conversation-header-active {
+  height: var(--fd-hh);
+  min-height: var(--fd-hh);
+  box-sizing: border-box;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Mobile conversations drawer fix (2026-07-05)
+   The drawer must sit BELOW the app header, be opaque, and stack ABOVE the dim
+   overlay so its conversation rows are tappable. High-specificity so it wins
+   over the earlier duplicate drawer blocks.
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .chat-container > .conversations-list {
+    top: var(--fd-hh);
+    bottom: 0;
+    z-index: 120;                 /* above the dim overlay (below) */
+    background: var(--bg-panel);  /* opaque so it's never see-through */
+    box-shadow: var(--shadow);
+  }
+  /* The dim only covers the chat area (not the header), sits below the drawer,
+     and only intercepts taps while the drawer is actually open. */
+  .mobile-overlay {
+    top: var(--fd-hh);
+    z-index: 108;
+    background: rgba(0, 0, 0, 0.45);
+    pointer-events: none;
+  }
+  .chat-container.drawer-open ~ .mobile-overlay,
+  .mobile-overlay.active {
+    pointer-events: auto;
+  }
+}

@@ -25,10 +25,19 @@
         top: 0;
         left: 0;
         z-index: 100;
-        overflow-y: auto;
+        overflow-y: auto;   /* vertical scroll only */
+        overflow-x: hidden; /* never scroll horizontally */
         display: flex;
         flex-direction: column;
-        transition: all 0.3s ease;
+        /* Only animate the properties that actually change — `all` made window
+           resizes janky as every property tried to transition. */
+        transition: width 0.3s ease, transform 0.3s ease;
+    }
+    /* Suppress transitions while the window is being resized (set by JS) so the
+       sidebar/main-content snap cleanly between breakpoints instead of sliding. */
+    body.fd-no-anim .sidebar,
+    body.fd-no-anim .main-content {
+        transition: none !important;
     }
     
     /* Sidebar close button */
@@ -72,12 +81,16 @@
         .sidebar-close-btn {
             display: flex;
         }
-        
-        .sidebar-logo {
-            display: flex;
-            justify-content: center;
-            padding: 15px 0;
-            margin-bottom: 10px;
+
+        /* Collapse toggle is a desktop-only affordance; the drawer uses the
+           close button (top-right) instead. */
+        .sidebar-collapse-toggle {
+            display: none;
+        }
+
+        .sidebar-brand {
+            justify-content: flex-start;
+            padding: 15px 20px;
         }
         
         .sidebar.active {
@@ -147,16 +160,127 @@
         }
     }
 
-    .sidebar-logo {
-        padding: 20px;
+    /* Brand row: interactive favicon-style logo + desktop collapse toggle */
+    .sidebar-brand {
         display: flex;
-        justify-content: center;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 14px 18px;
         border-bottom: 1px solid #eee;
     }
 
+    .sidebar-logo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(237, 90, 44, 0.08);
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background 0.2s ease;
+        flex-shrink: 0;
+    }
+
     .sidebar-logo img {
-        max-width: 150px;
-        height: auto;
+        width: 26px;
+        height: 26px;
+        object-fit: contain;
+        transition: transform 0.4s ease;
+    }
+
+    .sidebar-logo:hover {
+        background: rgba(237, 90, 44, 0.16);
+        box-shadow: 0 6px 16px -6px rgba(237, 90, 44, 0.5);
+        transform: translateY(-1px);
+    }
+
+    .sidebar-logo:hover img {
+        transform: rotate(-8deg) scale(1.08);
+    }
+
+    .sidebar-collapse-toggle {
+        width: 34px;
+        height: 34px;
+        border: none;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--light-text);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease, color 0.2s ease, transform 0.3s ease;
+    }
+
+    .sidebar-collapse-toggle:hover {
+        background: rgba(237, 90, 44, 0.1);
+        color: var(--primary-color);
+    }
+
+    /* ── Desktop collapsed (icon-rail) state ─────────────────────────────── */
+    .main-content {
+        transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @media (min-width: 769px) {
+        .sidebar {
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
+        }
+
+        body.sidebar-collapsed .sidebar {
+            width: 76px;
+        }
+
+        body.sidebar-collapsed .main-content {
+            margin-left: 76px;
+        }
+
+        /* Collapsed brand: stack the logo + toggle vertically so the chevron
+           never lands on top of the icon (fixes the "toggle jumps onto logo"). */
+        body.sidebar-collapsed .sidebar-brand {
+            flex-direction: column;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 0;
+        }
+
+        body.sidebar-collapsed .sidebar-collapse-toggle {
+            transform: rotate(180deg);
+            background: rgba(237, 90, 44, 0.1);
+            color: var(--primary-color);
+        }
+
+        body.sidebar-collapsed .menu-item-text {
+            display: none;
+        }
+
+        body.sidebar-collapsed .menu-item {
+            justify-content: center;
+            padding: 12px 0;
+            margin: 6px 14px;
+        }
+
+        /* Icons shrink when collapsed, grow back when expanded (per request). */
+        body.sidebar-collapsed .menu-item-icon {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            margin-right: 0;
+        }
+
+        body.sidebar-collapsed .sidebar-logo {
+            width: 40px;
+            height: 40px;
+        }
+
+        body.sidebar-collapsed .sidebar-logo img {
+            width: 22px;
+            height: 22px;
+        }
+        /* Collapsed labels are shown via the native `title` attribute (set in
+           sidebar.js) — a CSS tooltip would overflow the rail and re-introduce
+           the horizontal scrollbar we just removed. */
     }
 
     .sidebar-menu {
@@ -170,7 +294,7 @@
         padding: 12px 20px;
         color: var(--text-color);
         text-decoration: none;
-        transition: all 0.2s ease;
+        transition: background-color 0.2s ease, color 0.2s ease;
         margin: 6px 10px;
         border-radius: 8px;
         position: relative;
@@ -202,14 +326,14 @@
     }
 
     .menu-item-icon {
-        width: 28px;
-        height: 28px;
-        min-width: 28px;
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
         margin-right: 15px;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s ease;
+        transition: width 0.25s ease, height 0.25s ease, min-width 0.25s ease, margin 0.25s ease;
     }
 
     .menu-item-icon img {

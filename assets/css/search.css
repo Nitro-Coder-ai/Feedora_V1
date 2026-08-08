@@ -121,6 +121,10 @@ header:hover { box-shadow: 0 8px 22px rgba(0, 0, 0, .12); }
   color: #ed5a2c; background: rgba(237,90,44,.1);
   padding: 3px 8px; border-radius: 999px; flex-shrink: 0;
 }
+/* People show as round avatars with a distinct badge (Facebook-style). */
+.fd-type-person .fd-thumb { border-radius: 50%; }
+.fd-type-person .fd-badge { color: #2563eb; background: rgba(37,99,235,.1); }
+.fd-type-post .fd-badge { color: #16a34a; background: rgba(22,163,74,.1); }
 
 /* ---- Tag chips (discover) ------------------------------------------------ */
 .fd-tags { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 12px 14px; }

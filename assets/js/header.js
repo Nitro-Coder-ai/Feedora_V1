@@ -45,6 +45,7 @@
                 'dashboard': 'Dashboard',
                 'recipes': 'Recipes',
                 'messages': 'Messages',
+                'chat': 'Messages',
                 'chefs': 'Meet Chefs',
                 'live': 'Live Sessions',
                 'profile': 'Profile',

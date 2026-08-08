@@ -35,18 +35,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: sign-up.php');
         exit;
     }
+    // Block disposable / undeliverable email domains (anti-spam-signup).
+    [$emailOk, $emailErr] = email_is_allowed($email);
+    if (!$emailOk) {
+        rate_limit_record($rlKey, 3600);
+        $_SESSION['error'] = $emailErr;
+        header('Location: sign-up.php');
+        exit;
+    }
 
     // Hash the password for security
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
     try {
-        // Prepare an SQL statement to insert the new user into the database
-        $stmt = $pdo->prepare("INSERT INTO USERS (NAME, EMAIL, PASSWORD_HASH) VALUES (?, ?, ?)");
-        $stmt->execute([$name, $email, $hashedPassword]);
+        // Create the account UNVERIFIED with a single-use email token (24h TTL).
+        // The user cannot reach the dashboard until they confirm the address.
+        // Only the token HASH is stored (raw token lives only in the email link).
+        $token = make_verification_token();
+        $expires = date('Y-m-d H:i:s', time() + 86400);
+        $stmt = $pdo->prepare(
+            "INSERT INTO USERS (NAME, EMAIL, PASSWORD_HASH, AUTH_PROVIDER, EMAIL_VERIFIED, VERIFICATION_TOKEN, VERIFICATION_EXPIRES)
+             VALUES (?, ?, ?, 'local', 0, ?, ?)"
+        );
+        $stmt->execute([$name, $email, $hashedPassword, hash_verification_token($token), $expires]);
+        $newUserId = (int) $pdo->lastInsertId();
 
-        // Redirect to a success page or login page
-        $_SESSION['success'] = 'Registration successful. You can now log in.';
-        header('Location: sign-in.php');
+        // Send the verification email (do NOT log them in yet).
+        [$sent, $mailErr] = send_verification_email($email, $name, $token);
+        if (!$sent) {
+            error_log('[sign-up] verification email not sent: ' . $mailErr);
+        }
+
+        // Remember who's pending so the notice page can resend + show status.
+        $_SESSION['pending_verify_email'] = $email;
+        $_SESSION['pending_verify_uid']   = $newUserId;
+        // Dev fallback: when SMTP isn't configured, surface the link on-screen.
+        if (!mailer_configured()) {
+            $_SESSION['pending_verify_link'] = verification_link($token);
+        }
+        header('Location: verify-notice.php');
         exit;
     } catch (PDOException $e) {
         // Count the failed attempt; log the real error; show a generic message
@@ -205,7 +232,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           
           <button type="submit" class="login-button">Sign Up</button>
         </form>
-        
+
+        <?php include __DIR__ . '/includes/social_login.php'; ?>
+
         <div class="signup-link">
           <p>Already have an account? <a href="sign-in.php">Sign in</a></p>
         </div>
@@ -244,8 +273,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <li><a href="home.php" class="footer-link">Home</a></li>
             <li><a href="recipe.php" class="footer-link">Recipes</a></li>
             <li><a href="live.php" class="footer-link">Live Sessions</a></li>
-            <li><a href="#" class="footer-link">Contact</a></li>
-            <li><a href="#" class="footer-link">Terms & Privacy</a></li>
+            <li><a href="contact.php" class="footer-link">Contact</a></li>
+            <li><a href="terms.php" class="footer-link">Terms & Privacy</a></li>
           </ul>
         </div>
         

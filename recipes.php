@@ -9,10 +9,10 @@ require_once 'includes/CloudinaryService.php';
 session_start();
 csrf_verify(); // CSRF: reject forged state-changing POSTs
 
-// Check if the user is logged in
+// Logged-out visitors get an attractive public preview of the Recipes section
+// (instead of a bare redirect to sign-in).
 if (!isset($_SESSION['user_id'])) {
-    // Redirect to the login page if not logged in
-    header("Location: sign-in.php");
+    include __DIR__ . '/includes/preview_recipes.php';
     exit();
 }
 

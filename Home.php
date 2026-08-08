@@ -1056,8 +1056,8 @@ $followHref = isset($_SESSION['user_id']) ? 'chefs.php' : 'sign-in.php';
             <li><a href="Home.php" class="footer-link">Home</a></li>
             <li><a href="recipes.php" class="footer-link">Recipes</a></li>
             <li><a href="live.php" class="footer-link">Live Sessions</a></li>
-            <li><a href="#" class="footer-link">Contact</a></li>
-            <li><a href="#" class="footer-link">Terms & Privacy</a></li>
+            <li><a href="contact.php" class="footer-link">Contact</a></li>
+            <li><a href="terms.php" class="footer-link">Terms & Privacy</a></li>
           </ul>
         </div>
 

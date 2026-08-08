@@ -15,11 +15,15 @@ class StoryRepository {
      */
     public function createStory($userId, $imageUrl, $mediaType = 'image', $imagePublicId = null, $visibility = 'public') {
         try {
+            // Normalize to the only two valid values so MEDIA_TYPE (VARCHAR(10))
+            // always stores a clean 'image' or 'video' the viewer can rely on.
+            $mediaType = ($mediaType === 'video') ? 'video' : 'image';
+
             $stmt = $this->pdo->prepare("
-                INSERT INTO STORIES (USER_ID, IMAGE_URL, MEDIA_TYPE, IMAGE_PUBLIC_ID, VISIBILITY, CREATED_AT, EXPIRES_AT) 
+                INSERT INTO STORIES (USER_ID, IMAGE_URL, MEDIA_TYPE, IMAGE_PUBLIC_ID, VISIBILITY, CREATED_AT, EXPIRES_AT)
                 VALUES (?, ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 24 HOUR))
             ");
-            
+
             $result = $stmt->execute([$userId, $imageUrl, $mediaType, $imagePublicId, $visibility]);
             
             if ($result) {
@@ -75,6 +79,82 @@ class StoryRepository {
         }
     }
     
+    /**
+     * Whether $viewerId follows $authorId (one-way follow relationship).
+     */
+    public function isFollowing($authorId, $viewerId) {
+        try {
+            $stmt = $this->pdo->prepare(
+                "SELECT 1 FROM FOLLOWERS WHERE USER_ID = ? AND FOLLOWER_ID = ? LIMIT 1"
+            );
+            $stmt->execute([$authorId, $viewerId]);
+            return (bool) $stmt->fetch();
+        } catch (PDOException $e) {
+            error_log("isFollowing error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Ordered list of user IDs that have >= 1 active story VISIBLE to the viewer,
+     * most-recently-active first. Visibility algorithm:
+     *   - own stories: always visible
+     *   - 'public'   : visible to everyone (recommendation feed)
+     *   - 'friends'  : visible only to the author's followers
+     * (Placeholders are positional and unique because emulated prepares are off.)
+     */
+    public function getActiveStoryUserIds($viewerId) {
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT s.USER_ID
+                FROM STORIES s
+                WHERE s.EXPIRES_AT > NOW()
+                  AND (
+                        s.USER_ID = ?
+                     OR s.VISIBILITY = 'public'
+                     OR (s.VISIBILITY = 'friends' AND EXISTS (
+                            SELECT 1 FROM FOLLOWERS f
+                            WHERE f.USER_ID = s.USER_ID AND f.FOLLOWER_ID = ?))
+                  )
+                GROUP BY s.USER_ID
+                ORDER BY MAX(s.CREATED_AT) DESC
+            ");
+            $stmt->execute([$viewerId, $viewerId]);
+            return $stmt->fetchAll(PDO::FETCH_COLUMN);
+        } catch (PDOException $e) {
+            error_log("getActiveStoryUserIds error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Active stories of $authorId that are VISIBLE to $viewerId (same algorithm
+     * as getActiveStoryUserIds), ordered oldest-first for sequential playback.
+     */
+    public function getVisibleUserStories($authorId, $viewerId) {
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT s.*, u.NAME, u.PROFILE_IMAGE
+                FROM STORIES s
+                JOIN USERS u ON s.USER_ID = u.USER_ID
+                WHERE s.USER_ID = ? AND s.EXPIRES_AT > NOW()
+                  AND (
+                        s.USER_ID = ?
+                     OR s.VISIBILITY = 'public'
+                     OR (s.VISIBILITY = 'friends' AND EXISTS (
+                            SELECT 1 FROM FOLLOWERS f
+                            WHERE f.USER_ID = s.USER_ID AND f.FOLLOWER_ID = ?))
+                  )
+                ORDER BY s.CREATED_AT ASC
+            ");
+            $stmt->execute([$authorId, $viewerId, $viewerId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("getVisibleUserStories error: " . $e->getMessage());
+            return [];
+        }
+    }
+
     /**
      * FIXED: Get all active stories grouped by user with accurate view tracking
      */

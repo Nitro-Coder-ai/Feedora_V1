@@ -270,19 +270,28 @@ CREATE TABLE STORY_VIEWS (
 -- -----------------------------------------------------------------------------
 -- Table: MESSAGES
 -- -----------------------------------------------------------------------------
+-- RECEIVER_ID is nullable (group messages have no single receiver); GROUP_ID FK is
+-- added after CHAT_GROUPS exists (see ALTER below that table). IS_READ powers DM read
+-- receipts; EDITED_AT/IS_DELETED power edit & soft-delete (scripts/2026_messages_enhancements.sql).
 CREATE TABLE MESSAGES (
    MESSAGE_ID INT AUTO_INCREMENT PRIMARY KEY,
    SENDER_ID INT NOT NULL,
-   RECEIVER_ID INT NOT NULL,
+   RECEIVER_ID INT NULL,
+   GROUP_ID INT NULL,                                 -- set for group messages (FK added below CHAT_GROUPS)
    CONTENT TEXT,
    IMAGE_URL TEXT,
    IMAGE_PUBLIC_ID VARCHAR(255) NULL,                 -- Cloudinary public_id
    REACTIONS JSON,
+   IS_READ TINYINT(1) NOT NULL DEFAULT 0,             -- DM read receipt flag
    SENT_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+   EDITED_AT TIMESTAMP NULL DEFAULT NULL,             -- non-null => "edited" marker
+   IS_DELETED TINYINT(1) NOT NULL DEFAULT 0,          -- soft-delete / tombstone
    KEY idx_messages_sender (SENDER_ID),
    KEY idx_messages_receiver (RECEIVER_ID),
    KEY idx_messages_sent_at (SENT_AT),
    KEY idx_messages_conversation (SENDER_ID, RECEIVER_ID),
+   KEY idx_messages_seen (SENDER_ID, RECEIVER_ID, IS_READ, MESSAGE_ID),
+   KEY idx_messages_group (GROUP_ID, MESSAGE_ID),
    FOREIGN KEY (SENDER_ID) REFERENCES USERS(USER_ID) ON DELETE CASCADE,
    FOREIGN KEY (RECEIVER_ID) REFERENCES USERS(USER_ID) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -418,3 +427,120 @@ INSERT INTO USERS (NAME, EMAIL, PASSWORD_HASH) VALUES
 INSERT INTO RECIPES (USER_ID, ID_CATEGORIE, TITLE, INSTRUCTIONS, PREP_TIME_MINUTES, COOK_TIME_MINUTES, SERVINGS) VALUES
 (1, 2, 'Classic Spaghetti Carbonara', 'Step 1: Cook spaghetti according to package directions.\nStep 2: In a bowl, whisk together eggs, cheese, and pepper.\nStep 3: Cook bacon until crispy.\nStep 4: Combine hot pasta with egg mixture and bacon.\nStep 5: Serve immediately with extra cheese.', 15, 20, 4),
 (2, 3, 'Chocolate Chip Cookies', 'Step 1: Preheat oven to 375°F.\nStep 2: Mix butter, sugars, and vanilla.\nStep 3: Add eggs one at a time.\nStep 4: Mix in flour, baking soda, and salt.\nStep 5: Fold in chocolate chips.\nStep 6: Bake for 9-11 minutes.', 20, 11, 24);
+
+-- -----------------------------------------------------------------------------
+-- 2026: Group chats + WebRTC call signaling (see scripts/2026_chat_groups_calls.sql)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS CHAT_GROUPS (
+    GROUP_ID INT AUTO_INCREMENT PRIMARY KEY,
+    NAME VARCHAR(255) NOT NULL,
+    AVATAR_URL VARCHAR(512) NULL,
+    AVATAR_PUBLIC_ID VARCHAR(255) NULL,
+    CREATED_BY INT NOT NULL,
+    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (CREATED_BY) REFERENCES USERS(USER_ID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS CHAT_GROUP_MEMBERS (
+    GROUP_ID INT NOT NULL,
+    USER_ID INT NOT NULL,
+    ROLE VARCHAR(50) DEFAULT 'member',
+    JOINED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (GROUP_ID, USER_ID),
+    FOREIGN KEY (GROUP_ID) REFERENCES CHAT_GROUPS(GROUP_ID) ON DELETE CASCADE,
+    FOREIGN KEY (USER_ID) REFERENCES USERS(USER_ID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- MESSAGES.GROUP_ID is declared in the CREATE above; its FK is added here because it
+-- references CHAT_GROUPS, which is defined after the MESSAGES table.
+ALTER TABLE MESSAGES ADD CONSTRAINT fk_messages_group
+    FOREIGN KEY (GROUP_ID) REFERENCES CHAT_GROUPS(GROUP_ID) ON DELETE CASCADE;
+
+CREATE TABLE IF NOT EXISTS CALL_SESSIONS (
+    CALL_ID INT AUTO_INCREMENT PRIMARY KEY,
+    CALLER_ID INT NOT NULL,
+    RECEIVER_ID INT NULL,
+    GROUP_ID INT NULL,
+    CALL_TYPE VARCHAR(20) NOT NULL,
+    STATUS VARCHAR(50) DEFAULT 'ringing',
+    OFFER_SDP TEXT NULL,
+    ANSWER_SDP TEXT NULL,
+    STARTED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ENDED_AT TIMESTAMP NULL,
+    FOREIGN KEY (CALLER_ID) REFERENCES USERS(USER_ID) ON DELETE CASCADE,
+    FOREIGN KEY (RECEIVER_ID) REFERENCES USERS(USER_ID) ON DELETE CASCADE,
+    FOREIGN KEY (GROUP_ID) REFERENCES CHAT_GROUPS(GROUP_ID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS CALL_ICE_CANDIDATES (
+    CANDIDATE_ID INT AUTO_INCREMENT PRIMARY KEY,
+    CALL_ID INT NOT NULL,
+    SENDER_ID INT NOT NULL,
+    CANDIDATE TEXT NOT NULL,
+    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (CALL_ID) REFERENCES CALL_SESSIONS(CALL_ID) ON DELETE CASCADE,
+    FOREIGN KEY (SENDER_ID) REFERENCES USERS(USER_ID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- 2026: Discord-style multi-party (mesh) calls (see scripts/2026_multiparty_calls.sql).
+-- CALL_SESSIONS is the room (group call = one row with GROUP_ID); CALL_PARTICIPANTS
+-- is the live roster; CALL_PEER_SIGNALS carries directed offer/answer/ICE between
+-- every ordered peer-pair. Legacy CALL_ICE_CANDIDATES stays for the 1:1 path.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS CALL_PARTICIPANTS (
+    CALL_ID    INT NOT NULL,
+    USER_ID    INT NOT NULL,
+    ROLE       VARCHAR(20) NOT NULL DEFAULT 'participant',  -- 'host' | 'participant'
+    STATUS     VARCHAR(20) NOT NULL DEFAULT 'active',       -- 'active' | 'left'
+    JOINED_AT  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    LEFT_AT    TIMESTAMP NULL DEFAULT NULL,
+    PRIMARY KEY (CALL_ID, USER_ID),
+    KEY idx_callpart_active (CALL_ID, STATUS),
+    KEY idx_callpart_user (USER_ID),
+    FOREIGN KEY (CALL_ID) REFERENCES CALL_SESSIONS(CALL_ID) ON DELETE CASCADE,
+    FOREIGN KEY (USER_ID) REFERENCES USERS(USER_ID)         ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS CALL_PEER_SIGNALS (
+    SIGNAL_ID   INT AUTO_INCREMENT PRIMARY KEY,
+    CALL_ID     INT NOT NULL,
+    FROM_USER   INT NOT NULL,
+    TO_USER     INT NOT NULL,
+    KIND        VARCHAR(10) NOT NULL,                       -- 'offer' | 'answer' | 'ice'
+    PAYLOAD     TEXT NOT NULL,                              -- SDP string or ICE candidate JSON
+    CREATED_AT  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_peersig_inbox (CALL_ID, TO_USER, SIGNAL_ID),
+    FOREIGN KEY (CALL_ID)   REFERENCES CALL_SESSIONS(CALL_ID) ON DELETE CASCADE,
+    FOREIGN KEY (FROM_USER) REFERENCES USERS(USER_ID)         ON DELETE CASCADE,
+    FOREIGN KEY (TO_USER)   REFERENCES USERS(USER_ID)         ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- 2026: Messaging enhancements — pins + typing (see scripts/2026_messages_enhancements.sql)
+-- MESSAGES.EDITED_AT / IS_DELETED / IS_READ + seen/group indexes are declared in the
+-- MESSAGES table above. CONV_KEY scope: DM 'dm:<loId>:<hiId>', group 'grp:<groupId>'.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS MESSAGE_PINS (
+    PIN_ID      INT AUTO_INCREMENT PRIMARY KEY,
+    MESSAGE_ID  INT NOT NULL,
+    CONV_KEY    VARCHAR(64) NOT NULL,            -- canonical scope key
+    SCOPE_TYPE  VARCHAR(8)  NOT NULL,            -- 'dm' | 'group'
+    GROUP_ID    INT NULL,                        -- set for group scope, NULL for DM
+    PINNED_BY   INT NOT NULL,
+    PINNED_AT   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_pin_message (MESSAGE_ID),       -- pinned at most once per scope
+    KEY idx_pins_conv (CONV_KEY, PINNED_AT),
+    FOREIGN KEY (MESSAGE_ID) REFERENCES MESSAGES(MESSAGE_ID)   ON DELETE CASCADE,
+    FOREIGN KEY (PINNED_BY)  REFERENCES USERS(USER_ID)         ON DELETE CASCADE,
+    FOREIGN KEY (GROUP_ID)   REFERENCES CHAT_GROUPS(GROUP_ID)  ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS MESSAGE_TYPING (
+    USER_ID     INT NOT NULL,
+    CONV_KEY    VARCHAR(64) NOT NULL,            -- same canonical scope key as pins
+    UPDATED_AT  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (USER_ID, CONV_KEY),
+    KEY idx_typing_conv (CONV_KEY, UPDATED_AT),
+    FOREIGN KEY (USER_ID) REFERENCES USERS(USER_ID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

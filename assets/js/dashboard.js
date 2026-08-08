@@ -2558,35 +2558,39 @@ async function processFiles(files) {
     newFiles.push(file);
   }
 
-  // Display validation errors if any
+  // Surface validation warnings per-reason, but DON'T discard the files that passed.
+  // (Rejecting the whole batch when one file is bad is why "the next image/video
+  //  didn't show" — the valid ones were being thrown away with the bad one.)
   if (invalidFiles.length > 0) {
     showToast(
-      `Unsupported formats: ${invalidFiles.slice(0, 3).join(", ")}${invalidFiles.length > 3 ? "..." : ""}. Only images/videos allowed.`,
+      `Skipped unsupported files: ${invalidFiles.slice(0, 3).join(", ")}${invalidFiles.length > 3 ? "..." : ""}. Only images/videos allowed.`,
       "error"
     );
-    return;
   }
 
   if (oversizedFiles.length > 0) {
     showToast(
-      `Files too large (Max 50MB): ${oversizedFiles.slice(0, 3).join(", ")}${oversizedFiles.length > 3 ? "..." : ""}.`,
+      `Skipped files over 50MB: ${oversizedFiles.slice(0, 3).join(", ")}${oversizedFiles.length > 3 ? "..." : ""}.`,
       "error"
     );
-    return;
   }
 
   if (tooLongVideos.length > 0) {
     showToast(
-      `Videos too long (Max 1 min): ${tooLongVideos.slice(0, 3).join(", ")}${tooLongVideos.length > 3 ? "..." : ""}.`,
+      `Skipped videos over 1 min: ${tooLongVideos.slice(0, 3).join(", ")}${tooLongVideos.length > 3 ? "..." : ""}. Stories must be 60s or less.`,
       "error"
     );
-    return;
   }
 
-  // Check overall limit
-  if (selectedStoryFiles.length + newFiles.length > maxFiles) {
-    showToast(`Maximum of ${maxFiles} stories can be uploaded at once.`, "error");
-    return;
+  if (newFiles.length === 0) {
+    return; // nothing valid to add
+  }
+
+  // Check overall limit — keep what fits, warn about the rest.
+  const remainingSlots = maxFiles - selectedStoryFiles.length;
+  if (newFiles.length > remainingSlots) {
+    showToast(`Maximum of ${maxFiles} stories at once — extra files were skipped.`, "error");
+    newFiles.length = Math.max(0, remainingSlots);
   }
 
   // Add validated files to list
@@ -3440,3 +3444,18 @@ window.uploadStories = uploadStories;
 window.initializeStoryUpload = initializeStoryUpload;
 
 console.log("✅ Enhanced Story Upload System Board Loaded Successfully!");
+
+/* Quick-create: when arriving at dashboard.php#create-post (header + button),
+   scroll to and focus the post composer instead of opening the bare handler. */
+(function () {
+  function focusComposer() {
+    if (location.hash !== "#create-post") return;
+    var box = document.getElementById("create-post");
+    var ta = document.getElementById("postDescription");
+    if (box) box.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (ta) setTimeout(function () { ta.focus(); }, 350);
+  }
+  window.addEventListener("hashchange", focusComposer);
+  if (document.readyState !== "loading") focusComposer();
+  else document.addEventListener("DOMContentLoaded", focusComposer);
+})();
