@@ -22,7 +22,9 @@ if (!function_exists('__auth_secret')) {
     {
         $env = getenv($envKey);
         if ($env !== false && $env !== '') return $env;
-        return (string) ($s[$key] ?? $default);
+        $value = (string) ($s[$key] ?? $default);
+        // A template placeholder (PASTE_YOUR_..._HERE) means "not set": the feature stays off
+        return stripos($value, 'PASTE_YOUR_') === 0 ? $default : $value;
     }
 }
 
