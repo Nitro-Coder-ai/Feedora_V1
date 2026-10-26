@@ -38,10 +38,23 @@ CREATE TABLE IF NOT EXISTS USER_CUISINES (
    FOREIGN KEY (CUISINE_ID) REFERENCES CUISINES(CUISINE_ID) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 3) Onboarding flag on USERS (added conditionally below via the apply script) --
---    See companion guard; MySQL lacks ADD COLUMN IF NOT EXISTS pre-8.0.29.
+-- 3) Onboarding flag on USERS ------------------------------------------------------
+--    Guarded: MySQL lacks ADD COLUMN IF NOT EXISTS before 8.0.29. Accounts that
+--    existed before onboarding was introduced are marked as onboarded.
+SET @has_onboarded := (SELECT COUNT(*) FROM information_schema.COLUMNS
+   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'USERS' AND COLUMN_NAME = 'ONBOARDED');
+SET @sql := IF(@has_onboarded = 0,
+   'ALTER TABLE USERS ADD COLUMN ONBOARDED TINYINT(1) NOT NULL DEFAULT 0', 'DO 0');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+SET @sql := IF(@has_onboarded = 0, 'UPDATE USERS SET ONBOARDED = 1', 'DO 0');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- 4) Index to support visibility-filtered story queries -------------------------
 --    Queries filter EXPIRES_AT > NOW() then branch on VISIBILITY; this covering
 --    index lets the optimizer keep using the range scan while reading visibility.
-CREATE INDEX idx_stories_expires_vis_user ON STORIES (EXPIRES_AT, VISIBILITY, USER_ID);
+--    Guarded so the script can be re-run.
+SET @has_idx := (SELECT COUNT(*) FROM information_schema.STATISTICS
+   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'STORIES' AND INDEX_NAME = 'idx_stories_expires_vis_user');
+SET @sql := IF(@has_idx = 0,
+   'CREATE INDEX idx_stories_expires_vis_user ON STORIES (EXPIRES_AT, VISIBILITY, USER_ID)', 'DO 0');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;

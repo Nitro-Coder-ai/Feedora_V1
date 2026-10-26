@@ -13,13 +13,16 @@
  */
 class CloudinaryService
 {
-    /** @return bool true when all three credentials are defined and non-empty */
+    /** @return bool true when all three credentials are defined, non-empty and not template placeholders */
     public static function isConfigured(): bool
     {
-        return defined('CLOUDINARY_CLOUD_NAME') && CLOUDINARY_CLOUD_NAME
-            && defined('CLOUDINARY_API_KEY') && CLOUDINARY_API_KEY
-            && defined('CLOUDINARY_API_SECRET') && CLOUDINARY_API_SECRET
-            && function_exists('curl_init');
+        foreach (['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET'] as $name) {
+            $value = defined($name) ? (string) constant($name) : '';
+            if ($value === '' || stripos($value, 'PASTE_YOUR_') === 0 || stripos($value, 'your_') === 0) {
+                return false;
+            }
+        }
+        return function_exists('curl_init');
     }
 
     /**
@@ -38,11 +41,12 @@ class CloudinaryService
             return ['success' => false, 'url' => null, 'public_id' => null, 'resource_type' => null, 'error' => $msg];
         };
 
-        if (!self::isConfigured()) {
-            return $fail('Cloudinary is not configured (missing credentials or cURL).');
-        }
         if (!is_file($filePath)) {
             return $fail('Source file not found: ' . $filePath);
+        }
+        if (!self::isConfigured()) {
+            // No Cloudinary keys yet (fresh clone): keep the app usable by storing locally
+            return self::storeLocally($filePath, $folder, $fail);
         }
 
         $timestamp = time();
@@ -109,6 +113,49 @@ class CloudinaryService
             'resource_type' => $data['resource_type'] ?? null,
             'error'         => null,
         ];
+    }
+
+    /**
+     * Local-disk fallback used when Cloudinary is not configured: copies the file
+     * to uploads/<last folder segment>/ (e.g. "feedora/posts" -> uploads/posts/)
+     * and returns the same shape as a Cloudinary upload, with a relative URL.
+     * Only whitelisted image/video/audio types are stored; the extension comes
+     * from the file's content, never from the uploaded name.
+     */
+    private static function storeLocally(string $filePath, string $folder, callable $fail): array
+    {
+        $types = [
+            'image/jpeg' => ['jpg', 'image'], 'image/png' => ['png', 'image'], 'image/gif' => ['gif', 'image'],
+            'image/webp' => ['webp', 'image'], 'video/mp4' => ['mp4', 'video'], 'video/webm' => ['webm', 'video'],
+            'video/quicktime' => ['mov', 'video'], 'audio/mpeg' => ['mp3', 'video'], 'audio/ogg' => ['ogg', 'video'],
+            'application/ogg' => ['ogg', 'video'], 'audio/wav' => ['wav', 'video'], 'audio/x-wav' => ['wav', 'video'],
+            'audio/mp4' => ['m4a', 'video'], 'audio/x-m4a' => ['m4a', 'video'], 'audio/webm' => ['webm', 'video'],
+        ];
+        $fi = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : false;
+        $mime = $fi ? (string) finfo_file($fi, $filePath) : '';
+        if ($fi) {
+            finfo_close($fi);
+        }
+        if (!isset($types[$mime])) {
+            return $fail('Local upload refused: unsupported file type ' . $mime);
+        }
+        [$ext, $resourceType] = $types[$mime];
+
+        $sub = preg_replace('/[^a-z0-9_-]/i', '', basename(str_replace('\\', '/', $folder))) ?: 'misc';
+        $dirRel = 'uploads/' . $sub . '/';
+        $dirAbs = dirname(__DIR__) . '/' . $dirRel;
+        if (!is_dir($dirAbs) && !@mkdir($dirAbs, 0755, true)) {
+            return $fail('Local upload failed: cannot create ' . $dirRel);
+        }
+        $name = uniqid($sub . '_', true) . '.' . $ext;
+        $name = str_replace('.', '', pathinfo($name, PATHINFO_FILENAME)) . '.' . $ext;
+        $moved = is_uploaded_file($filePath)
+            ? move_uploaded_file($filePath, $dirAbs . $name)
+            : copy($filePath, $dirAbs . $name);
+        if (!$moved) {
+            return $fail('Local upload failed: cannot write ' . $dirRel . $name);
+        }
+        return ['success' => true, 'url' => $dirRel . $name, 'public_id' => null, 'resource_type' => $resourceType, 'error' => null];
     }
 
     /**

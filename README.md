@@ -285,14 +285,15 @@ Feedora_Project_Full/
 │   └── facebook.php               # Facebook OAuth callback
 │
 ├── 📁 config/
-│   ├── config.php                 # DB connection (PDO)
-│   ├── config.sample.php          # Config template
+│   ├── config.php                 # 🔒 Your DB + Cloudinary keys (git-ignored, from the template)
+│   ├── config.sample.php          # Config template (copy to config.php)
 │   ├── auth.php                   # Auth constants & helpers
-│   ├── secrets.php                # 🔒 API keys (git-ignored)
-│   └── secrets.sample.php         # Secrets template
+│   ├── secrets.php                # 🔒 OAuth + SMTP keys (git-ignored)
+│   └── secrets.sample.php         # Secrets template (copy to secrets.php)
 │
 ├── 📁 includes/
-│   ├── CloudinaryService.php      # Cloudinary upload/transform
+│   ├── helpers.php                # asset(), CSRF, rate limiting, image validation
+│   ├── CloudinaryService.php      # Cloudinary upload/transform (local uploads/ fallback)
 │   ├── StoryService.php           # Story business logic
 │   ├── StoryRepository.php        # Story data access
 │   ├── StoryFileHandler.php       # Story media processing
@@ -458,6 +459,8 @@ erDiagram
 
 ### Migration Scripts
 
+Required for a working install: apply all of them, in this order, after `Feedora.sql` (see [Quick Start](#-quick-start)). Each script is safe to re-run.
+
 | Script | Purpose |
 |--------|---------|
 | `2026_schema_optimize.sql` | Core schema optimization (indexes, types) |
@@ -546,33 +549,58 @@ cd Feedora_V1
 
 ### Step 2 — Database Setup
 
+Create the database from `Feedora.sql`, then apply **every** migration in `scripts/` in this order (the app needs the columns and tables they add). All scripts are safe to re-run.
+
+Run these from the project folder (each command asks for your MySQL password; XAMPP's default is empty, MAMP's is `root`):
+
+**macOS / Linux / Git Bash**
 ```bash
-# Log into MySQL and create the database
-mysql -u root -p < Feedora.sql
+mysql -u root -p -e "source Feedora.sql"
+for s in schema_optimize auth_oauth_email_verify chat_groups_calls messages_enhancements \
+         messages_read_state multiparty_calls post_media_music_shares \
+         story_reactions_replies story_visibility_and_onboarding; do
+  mysql -u root -p Feedora -e "source scripts/2026_$s.sql"
+done
 ```
 
-This creates the `Feedora` database with all tables, indexes, and seed data.
+**Windows PowerShell** (XAMPP: `C:\xampp\mysql\bin\mysql.exe`, MAMP: `C:\MAMP\bin\mysql\bin\mysql.exe`)
+```powershell
+$mysql = "C:\xampp\mysql\bin\mysql.exe"
+& $mysql -u root -p -e "source Feedora.sql"
+"schema_optimize","auth_oauth_email_verify","chat_groups_calls","messages_enhancements","messages_read_state","multiparty_calls","post_media_music_shares","story_reactions_replies","story_visibility_and_onboarding" |
+  ForEach-Object { & $mysql -u root -p Feedora -e "source scripts/2026_$_.sql" }
+```
 
-> **Upgrading an existing database?** Use `scripts/2026_schema_optimize.sql` instead for non-destructive migration.
+This creates the `Feedora` database with all tables, indexes and two demo accounts:
 
-### Step 3 — Configuration
+| Email | Password |
+|-------|----------|
+| `john@example.com` | `password` |
+| `jane@example.com` | `password` |
+
+> **Upgrading an existing database?** Run only the migrations you have not applied yet, in the same order.
+
+### Step 3 — Configuration (add your own keys)
 
 ```bash
-# Copy the config template
-cp config/config.sample.php config/config.php
-
-# Copy the secrets template
-cp config/secrets.sample.php config/secrets.php
+cp config/config.sample.php  config/config.php    # database + Cloudinary
+cp config/secrets.sample.php config/secrets.php   # Google / Facebook / email (optional)
 ```
 
-Edit `config/config.php` with your database credentials:
+Both copies are **git-ignored**: your keys stay on your machine and never reach GitHub.
+Open them and replace each `PASTE_YOUR_..._HERE` value with your own:
 
-```php
-$db_host = 'localhost';
-$db_name = 'Feedora';
-$db_user = 'root';
-$db_pass = 'your_password';
-```
+| Setting | File | Where to get it | Without it |
+|---------|------|-----------------|-----------|
+| `$password` (MySQL) | `config.php` | Your MySQL user (XAMPP: empty, MAMP: `root`) | Uses an empty password |
+| `CLOUDINARY_CLOUD_NAME` / `API_KEY` / `API_SECRET` | `config.php` | [cloudinary.com](https://cloudinary.com) → Dashboard → API Keys (free plan) | Uploads are saved to the local `uploads/` folder |
+| `GOOGLE_CLIENT_ID` / `SECRET` | `secrets.php` | [Google Cloud Console](https://console.cloud.google.com/apis/credentials) | No "Continue with Google" button |
+| `FACEBOOK_APP_ID` / `SECRET` | `secrets.php` | [Meta for Developers](https://developers.facebook.com/apps) | No "Continue with Facebook" button |
+| `SMTP_USER` / `SMTP_PASS` / `SMTP_FROM` | `secrets.php` | Your email provider (Gmail: an App Password) | The verification link is shown on screen (development mode) |
+
+Every value can also come from an environment variable instead (`FEEDORA_DB_PASS`, `FEEDORA_DB_HOST`, `FEEDORA_DB_PORT`, `CLOUDINARY_API_KEY`, `FEEDORA_GOOGLE_CLIENT_ID`, …), which is recommended in production.
+
+> **Never commit real keys.** Only the `*.sample.php` templates belong in the repository.
 
 ### Step 4 — Launch
 
@@ -598,23 +626,25 @@ For Google/Facebook login and email verification, see the detailed guide:
 <details>
 <summary><b>Quick secrets setup</b></summary>
 
-Edit `config/secrets.php`:
+Edit `config/secrets.php` (copied from `config/secrets.sample.php`) and replace the placeholders:
 
 ```php
 <?php return [
-  'GOOGLE_CLIENT_ID'     => 'xxxx.apps.googleusercontent.com',
-  'GOOGLE_CLIENT_SECRET' => 'GOCSPX-...',
-  'FACEBOOK_APP_ID'      => '...',
-  'FACEBOOK_APP_SECRET'  => '...',
+  'GOOGLE_CLIENT_ID'     => 'PASTE_YOUR_GOOGLE_CLIENT_ID_HERE',
+  'GOOGLE_CLIENT_SECRET' => 'PASTE_YOUR_GOOGLE_CLIENT_SECRET_HERE',
+  'FACEBOOK_APP_ID'      => 'PASTE_YOUR_FACEBOOK_APP_ID_HERE',
+  'FACEBOOK_APP_SECRET'  => 'PASTE_YOUR_FACEBOOK_APP_SECRET_HERE',
   'SMTP_HOST' => 'smtp.gmail.com',
   'SMTP_PORT' => '465',
   'SMTP_SECURE' => 'ssl',
-  'SMTP_USER' => 'you@gmail.com',
-  'SMTP_PASS' => 'your-app-password',
-  'SMTP_FROM' => 'you@gmail.com',
+  'SMTP_USER' => 'PASTE_YOUR_EMAIL_ADDRESS_HERE',
+  'SMTP_PASS' => 'PASTE_YOUR_EMAIL_APP_PASSWORD_HERE',
+  'SMTP_FROM' => 'PASTE_YOUR_EMAIL_ADDRESS_HERE',
   'SMTP_FROM_NAME' => 'Feedora',
 ];
 ```
+
+A value left as `PASTE_YOUR_..._HERE` counts as "not set": that feature simply stays off.
 
 Or use environment variables prefixed with `FEEDORA_`:
 
@@ -715,7 +745,8 @@ php scripts/replace_image_refs.php
 
 ### Cloudinary (Media CDN)
 
-All user-uploaded media is stored and served through **Cloudinary**:
+When Cloudinary keys are set in `config/config.php`, user-uploaded media is stored and served through **Cloudinary**.
+Without keys, uploads are saved to the local `uploads/` folder (git-ignored), so a fresh clone works out of the box.
 
 - **Auto-format** (`f_auto`) — serves WebP/AVIF based on browser support
 - **Auto-quality** (`q_auto`) — optimizes compression per-image
