@@ -34,3 +34,6 @@ scripts/shots/
 # Lighthouse audit reports + backups
 scripts/lh/
 *.a11ybak
+
+# Local AI-assistant notes and settings (may contain machine-specific data)
+.claude/
